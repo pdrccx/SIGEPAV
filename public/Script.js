@@ -916,9 +916,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalMensaje = document.getElementById('modal-mensaje');
     const modalBtnAceptar = document.getElementById('modal-btn-aceptar');
 
-    function mostrarAviso(titulo, mensaje, callback) {
+    function mostrarAviso(titulo, mensaje, callback, tipo) {
         if (modalTitulo) modalTitulo.textContent = titulo;
         if (modalMensaje) modalMensaje.textContent = mensaje;
+
+        // Ícono y botón según el tipo: 'success' = palomita verde + botón verde.
+        const icono = modalAviso ? modalAviso.querySelector('.modal-icono') : null;
+        if (icono) {
+            icono.className = (tipo === 'success')
+                ? 'fas fa-check-circle modal-icono modal-icono-verde'
+                : 'fas fa-exclamation-triangle modal-icono';
+        }
+        if (modalBtnAceptar) modalBtnAceptar.classList.toggle('btn-exito', tipo === 'success');
+
         if (modalOverlay) modalOverlay.style.display = 'block';
         if (modalAviso) modalAviso.style.display = 'block';
         if (modalBtnAceptar) modalBtnAceptar.focus();
@@ -1140,7 +1150,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (vehiculoComision) vehiculoComision.value = '';
                         actualizarMedidor(0);
                         if (esPaginaModulo) { window.location.href = 'menu.html'; } else { mostrarVista(menuPrincipal); }
-                    });
+                    },
+                    'success');
 
                 registrarActividad(`Comisión registrada (${oficioAsignado}): ${lugar} (vehículo ${vehiculo_id})`);
             } catch (err) {

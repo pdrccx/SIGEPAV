@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "sigepav",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["F:\\2026\\INNOVATEC\\Gesti-n-Vehicular-main\\Server.js"],
+      "port": 3000
+    }
+  ]
+}

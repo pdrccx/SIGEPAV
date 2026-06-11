@@ -57,9 +57,19 @@
             return String(sesion.apellidos || sesion.nombre || '').replace(/\s+/g, ' ').trim();
         }
 
-        function mostrarAviso(titulo, mensaje, callback) {
+        function mostrarAviso(titulo, mensaje, callback, tipo) {
             modalTitulo.textContent = titulo;
             modalMensaje.textContent = mensaje;
+
+            // Ícono y botón según el tipo: 'success' = palomita verde + botón verde.
+            const icono = modalAviso.querySelector('.modal-icono');
+            if (icono) {
+                icono.className = (tipo === 'success')
+                    ? 'fas fa-check-circle modal-icono modal-icono-verde'
+                    : 'fas fa-exclamation-triangle modal-icono';
+            }
+            modalBtnAceptar.classList.toggle('btn-exito', tipo === 'success');
+
             modalOverlay.style.display = 'block';
             modalAviso.style.display = 'block';
             modalBtnAceptar.focus();
@@ -443,7 +453,8 @@
                         vehiculoSelect.value = '';
                         actualizarMedidor(0);
                         volverPanel();
-                });
+                },
+                    'success');
             } catch (err) {
                 console.error('Error guardando viaje:', err);
                 mostrarAviso('Error', 'No se pudo guardar la comisión: ' + err.message);

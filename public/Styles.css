@@ -1193,6 +1193,16 @@ textarea.input-estilizado {
     transform: translateY(-1px);
 }
 
+/* Botón de confirmación en avisos de éxito (verde oscuro, a juego con el azul) */
+.btn-exito {
+    background: #166534 !important;
+    color: #fff !important;
+    border-color: #166534 !important;
+}
+.btn-exito:hover {
+    background: #14532d !important;
+}
+
 .btn-secundario {
     background: #e2e8f0;
     color: #2d3748;
