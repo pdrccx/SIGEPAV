@@ -14,7 +14,7 @@ ciudadano con seguimiento por QR y un medidor de combustible.
 ## 📁 Estructura del proyecto
 
 ```
-Gesti-n-Vehicular-main/
+SIGEPAV/
 ├── Server.js              ← Backend principal (Node/Express). Punto de entrada.
 ├── package.json           ← Dependencias y scripts de npm.
 ├── .env / env.env         ← Configuración secreta (BD, correo, BASE_URL). NO se sube a git.
