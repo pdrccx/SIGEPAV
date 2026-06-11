@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar usuario · SIGEPAV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Styles.css">
+    <link rel="stylesheet" href="AgregarStyles.css">
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+
+    <div id="app-container" style="display: flex;">
+
+        <!-- BARRA SUPERIOR -->
+        <header class="barra-superior">
+            <div class="barra-superior-contenido">
+                <div class="barra-izquierda">
+                    <div class="dropdown-modulos" id="dropdown-modulos-principal" data-navbar></div>
+                    <img src="Logo.jpeg" alt="Logo" class="logo-barra">
+                    <div class="titulo-sistema">
+                        <h1><a href="menu.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1>
+                    </div>
+                </div>
+
+                <div class="info-usuario">
+                    <span class="icono-usuario"><i class="fas fa-user-circle"></i></span>
+                    <span class="correo-usuario" id="user-email-display">Usuario</span>
+                    <button id="logoutBtn" class="btn-logout-header">
+                        <i class="fas fa-sign-out-alt"></i> Salir
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENIDO -->
+        <main class="contenedor-principal">
+            <div class="agregar-card">
+                <div class="agregar-encabezado">
+                    <div class="agregar-icono"><i class="fas fa-user-plus"></i></div>
+                    <div>
+                        <h2>Agregar nuevo usuario</h2>
+                        <p>Cree una cuenta nueva para que pueda iniciar sesión en el sistema.</p>
+                    </div>
+                </div>
+
+                <!-- Alertas -->
+                <div class="alerta exito" id="alerta-exito"></div>
+                <div class="alerta error" id="alerta-error"></div>
+
+                <!-- Formulario -->
+                <div class="form-grid">
+                    <div class="campo">
+                        <label for="nuevo-usuario">Nombre de usuario *</label>
+                        <input type="text" id="nuevo-usuario" class="input-estilizado" placeholder="Ej. juan.perez" autocomplete="off">
+                        <span class="ayuda">Mínimo 3 caracteres. No puede repetirse.</span>
+                    </div>
+
+                    <div class="campo">
+                        <label for="nombre-completo">Nombre completo *</label>
+                        <input type="text" id="nombre-completo" class="input-estilizado" placeholder="Ej. Juan Pérez García" autocomplete="off">
+                    </div>
+
+                    <div class="campo">
+                        <label for="correo-usuario">Correo institucional</label>
+                        <input type="email" id="correo-usuario" class="input-estilizado" placeholder="usuario@itszn.edu.mx">
+                    </div>
+
+                    <div class="campo">
+                        <label for="password-inicial">Contraseña inicial *</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="password-inicial" class="input-estilizado" placeholder="Mínimo 6 caracteres" autocomplete="new-password" maxlength="128">
+                            <button type="button" class="toggle-pass" id="toggle-password-inicial" aria-label="Mostrar u ocultar contraseña"><i class="fas fa-eye"></i></button>
+                        </div>
+                        <span class="ayuda">El usuario la usará solo para entrar por primera vez y después deberá cambiarla.</span>
+                    </div>
+
+                    <div class="campo">
+                        <label for="foto-perfil">Foto de perfil (opcional)</label>
+                        <input type="file" id="foto-perfil" class="input-estilizado input-archivo-perfil" accept="image/png,image/jpeg,image/webp">
+                        <span class="ayuda">JPG, PNG o WEBP. Máximo 3 MB.</span>
+                    </div>
+
+                    <div class="campo">
+                        <label for="rol-usuario">Rol *</label>
+                        <select id="rol-usuario" class="select-estilizado">
+                            <option value="usuario">Usuario operativo</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label for="departamento-usuario">Departamento</label>
+                        <input type="text" id="departamento-usuario" class="input-estilizado" placeholder="Ej. Dirección de Transporte">
+                        <span class="ayuda">El usuario lo verá en su perfil (solo lectura).</span>
+                    </div>
+
+                    <div class="campo">
+                        <label for="cargo-usuario">Cargo</label>
+                        <input type="text" id="cargo-usuario" class="input-estilizado" placeholder="Ej. Jefe de Unidad">
+                        <span class="ayuda">El usuario lo verá en su perfil (solo lectura).</span>
+                    </div>
+
+                    <div class="campo" style="grid-column:1/-1; background:#fef9ec; border:1px solid #fcd34d; border-radius:10px; padding:0.9rem 1rem; display:flex; align-items:flex-start; gap:0.7rem;">
+                        <i class="fas fa-info-circle" style="color:#d97706; margin-top:0.15rem;"></i>
+                        <span style="font-size:0.85rem; color:#92400e;">La contraseña inicial permite el primer ingreso. En ese primer acceso, el usuario deberá configurar su Gmail de recuperación y cambiarla por una contraseña propia.</span>
+                    </div>
+                </div>
+
+                <div class="botones-form">
+                    <button class="btn-secundario" id="btn-limpiar">Limpiar</button>
+                    <button class="btn-primario" id="btn-guardar">
+                        <i class="fas fa-check"></i> Guardar usuario
+                    </button>
+                </div>
+
+                <!-- Lista de usuarios agregados -->
+                <div class="lista-usuarios">
+                    <h3><i class="fas fa-users"></i> Usuarios registrados</h3>
+                    <div id="contenedor-usuarios">
+                        <!-- llenado por JS -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- MODAL EDITAR USUARIO -->
+        <div class="modal-editar-usuario-overlay" id="modal-editar-usuario" aria-hidden="true">
+            <div class="modal-editar-usuario" role="dialog" aria-modal="true" aria-labelledby="modal-editar-titulo">
+                <div class="modal-editar-header">
+                    <h3 id="modal-editar-titulo"><i class="fas fa-user-pen"></i> Editar usuario</h3>
+                    <button class="btn-cerrar-modal-editar" id="btn-cerrar-modal-editar" type="button" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-editar-body">
+                    <input type="hidden" id="editar-usuario-id">
+                    <div class="preview-foto-editar">
+                        <img id="editar-foto-preview" src="Logo.jpeg" alt="Foto actual" onerror="this.src='Logo.jpeg'">
+                    </div>
+                    <div class="form-grid">
+                        <div class="campo">
+                            <label for="editar-nuevo-usuario">Nombre de usuario *</label>
+                            <input type="text" id="editar-nuevo-usuario" class="input-estilizado" autocomplete="off">
+                        </div>
+                        <div class="campo">
+                            <label for="editar-nombre-completo">Nombre completo *</label>
+                            <input type="text" id="editar-nombre-completo" class="input-estilizado" autocomplete="off">
+                        </div>
+                        <div class="campo">
+                            <label for="editar-correo-usuario">Correo institucional *</label>
+                            <input type="email" id="editar-correo-usuario" class="input-estilizado">
+                        </div>
+                        <div class="campo">
+                            <label for="editar-foto-perfil">Cambiar foto de perfil</label>
+                            <input type="file" id="editar-foto-perfil" class="input-estilizado input-archivo-perfil" accept="image/png,image/jpeg,image/webp">
+                            <span class="ayuda">Opcional. JPG, PNG o WEBP. Máximo 3 MB.</span>
+                        </div>
+                        <div class="campo">
+                            <label for="editar-rol-usuario">Rol *</label>
+                            <select id="editar-rol-usuario" class="select-estilizado">
+                                <option value="usuario">Usuario operativo</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="campo">
+                            <label for="editar-departamento-usuario">Departamento</label>
+                            <input type="text" id="editar-departamento-usuario" class="input-estilizado">
+                        </div>
+                        <div class="campo">
+                            <label for="editar-cargo-usuario">Cargo</label>
+                            <input type="text" id="editar-cargo-usuario" class="input-estilizado">
+                        </div>
+                    </div>
+                    <div class="modal-editar-actions">
+                        <button class="btn-secundario" id="btn-cancelar-edicion" type="button"><i class="fas fa-times"></i> Cancelar</button>
+                        <button class="btn-primario" id="btn-guardar-edicion" type="button"><i class="fas fa-save"></i> Guardar cambios</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BARRA INFERIOR -->
+        <footer class="barra-inferior">
+            <div class="barra-inferior-contenido">
+                <p>Tecnológico Nacional de México campus Zacatecas Norte</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="Config.js"></script>
+<script src="auth-guard.js"></script>
+    <script src="navbar.js"></script>
+<script src="modulos-router.js"></script>
+    <script src="AgregarScript.js"></script>
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

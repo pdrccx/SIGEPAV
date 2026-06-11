@@ -1,0 +1,64 @@
+    .tracking-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.1);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .tracking-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 22px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .tracking-badge {
+      width: 54px; height: 54px; border-radius: 50%;
+      background: #dbeafe; color: #1d4ed8;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; flex-shrink: 0;
+    }
+    .tracking-title { font-size: 1.15rem; font-weight: 700; color: #0d2d6b; }
+    .tracking-token { font-size: .75rem; color: #94a3b8; font-family: monospace; }
+    .status-timeline {
+      display: flex; flex-direction: column; gap: 0;
+      margin: 20px 0;
+    }
+    .timeline-step {
+      display: flex; gap: 16px; align-items: flex-start;
+      padding-bottom: 20px;
+      position: relative;
+    }
+    .timeline-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 15px; top: 32px;
+      width: 2px; height: calc(100% - 12px);
+      background: #e2e8f0;
+    }
+    .step-dot {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; flex-shrink: 0;
+      border: 2px solid #e2e8f0;
+      background: #f8fafc;
+      position: relative; z-index: 1;
+    }
+    .step-dot.done  { background: #dcfce7; border-color: #86efac; }
+    .step-dot.active { background: #fef3c7; border-color: #fcd34d; }
+    .step-body label { font-size: .72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .5px; }
+    .step-body p     { font-size: .9rem; color: #1e293b; margin-top: 2px; line-height: 1.5; }
+    .resolution-box {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-top: 16px;
+    }
+    .resolution-box h4 { color: #15803d; font-size: .9rem; margin-bottom: 8px; }
+    .resolution-box p  { font-size: .88rem; color: #166534; line-height: 1.6; }
+    .report-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px 20px;
+      margin-top: 16px;
+    }

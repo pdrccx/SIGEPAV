@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seguimiento Público — SIGEPAV</title>
+  <link rel="stylesheet" href="ciudadano.css" />
+  <style>
+    .tracking-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.1);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .tracking-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 22px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .tracking-badge {
+      width: 54px; height: 54px; border-radius: 50%;
+      background: #dbeafe; color: #1d4ed8;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; flex-shrink: 0;
+    }
+    .tracking-title { font-size: 1.15rem; font-weight: 700; color: #0d2d6b; }
+    .tracking-token { font-size: .75rem; color: #94a3b8; font-family: monospace; }
+    .status-timeline {
+      display: flex; flex-direction: column; gap: 0;
+      margin: 20px 0;
+    }
+    .timeline-step {
+      display: flex; gap: 16px; align-items: flex-start;
+      padding-bottom: 20px;
+      position: relative;
+    }
+    .timeline-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 15px; top: 32px;
+      width: 2px; height: calc(100% - 12px);
+      background: #e2e8f0;
+    }
+    .step-dot {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; flex-shrink: 0;
+      border: 2px solid #e2e8f0;
+      background: #f8fafc;
+      position: relative; z-index: 1;
+    }
+    .step-dot.done  { background: #dcfce7; border-color: #86efac; }
+    .step-dot.active { background: #fef3c7; border-color: #fcd34d; }
+    .step-body label { font-size: .72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .5px; }
+    .step-body p     { font-size: .9rem; color: #1e293b; margin-top: 2px; line-height: 1.5; }
+    .resolution-box {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-top: 16px;
+    }
+    .resolution-box h4 { color: #15803d; font-size: .9rem; margin-bottom: 8px; }
+    .resolution-box p  { font-size: .88rem; color: #166534; line-height: 1.6; }
+    .report-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px 20px;
+      margin-top: 16px;
+    }
+  </style>
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="header-logo-wrap">
+        <img src="Logo.jpeg" alt="SIGEPAV" class="header-logo" onerror="this.style.display='none'" />
+      </div>
+      <div>
+        <div class="header-title">Seguimiento Público de Comisión</div>
+        <div class="header-sub">SIGEPAV</div>
+      </div>
+    </div>
+    <div class="header-badge"><span class="badge-icon">📋</span><span>Acceso Público</span></div>
+  </div>
+</header>
+
+<main class="main-container">
+
+  <div class="legal-banner">
+    <span class="legal-icon">⚖️</span>
+    <p>Esta página muestra el resultado público de una comisión finalizada o de tu reporte ciudadano.
+       Solo se muestra información autorizada por la Ley de Transparencia.
+       Los datos personales del personal institucional están protegidos.</p>
+  </div>
+
+  <div id="loadingState" class="state-card loading-card">
+    <div class="spinner"></div>
+    <p>Consultando información de seguimiento…</p>
+  </div>
+
+  <div id="errorState" class="state-card error-card hidden">
+    <div class="state-icon">⚠️</div>
+    <h2>Seguimiento no encontrado</h2>
+    <p>El enlace de seguimiento no es válido o ya expiró.
+       Verifica que hayas copiado el enlace completo del correo.</p>
+  </div>
+
+  <div id="trackingContent" class="hidden">
+
+    <div class="tracking-card">
+      <div class="tracking-header">
+        <div class="tracking-badge">📋</div>
+        <div>
+          <div class="tracking-title" id="trackingTitle">Reporte Ciudadano</div>
+          <div class="tracking-token" id="tokenDisplay">—</div>
+        </div>
+      </div>
+
+      <!-- Vehicle summary -->
+      <div class="report-meta" id="vehicleSummary"><!-- by JS --></div>
+
+      <!-- Timeline -->
+      <div class="status-timeline" id="timeline"><!-- by JS --></div>
+
+      <!-- Resolution box — only if resolved -->
+      <div id="resolutionBox" class="resolution-box hidden">
+        <h4>✅ Respuesta institucional</h4>
+        <p id="resolutionText">—</p>
+      </div>
+    </div>
+
+    <!-- Finalized trip details (public) -->
+    <div id="tripDetails" class="hidden">
+      <h2 class="section-title green-title"><span>🟢</span> Detalle de la comisión finalizada</h2>
+      <div class="tracking-card" id="tripDetailsCard"><!-- by JS --></div>
+    </div>
+
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="Logo.jpeg" alt="TecNM" class="footer-logo" onerror="this.style.display='none'" />
+      <span>TecNM campus Zacatecas Norte</span>
+    </div>
+    <div class="footer-links">
+      <span>Sistema SIGEPAV v2.0</span><span>·</span><span>Subdirección Administrativa</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+'use strict';
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Token is the last path segment: /seguimiento-publico/TOKEN
+  const parts = window.location.pathname.split('/');
+  const token = parts[parts.length - 1];
+
+  if (!token || token === 'seguimiento-publico') {
+    showError(); return;
+  }
+
+  try {
+    const res  = await fetch(`/api/public/seguimiento/${encodeURIComponent(token)}`);
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) { showError(); return; }
+
+    renderTracking(data);
+  } catch (err) {
+    console.error('[seguimiento] error:', err);
+    showError();
+  } finally {
+    document.getElementById('loadingState').classList.add('hidden');
+  }
+});
+
+function renderTracking(data) {
+  const { reporte, viaje, vehiculo } = data;
+  const esInteres = data.tipo === 'interes';
+
+  document.getElementById('trackingContent').classList.remove('hidden');
+  document.getElementById('trackingTitle').textContent = esInteres ? 'Consulta de Comisión Finalizada' : 'Reporte Ciudadano';
+  document.getElementById('tokenDisplay').textContent = 'Token: ' + reporte.token_seguimiento;
+
+  // Vehicle summary
+  if (vehiculo) {
+    document.getElementById('vehicleSummary').innerHTML = `
+      <div class="trip-field">
+        <label>Vehículo</label>
+        <span>${esc(vehiculo.marca)} ${esc(vehiculo.linea)}</span>
+      </div>
+      <div class="trip-field">
+        <label>Placas</label>
+        <span>${esc(vehiculo.placas)}</span>
+      </div>
+      <div class="trip-field">
+        <label>${esInteres ? 'Tipo de solicitud' : 'Motivo del reporte'}</label>
+        <span>${esc(reporte.motivo)}</span>
+      </div>
+      <div class="trip-field">
+        <label>${esInteres ? 'Fecha de solicitud' : 'Fecha del reporte'}</label>
+        <span>${formatDate(reporte.created_at)}</span>
+      </div>
+    `;
+  }
+
+  // Timeline
+  const statusMap = {
+    nuevo:        { icon: '📬', label: 'Reporte recibido',    active: true },
+    en_revision:  { icon: '🔍', label: 'En revisión',         active: true },
+    resuelto:     { icon: '✅', label: 'Resuelto',             done: true  },
+    descartado:   { icon: '❌', label: 'Descartado',           done: true  }
+  };
+
+  const steps = ['nuevo','en_revision','resuelto'];
+  const currentIdx = steps.indexOf(reporte.estatus);
+
+  const timelineHTML = steps.map((s, i) => {
+    const dotClass = i < currentIdx ? 'done' : (i === currentIdx ? 'active' : '');
+    const info = statusMap[s];
+    return `
+      <div class="timeline-step">
+        <div class="step-dot ${dotClass}">${info.icon}</div>
+        <div class="step-body">
+          <label>${info.label}</label>
+          <p>${i <= currentIdx ? (i === 0 ? formatDate(reporte.created_at) : 'Completado') : 'Pendiente'}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('timeline').innerHTML = timelineHTML;
+
+  // Resolution
+  if (reporte.estatus === 'resuelto' || reporte.estatus === 'descartado') {
+    const box = document.getElementById('resolutionBox');
+    box.classList.remove('hidden');
+    const baseResolucion = reporte.estatus === 'resuelto'
+      ? 'El reporte fue atendido. La comisión ha sido revisada por la administración del Instituto.'
+      : 'El reporte fue descartado. No se encontraron irregularidades relacionadas.';
+    document.getElementById('resolutionText').textContent = reporte.comentario_admin
+      ? `${baseResolucion}
+
+Comentario del administrador: ${reporte.comentario_admin}`
+      : baseResolucion;
+  }
+
+  // Finalized trip details
+  if (viaje && viaje.estado === 'Finalizado') {
+    document.getElementById('tripDetails').classList.remove('hidden');
+    document.getElementById('tripDetailsCard').innerHTML = `
+      <div class="trip-grid report-meta">
+        <div class="trip-field">
+          <label>Responsable</label>
+          <span>${esc(viaje.responsable || '—')}</span>
+        </div>
+        <div class="trip-field">
+          <label>Destino</label>
+          <span>${esc(viaje.lugar_destino || '—')}</span>
+        </div>
+        <div class="trip-field">
+          <label>Motivo</label>
+          <span>${esc(viaje.motivo || '—')}</span>
+        </div>
+        <div class="trip-field">
+          <label>Inicio</label>
+          <span>${formatDate(viaje.fecha_inicio)}</span>
+        </div>
+        <div class="trip-field">
+          <label>Fin</label>
+          <span>${formatDate(viaje.fecha_fin)}</span>
+        </div>
+        <div class="trip-field">
+          <label>Estado</label>
+          <span style="color:#15803d;font-weight:700">✅ Finalizado</span>
+        </div>
+        <div class="trip-field">
+          <label>Kilómetros recorridos</label>
+          <span>${formatKm(viaje.km_recorridos)}</span>
+        </div>
+      </div>
+      ${viaje.descripcion
+        ? `<div class="obs-block" style="margin-top:14px"><strong>Resumen:</strong> ${esc(viaje.descripcion)}</div>`
+        : ''}
+      ${viaje.actividades ? renderActividadesPub(viaje.actividades) : ''}
+      ${viaje.observaciones
+        ? `<div class="obs-block" style="margin-top:10px"><strong>Observaciones finales:</strong> ${esc(viaje.observaciones)}</div>`
+        : ''}
+    `;
+  }
+}
+
+function renderActividadesPub(texto) {
+  const lineas = String(texto).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  if (!lineas.length) return '';
+  return `<div class="obs-block" style="margin-top:10px">
+    <strong>Actividades realizadas:</strong>
+    <ul style="margin:6px 0 0 18px;padding:0">${lineas.map(l => `<li>${esc(l)}</li>`).join('')}</ul>
+  </div>`;
+}
+
+function showError() {
+  document.getElementById('loadingState').classList.add('hidden');
+  document.getElementById('errorState').classList.remove('hidden');
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDate(str) {
+  if (!str) return '—';
+  const d = new Date(str);
+  return isNaN(d) ? str : d.toLocaleDateString('es-MX', {day:'2-digit',month:'short',year:'numeric'});
+}
+
+function formatKm(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '—';
+  return `${Math.max(0, Math.round(n)).toLocaleString('es-MX')} km`;
+}
+</script>
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

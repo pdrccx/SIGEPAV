@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SIGEPAV - Altas y edición</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
+<link href="Styles.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body data-initial-module="alta-edicion">
+<!-- Overlay para modales -->
+<div class="modal-overlay" id="modal-overlay" style="display: none;"></div>
+<!-- ==================== LOGIN ==================== -->
+
+<!-- ==================== APLICACIÓN PRINCIPAL ==================== -->
+<div id="app-container" style="display: none;">
+<!-- BARRA SUPERIOR -->
+<header class="barra-superior">
+<div class="barra-superior-contenido">
+<div class="barra-izquierda">
+<div class="dropdown-modulos" id="dropdown-modulos-principal">
+<button class="btn-dropdown" id="btnDropdownGlobal">
+<i class="fas fa-bars"></i> Módulos <i class="fas fa-angle-down"></i>
+</button>
+<div class="dropdown-contenido" id="dropdownMenuGlobal">
+<div class="dropdown-seccion">
+<div class="dropdown-titulo-seccion"><i class="fas fa-receipt"></i> Gestión de comisiones</div>
+<div class="modulo-dropdown" data-modulo="registro-comisiones"><i class="fas fa-pen-alt"></i> Registro de comisiones</div>
+<div class="modulo-dropdown" data-modulo="consulta-comisiones"><i class="fas fa-clipboard-list"></i> Consulta de comisiones</div>
+<div class="modulo-dropdown" data-modulo="solicitudes-finalizacion"><i class="fas fa-check-double"></i> Solicitudes de finalización</div>
+<a class="modulo-dropdown" data-modulo="vales" href="vales.html"><i class="fas fa-ticket-alt"></i> Registro de vales</a>
+</div>
+<div class="dropdown-seccion">
+<div class="dropdown-titulo-seccion"><i class="fas fa-car"></i> Administración vehicular</div>
+<div class="modulo-dropdown" data-modulo="alta-edicion"><i class="fas fa-car-side"></i> Altas, edición y consultas</div>
+<div class="modulo-dropdown" data-modulo="mantenimiento"><i class="fas fa-cogs"></i> Mantenimiento</div>
+<div class="modulo-dropdown" data-modulo="alertas"><i class="fas fa-calendar-alt"></i> Alerta y vencimientos</div>
+</div>
+<div class="dropdown-seccion">
+<div class="dropdown-titulo-seccion"><i class="fas fa-chart-line"></i> Monitoreo y reportes</div>
+<div class="modulo-dropdown" data-modulo="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</div>
+<div class="modulo-dropdown" data-modulo="control-combustible"><i class="fas fa-oil-can"></i> Control de combustible</div>
+<div class="modulo-dropdown" data-modulo="reportes"><i class="fas fa-file-pdf"></i> Reportes</div>
+<div class="modulo-dropdown" data-modulo="bitacora"><i class="fas fa-history"></i> Bitácora / Auditorías</div>
+</div>
+<div class="dropdown-seccion">
+<div class="dropdown-titulo-seccion"><i class="fas fa-shield-alt"></i> Seguridad y respaldos</div>
+<div class="modulo-dropdown" data-modulo="agregar-usuario"><i class="fas fa-user-plus"></i> Agregar usuario</div>
+<div class="modulo-dropdown" data-modulo="expediente"><i class="fas fa-folder-open"></i> Expediente digital</div>
+<div class="modulo-dropdown" data-modulo="respaldos"><i class="fas fa-database"></i> Respaldos</div>
+</div>
+</div>
+</div>
+<img alt="Logo" class="logo-barra" src="Logo.jpeg"/>
+<div class="titulo-sistema">
+<h1><a href="menu.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1>
+</div>
+</div>
+<div class="info-usuario">
+<!-- Campana de notificaciones (admin) -->
+<div class="dropdown-cuenta" id="adm-dropdown-notif" style="position: relative; margin-right: 0.5rem;">
+<button class="btn-notificaciones" id="adm-btnNotif" style="position: relative;" title="Notificaciones">
+<i class="fas fa-bell"></i>
+<span class="badge-notificacion" id="adm-badgeNotif" style="display:none;">0</span>
+</button>
+<div class="cuenta-panel" id="adm-panelNotif" style="display:none; right:0; min-width: 320px; max-height: 420px; overflow-y: auto; position:absolute; top:100%;">
+<div class="cuenta-cabecera">
+<div>
+<h4>Notificaciones</h4>
+<p id="adm-notif-count">0 sin leer</p>
+</div>
+</div>
+<div id="adm-notif-lista" style="padding: 0.4rem;">
+<p style="text-align:center; padding: 1rem; color:#666;">No hay notificaciones.</p>
+</div>
+</div>
+</div>
+<span class="icono-usuario"><i class="fas fa-user-circle"></i></span>
+<span class="correo-usuario" id="user-email-display">Usuario</span>
+<button class="btn-logout-header" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Salir</button>
+</div>
+</div>
+</header>
+<!-- ============== MENÚ PRINCIPAL ============== -->
+<!-- ============== REGISTRO DE COMISIONES ============== -->
+<!-- ============== FORMULARIO DE MANTENIMIENTO ============== -->
+<!-- ============== ALTA Y EDICIÓN DE VEHÍCULOS ============== -->
+<main class="contenedor-principal" id="alta-edicion" style="display: none;">
+<div class="subtitulo-seccion">
+<div class="encabezado-formulario">
+<h2>Altas, edición y consultas de vehículos</h2>
+<p class="subtitulo-secundario">Registro y administración de la flota institucional</p>
+</div>
+</div>
+<!-- KPIs -->
+<section class="resumen-cards">
+<div class="card-resumen">
+<div class="card-icono"><i class="fas fa-car"></i></div>
+<div class="card-info">
+<span class="card-numero" data-valor="0" id="ae-kpi-total">0</span>
+<span class="card-etiqueta">Vehículos registrados</span>
+</div>
+</div>
+<div class="card-resumen">
+<div class="card-icono"><i class="fas fa-clipboard-list"></i></div>
+<div class="card-info">
+<span class="card-numero" data-valor="0" id="ae-kpi-obs">0</span>
+<span class="card-etiqueta">Observaciones totales</span>
+</div>
+</div>
+<div class="card-resumen">
+<div class="card-icono"><i class="fas fa-exclamation-triangle"></i></div>
+<div class="card-info">
+<span class="card-numero" data-valor="0" id="ae-kpi-pend">0</span>
+<span class="card-etiqueta">Observaciones pendientes</span>
+</div>
+</div>
+<div class="card-resumen">
+<div class="card-icono"><i class="fas fa-dollar-sign"></i></div>
+<div class="card-info">
+<span class="card-numero" data-valor="0" id="ae-kpi-costo">$0</span>
+<span class="card-etiqueta">Costo acumulado</span>
+</div>
+</div>
+</section>
+<!-- Vista LISTA -->
+<div id="ae-vista-lista">
+<!-- BARRA DE ACCIONES SUPERIOR -->
+<section class="barra-acciones-modulo">
+<button type="button" class="btn-primario" id="ae-btn-abrir-alta">
+<i class="fas fa-plus-circle"></i> Nuevo vehículo
+            </button>
+<button type="button" class="btn-secundario" id="ae-btn-recargar">
+<i class="fas fa-sync-alt"></i> Recargar
+            </button>
+</section>
+<!-- PANEL DE ALTA (oculto por defecto) -->
+<section class="panel-formulario panel-alta" id="ae-panel-alta" style="display: none;">
+<div class="panel-formulario-cabecera">
+<span><i class="fas fa-plus-circle"></i> Registrar vehículo</span>
+<div class="acciones-cabecera">
+<button type="button" class="btn-secundario btn-mini" id="ae-btn-cerrar-alta">
+<i class="fas fa-times"></i> Cancelar
+                    </button>
+</div>
+</div>
+<div class="panel-formulario-cuerpo">
+<div class="form-grid form-grid-vehiculo">
+<div class="campo"><label for="ae-r-marca">Marca</label><input class="input-estilizado" id="ae-r-marca" placeholder="Marca" type="text"/></div>
+<div class="campo"><label for="ae-r-linea">Línea</label><input class="input-estilizado" id="ae-r-linea" placeholder="Línea" type="text"/></div>
+<div class="campo campo-corto"><label for="ae-r-modelo">Modelo (Año)</label><input class="input-estilizado input-corto" id="ae-r-modelo" max="2099" min="1980" placeholder="Año" type="number"/></div>
+<div class="campo"><label for="ae-r-color">Color</label><input class="input-estilizado" id="ae-r-color" placeholder="Color" type="text"/></div>
+<div class="campo">
+<label for="ae-r-tipo">Tipo</label>
+<select class="select-estilizado" id="ae-r-tipo">
+<option value="">-- Seleccione --</option>
+<option value="sedan">Sedán</option>
+<option value="coupe">Coupé</option>
+<option value="pickup">Pickup</option>
+<option value="suv">SUV</option>
+<option value="hatchback">Hatchback</option>
+<option value="van">Van</option>
+<option value="motocicleta">Motocicleta</option>
+<option value="otro">Otro</option>
+</select>
+</div>
+<div class="campo">
+<label for="ae-r-combustible">Combustible</label>
+<select class="select-estilizado" id="ae-r-combustible">
+<option value="">— Seleccione —</option>
+<option value="Gasolina Magna">⛽ Gasolina Magna</option>
+<option value="Gasolina Premium">⛽ Gasolina Premium</option>
+<option value="Diesel">🛢 Diésel</option>
+</select>
+</div>
+<div class="campo campo-corto"><label for="ae-r-capacidad">Capacidad (pers.)</label><input class="input-estilizado input-corto" id="ae-r-capacidad" max="255" min="0" placeholder="0" type="number"/></div>
+<div class="campo campo-medio"><label for="ae-r-serie">No. de Serie</label><input class="input-estilizado input-medio" id="ae-r-serie" maxlength="17" placeholder="No. de Serie" type="text"/></div>
+<div class="campo campo-corto"><label for="ae-r-placas">Placas</label><input class="input-estilizado input-corto" id="ae-r-placas" maxlength="10" placeholder="Placas" type="text"/></div>
+<div class="campo campo-corto">
+<label for="ae-r-eco">No. Eco.</label>
+<input class="input-estilizado input-corto" disabled="" id="ae-r-eco" placeholder="Automático" readonly="" title="Se asigna automáticamente al guardar" type="text"/>
+</div>
+</div>
+<button type="button" class="btn-primario btn-bloque" id="ae-btn-registrar">
+<i class="fas fa-save"></i> Registrar vehículo
+                </button>
+</div>
+</section>
+<!-- PANEL DE EDICIÓN (oculto por defecto, se abre al pulsar el lápiz) -->
+<section class="panel-formulario panel-edicion" id="ae-panel-edicion" style="display: none;">
+<div class="panel-formulario-cabecera">
+<span><i class="fas fa-pen"></i> Editar vehículo</span>
+<div class="acciones-cabecera">
+<button type="button" class="btn-secundario btn-mini" id="ae-btn-cerrar-edicion">
+<i class="fas fa-times"></i> Cancelar
+                    </button>
+</div>
+</div>
+<div class="panel-formulario-cuerpo">
+<input id="ae-e-id" type="hidden"/>
+<div class="form-grid form-grid-vehiculo">
+<div class="campo"><label for="ae-e-marca">Marca</label><input class="input-estilizado" id="ae-e-marca" type="text"/></div>
+<div class="campo"><label for="ae-e-linea">Línea</label><input class="input-estilizado" id="ae-e-linea" type="text"/></div>
+<div class="campo campo-corto"><label for="ae-e-modelo">Modelo (Año)</label><input class="input-estilizado input-corto" id="ae-e-modelo" max="2099" min="1980" type="number"/></div>
+<div class="campo"><label for="ae-e-color">Color</label><input class="input-estilizado" id="ae-e-color" type="text"/></div>
+<div class="campo">
+<label for="ae-e-tipo">Tipo</label>
+<select class="select-estilizado" id="ae-e-tipo">
+<option value="">-- Seleccione --</option>
+<option value="sedan">Sedán</option>
+<option value="coupe">Coupé</option>
+<option value="pickup">Pickup</option>
+<option value="suv">SUV</option>
+<option value="hatchback">Hatchback</option>
+<option value="van">Van</option>
+<option value="motocicleta">Motocicleta</option>
+<option value="otro">Otro</option>
+</select>
+</div>
+<div class="campo campo-corto"><label for="ae-e-capacidad">Capacidad (pers.)</label><input class="input-estilizado input-corto" id="ae-e-capacidad" max="255" min="0" type="number"/></div>
+<div class="campo campo-medio"><label for="ae-e-serie">No. de Serie</label><input class="input-estilizado input-medio" id="ae-e-serie" maxlength="17" type="text"/></div>
+<div class="campo campo-corto"><label for="ae-e-placas">Placas</label><input class="input-estilizado input-corto" id="ae-e-placas" maxlength="10" type="text"/></div>
+<div class="campo campo-corto">
+<label for="ae-e-eco">No. Eco.</label>
+<input class="input-estilizado input-corto" disabled="" id="ae-e-eco" readonly="" title="Se asigna automáticamente desde el ID" type="text"/>
+</div>
+<div class="campo">
+<label for="ae-e-comb">Combustible</label>
+<select class="select-estilizado" id="ae-e-comb">
+<option value="">— Seleccione —</option>
+<option value="Gasolina Magna">⛽ Gasolina Magna</option>
+<option value="Gasolina Premium">⛽ Gasolina Premium</option>
+<option value="Diesel">🛢 Diésel</option>
+</select>
+</div>
+<div class="campo campo-corto"><label for="ae-e-km">Km. Actual</label><input class="input-estilizado input-corto" id="ae-e-km" min="0" type="number"/></div>
+<div class="campo"><label for="ae-e-srv">Último Servicio</label><input class="input-estilizado" id="ae-e-srv" type="date"/></div>
+</div>
+<button type="button" class="btn-primario btn-bloque" id="ae-btn-guardar-edicion">
+<i class="fas fa-save"></i> Guardar cambios
+                </button>
+</div>
+</section>
+<!-- TABLA (siempre visible — vista de consulta por defecto) -->
+<section class="panel-tabla">
+<div class="panel-tabla-cabecera">
+<span><i class="fas fa-list"></i> Consulta de vehículos registrados</span>
+</div>
+<div class="tabla-contenedor">
+<table class="tabla-sigepav">
+<thead>
+<tr>
+<th>No. Eco</th><th>Marca</th><th>Línea</th><th>Modelo</th>
+<th>Tipo</th><th>Cap.</th>
+<th>Color</th><th>No. Serie</th><th>Placas</th>
+<th class="th-qr">QR</th>
+<th>Opciones</th>
+</tr>
+</thead>
+<tbody id="ae-tbody-vehiculos"></tbody>
+</table>
+</div>
+</section>
+</div>
+<!-- Vista DETALLE -->
+<div id="ae-vista-detalle" style="display: none;">
+<button type="button" class="btn-volver" id="ae-btn-volver-lista" style="margin-bottom: 1rem;">
+<i class="fas fa-arrow-left"></i> Volver a la lista
+        </button>
+<section class="vehiculo-hero" id="ae-veh-hero"></section>
+<section class="resumen-mantenimiento" id="ae-veh-stats" style="margin-top: 1.5rem;"></section>
+<section class="grid-doble" style="margin-top: 1.5rem;">
+<div class="nueva-observacion">
+<h3><i class="fas fa-plus-circle"></i> Agregar nueva observación</h3>
+<div class="form-grid">
+<div class="campo">
+<label for="ae-obs-tipo">Parte que falla / componente</label>
+<select class="select-estilizado" id="ae-obs-tipo">
+<option value="">-- Seleccione la parte que falla --</option>
+<optgroup label="Motor y tren motriz">
+<option value="Motor general">Motor general</option>
+<option value="Aceite / lubricación">Aceite / lubricación</option>
+<option value="Filtro de aceite">Filtro de aceite</option>
+<option value="Banda de distribución">Banda de distribución</option>
+<option value="Banda serpentina / accesorios">Banda serpentina / accesorios</option>
+<option value="Bujías">Bujías</option>
+<option value="Bobinas de encendido">Bobinas de encendido</option>
+<option value="Inyectores">Inyectores</option>
+<option value="Soportes de motor">Soportes de motor</option>
+<option value="Fuga de aceite">Fuga de aceite</option>
+</optgroup>
+<optgroup label="Sistema de enfriamiento">
+<option value="Radiador">Radiador</option>
+<option value="Mangueras de radiador">Mangueras de radiador</option>
+<option value="Termostato">Termostato</option>
+<option value="Bomba de agua">Bomba de agua</option>
+<option value="Ventilador / electroventilador">Ventilador / electroventilador</option>
+<option value="Depósito de anticongelante">Depósito de anticongelante</option>
+<option value="Fuga de anticongelante">Fuga de anticongelante</option>
+</optgroup>
+<optgroup label="Combustible y escape">
+<option value="Bomba de combustible">Bomba de combustible</option>
+<option value="Filtro de combustible">Filtro de combustible</option>
+<option value="Tanque de combustible">Tanque de combustible</option>
+<option value="Tapón de combustible">Tapón de combustible</option>
+<option value="Línea de combustible">Línea de combustible</option>
+<option value="Catalizador">Catalizador</option>
+<option value="Mofle / silenciador">Mofle / silenciador</option>
+<option value="Tubo de escape">Tubo de escape</option>
+<option value="Sensor de oxígeno">Sensor de oxígeno</option>
+</optgroup>
+<optgroup label="Transmisión y embrague">
+<option value="Transmisión general">Transmisión general</option>
+<option value="Embrague / clutch">Embrague / clutch</option>
+<option value="Caja de cambios">Caja de cambios</option>
+<option value="Palanca de velocidades">Palanca de velocidades</option>
+<option value="Diferencial">Diferencial</option>
+<option value="Flechas / homocinéticas">Flechas / homocinéticas</option>
+<option value="Aceite de transmisión">Aceite de transmisión</option>
+</optgroup>
+<optgroup label="Frenos">
+<option value="Frenos general">Frenos general</option>
+<option value="Pastillas de freno">Pastillas de freno</option>
+<option value="Balatas">Balatas</option>
+<option value="Discos de freno">Discos de freno</option>
+<option value="Tambores de freno">Tambores de freno</option>
+<option value="Líquido de frenos">Líquido de frenos</option>
+<option value="Bomba de freno">Bomba de freno</option>
+<option value="Mangueras de freno">Mangueras de freno</option>
+<option value="Freno de mano">Freno de mano</option>
+<option value="ABS">ABS</option>
+</optgroup>
+<optgroup label="Dirección y suspensión">
+<option value="Dirección general">Dirección general</option>
+<option value="Volante / columna de dirección">Volante / columna de dirección</option>
+<option value="Bomba de dirección hidráulica">Bomba de dirección hidráulica</option>
+<option value="Cremallera de dirección">Cremallera de dirección</option>
+<option value="Terminales de dirección">Terminales de dirección</option>
+<option value="Rótulas">Rótulas</option>
+<option value="Amortiguadores">Amortiguadores</option>
+<option value="Resortes">Resortes</option>
+<option value="Bujes">Bujes</option>
+<option value="Horquillas">Horquillas</option>
+<option value="Barra estabilizadora">Barra estabilizadora</option>
+<option value="Alineación / balanceo">Alineación / balanceo</option>
+</optgroup>
+<optgroup label="Llantas y ruedas">
+<option value="Llantas delanteras">Llantas delanteras</option>
+<option value="Llantas traseras">Llantas traseras</option>
+<option value="Llanta de refacción">Llanta de refacción</option>
+<option value="Rin">Rin</option>
+<option value="Birlos / tuercas">Birlos / tuercas</option>
+<option value="Presión de llantas">Presión de llantas</option>
+<option value="Desgaste irregular">Desgaste irregular</option>
+</optgroup>
+<optgroup label="Sistema eléctrico y luces">
+<option value="Batería">Batería</option>
+<option value="Alternador">Alternador</option>
+<option value="Marcha / motor de arranque">Marcha / motor de arranque</option>
+<option value="Fusibles / relevadores">Fusibles / relevadores</option>
+<option value="Cableado eléctrico">Cableado eléctrico</option>
+<option value="Computadora / ECU">Computadora / ECU</option>
+<option value="Tablero / indicadores">Tablero / indicadores</option>
+<option value="Faros delanteros">Faros delanteros</option>
+<option value="Luces traseras">Luces traseras</option>
+<option value="Direccionales">Direccionales</option>
+<option value="Luces interiores">Luces interiores</option>
+<option value="Claxon">Claxon</option>
+</optgroup>
+<optgroup label="Carrocería, cristales e interior">
+<option value="Carrocería general">Carrocería general</option>
+<option value="Defensa delantera">Defensa delantera</option>
+<option value="Defensa trasera">Defensa trasera</option>
+<option value="Puerta delantera izquierda">Puerta delantera izquierda</option>
+<option value="Puerta delantera derecha">Puerta delantera derecha</option>
+<option value="Puerta trasera izquierda">Puerta trasera izquierda</option>
+<option value="Puerta trasera derecha">Puerta trasera derecha</option>
+<option value="Cofre">Cofre</option>
+<option value="Cajuela / compuerta">Cajuela / compuerta</option>
+<option value="Parabrisas">Parabrisas</option>
+<option value="Cristales laterales">Cristales laterales</option>
+<option value="Espejos laterales">Espejos laterales</option>
+<option value="Limpiaparabrisas">Limpiaparabrisas</option>
+<option value="Asientos">Asientos</option>
+<option value="Cinturones de seguridad">Cinturones de seguridad</option>
+<option value="Aire acondicionado / calefacción">Aire acondicionado / calefacción</option>
+<option value="Radio / sistema de audio">Radio / sistema de audio</option>
+</optgroup>
+<optgroup label="Seguridad, herramientas y documentación">
+<option value="Bolsas de aire">Bolsas de aire</option>
+<option value="Extintor">Extintor</option>
+<option value="Botiquín">Botiquín</option>
+<option value="Gato hidráulico / mecánico">Gato hidráulico / mecánico</option>
+<option value="Triángulos reflejantes">Triángulos reflejantes</option>
+<option value="Herramienta básica">Herramienta básica</option>
+<option value="Placas">Placas</option>
+<option value="Tarjeta de circulación">Tarjeta de circulación</option>
+<option value="Seguro vehicular">Seguro vehicular</option>
+<option value="Verificación / tenencia">Verificación / tenencia</option>
+</optgroup>
+<optgroup label="Otros">
+<option value="Limpieza / lavado">Limpieza / lavado</option>
+<option value="Servicio preventivo">Servicio preventivo</option>
+<option value="Ruido no identificado">Ruido no identificado</option>
+<option value="Vibración no identificada">Vibración no identificada</option>
+<option value="Otro">Otro</option>
+</optgroup>
+</select>
+</div>
+<div class="campo"><label for="ae-obs-km">Km. al momento</label><input class="input-estilizado" id="ae-obs-km" placeholder="0" type="number"/></div>
+<div class="campo"><label for="ae-obs-costo">Costo (si aplica)</label><input class="input-estilizado" id="ae-obs-costo" placeholder="0.00" step="0.01" type="number"/></div>
+<div class="campo">
+<label for="ae-obs-estado">Estado</label>
+<select class="select-estilizado" id="ae-obs-estado">
+<option>Pendiente</option>
+<option>En revisión</option>
+<option>Resuelto</option>
+</select>
+</div>
+<div class="campo campo-doble">
+<label>Severidad</label>
+<div class="severidad-botones">
+<input id="ae-obs-sev-baja" name="ae-obs-sev" type="radio" value="baja"/><label class="btn-severidad baja" for="ae-obs-sev-baja">Baja</label>
+<input checked="" id="ae-obs-sev-media" name="ae-obs-sev" type="radio" value="media"/><label class="btn-severidad media" for="ae-obs-sev-media">Media</label>
+<input id="ae-obs-sev-alta" name="ae-obs-sev" type="radio" value="alta"/><label class="btn-severidad alta" for="ae-obs-sev-alta">Alta</label>
+<input id="ae-obs-sev-critica" name="ae-obs-sev" type="radio" value="critica"/><label class="btn-severidad critica" for="ae-obs-sev-critica">Crítica</label>
+</div>
+</div>
+<div class="campo campo-doble">
+<label for="ae-obs-desc">Descripción</label>
+<textarea class="input-estilizado" id="ae-obs-desc" placeholder="Describa síntomas, circunstancias..." rows="3"></textarea>
+</div>
+<div class="campo campo-doble" id="ae-obs-res-field" style="display:none;">
+<label for="ae-obs-res">Resolución</label>
+<textarea class="input-estilizado" id="ae-obs-res" placeholder="¿Qué se hizo para resolverlo?" rows="3"></textarea>
+</div>
+</div>
+<button type="button" class="btn-primario btn-bloque" id="ae-btn-guardar-obs">
+<i class="fas fa-check"></i> Guardar observación
+                </button>
+</div>
+<div class="historial-observaciones">
+<div class="historial-cabecera">
+<h3><i class="fas fa-history"></i> Historial</h3>
+<div class="filtros-tabs">
+<button class="filtro-tab activo" data-filtro="todas">Todas</button>
+<button class="filtro-tab" data-filtro="pendiente">Pendientes</button>
+<button class="filtro-tab" data-filtro="en revisión">En revisión</button>
+<button class="filtro-tab" data-filtro="resuelto">Resueltas</button>
+</div>
+</div>
+<div class="lista-observaciones" id="ae-obs-list"></div>
+</div>
+</section>
+</div>
+</main>
+<!-- ============== CONSULTA DE COMISIONES ============== -->
+<!-- ============== SOLICITUDES DE FINALIZACIÓN (ADMIN) ============== -->
+<!-- Modal: rechazar solicitud (pedir comentario al admin) -->
+<div class="modal" id="sf-modal-rechazo" style="display: none;">
+<div class="modal-contenido">
+<div class="modal-header">
+<i class="fas fa-times-circle modal-icono modal-icono-rojo"></i>
+<h3>Rechazar solicitud</h3>
+</div>
+<p>Indica el motivo del rechazo (opcional). El usuario recibirá una notificación.</p>
+<textarea class="input-estilizado" id="sf-rechazo-comentario" placeholder="Por ejemplo: kilometraje final no coincide..." rows="3"></textarea>
+<div class="modal-botones">
+<button class="btn-secundario" id="sf-rechazo-cancelar">Cancelar</button>
+<button class="btn-peligro" id="sf-rechazo-aceptar">Rechazar</button>
+</div>
+</div>
+</div>
+<!-- Modal de edición de comisión -->
+<div class="modal modal-grande" id="cc-modal-edicion" style="display: none;">
+<div class="modal-grande-header">
+<span><i class="fas fa-pen"></i> Editar comisión</span>
+<div class="acciones-cabecera">
+<button class="btn-cabecera" id="cc-btn-nueva-comision"><i class="fas fa-plus"></i> Nueva comisión</button>
+<button aria-label="Cerrar" class="btn-secundario btn-mini" id="cc-btn-cerrar-edicion" title="Cerrar"><i class="fas fa-times"></i></button>
+</div>
+</div>
+<div class="modal-grande-body">
+<input id="cc-e-id" type="hidden"/>
+<h4 class="seccion-titulo">Datos del Vale</h4>
+<div class="form-grid form-grid-4">
+<div class="campo campo-corto"><label for="cc-e-vale">Vale</label><input class="input-estilizado input-corto" id="cc-e-vale" maxlength="20" placeholder="Folio" type="text"/></div>
+<div class="campo campo-corto"><label for="cc-e-litros">Litros</label><input class="input-estilizado input-corto" id="cc-e-litros" min="0" placeholder="0" step="0.01" type="number"/></div>
+<div class="campo campo-corto"><label for="cc-e-precio">Precio/Lt</label><input class="input-estilizado input-corto" id="cc-e-precio" min="0" placeholder="0.00" step="0.01" type="number"/></div>
+<div class="campo campo-corto"><label for="cc-e-ticket">No. Ticket</label><input class="input-estilizado input-corto" id="cc-e-ticket" maxlength="20" placeholder="####" type="text"/></div>
+<div class="campo">
+<label for="cc-e-combustible">Combustible</label>
+<select class="select-estilizado" id="cc-e-combustible">
+<option value="">— Seleccione —</option>
+<option>Gasolina Magna</option>
+<option>Gasolina Premium</option>
+<option>Diesel</option>
+</select>
+</div>
+<div class="campo campo-doble">
+<label>Total (calculado)</label>
+<div class="caja-total" id="cc-e-total">$0.00</div>
+</div>
+</div>
+<h4 class="seccion-titulo">Datos de la Comisión</h4>
+<div class="form-grid form-grid-3">
+<div class="campo campo-medio"><label for="cc-e-oficio">Oficio</label><input class="input-estilizado input-medio" id="cc-e-oficio" maxlength="30" placeholder="Clave oficio" type="text"/></div>
+<div class="campo"><label for="cc-e-resp">Responsable</label><input class="input-estilizado" id="cc-e-resp" placeholder="Nombre completo" type="text"/></div>
+<div class="campo campo-medio"><label for="cc-e-estcom">Estado comisión</label><input class="input-estilizado input-medio" id="cc-e-estcom" readonly="" type="text" value="Pendiente"/></div>
+<div class="campo"><label for="cc-e-estado-dst">Estado (destino)</label><select class="select-estilizado" id="cc-e-estado-dst"><option value="">Seleccionar</option></select></div>
+<div class="campo"><label for="cc-e-municipio">Municipio</label><select class="select-estilizado" id="cc-e-municipio"><option value="">Seleccionar</option></select></div>
+<div class="campo"><label for="cc-e-localidad">Localidad</label><select class="select-estilizado" id="cc-e-localidad"><option value="">Seleccionar</option></select></div>
+<div class="campo campo-medio"><label for="cc-e-inicio">Inicio comisión</label><input class="input-estilizado input-medio" id="cc-e-inicio" type="date"/></div>
+<div class="campo campo-medio"><label for="cc-e-fin">Término comisión</label><input class="input-estilizado input-medio" id="cc-e-fin" type="date"/></div>
+<div class="campo"><label for="cc-e-vehiculo">Vehículo</label><select class="select-estilizado" id="cc-e-vehiculo"></select></div>
+<div class="campo campo-triple"><label for="cc-e-desc">Descripción de la comisión</label><input class="input-estilizado" id="cc-e-desc" placeholder="Motivo de la comisión" type="text"/></div>
+<div class="campo campo-triple"><label for="cc-e-obs">Observaciones</label><textarea class="input-estilizado" id="cc-e-obs" placeholder="Notas adicionales..." rows="2"></textarea></div>
+</div>
+<h4 class="seccion-titulo">Comprobante (ticket)</h4>
+<div class="archivo-row">
+<input accept=".jpg,.jpeg,.png,.pdf" hidden="" id="cc-e-file" type="file"/>
+<button class="btn-secundario btn-mini" id="cc-btn-elegir-archivo"><i class="fas fa-paperclip"></i> Elegir archivo</button>
+<span class="archivo-nombre" id="cc-archivo-nombre">No se eligió ningún archivo</span>
+</div>
+<p class="ayuda-campo">Formatos: JPG, PNG, PDF · máx. 5 MB</p>
+<h4 class="seccion-titulo">Kilometraje</h4>
+<div class="form-grid form-grid-3">
+<div class="campo campo-corto"><label for="cc-e-kmi">Inicial</label><input class="input-estilizado input-corto" id="cc-e-kmi" min="0" placeholder="0" type="number"/></div>
+<div class="campo campo-corto"><label for="cc-e-kmf">Final</label><input class="input-estilizado input-corto" id="cc-e-kmf" min="0" placeholder="0" type="number"/></div>
+<div class="campo campo-corto"><label>Recorridos</label><div class="caja-km" id="cc-e-kmrec">0 km</div></div>
+</div>
+<button class="btn-primario btn-bloque" id="cc-btn-guardar-comision">
+<i class="fas fa-save"></i> Guardar cambios
+        </button>
+</div>
+</div>
+<!-- Modal: Finalizar comisión (ADMIN) — FIX req 2 + req 3 -->
+<!-- El nivel final se captura SIEMPRE con Gasolina.py (botón "Verificar"). -->
+<div class="modal" id="cc-modal-finalizar" style="display: none;">
+<div class="modal-contenido" style="max-width: 540px;">
+<div class="modal-header">
+<i class="fas fa-flag-checkered modal-icono"></i>
+<h3>Finalizar comisión</h3>
+<button aria-label="Cerrar" class="btn-secundario btn-mini" id="cc-fin-cerrar" style="margin-left:auto;" title="Cerrar"><i class="fas fa-times"></i></button>
+</div>
+<p id="cc-fin-comision-info" style="color:#4a5568; font-size:0.9rem; margin-bottom:0.8rem;">Comisión #</p>
+<div class="form-grid">
+<div class="campo campo-medio">
+<label for="cc-fin-km">Kilometraje final</label>
+<input class="input-estilizado input-medio" id="cc-fin-km" min="0" placeholder="Odómetro al cierre" type="number"/>
+</div>
+<div class="campo campo-doble">
+<label>Nivel de combustible final</label>
+<input id="cc-fin-nivel-valor" type="hidden"/>
+<div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+<button class="btn-secundario btn-medir" id="cc-fin-btn-medir" type="button">
+<i class="fas fa-gas-pump"></i> Verificar con Gasolina.py
+                    </button>
+<span id="cc-fin-nivel-actual" style="font-size:0.9rem; color:#2d3748;">— (sin capturar)</span>
+</div>
+<small class="ayuda-campo">El nivel se captura desde el medidor (Gasolina.py).</small>
+</div>
+<div class="campo campo-doble">
+<label for="cc-fin-obs">Observaciones</label>
+<textarea class="input-estilizado" id="cc-fin-obs" maxlength="500" placeholder="Notas del cierre (opcional)" rows="3"></textarea>
+</div>
+</div>
+<div class="modal-botones" style="margin-top:1rem;">
+<button class="btn-secundario" id="cc-fin-cancelar">Cancelar</button>
+<button class="btn-primario" id="cc-fin-aceptar"><i class="fas fa-check"></i> Finalizar</button>
+</div>
+</div>
+</div>
+<!-- Modal genérico de confirmación (usado por ambos módulos) -->
+<div class="modal" id="modal-confirmar" style="display: none;">
+<div class="modal-contenido">
+<div class="modal-header">
+<i class="fas fa-trash modal-icono modal-icono-rojo"></i>
+<h3 id="modal-confirmar-titulo">¿Confirmar?</h3>
+</div>
+<p id="modal-confirmar-mensaje">Esta acción no se puede deshacer.</p>
+<div class="modal-botones">
+<button class="btn-secundario" id="modal-confirmar-cancelar">Cancelar</button>
+<button class="btn-peligro" id="modal-confirmar-aceptar">Eliminar</button>
+</div>
+</div>
+</div>
+<!-- Toast (notificaciones) -->
+<div aria-live="polite" class="toast" id="toast"></div>
+<!-- BARRA INFERIOR -->
+<footer class="barra-inferior">
+<div class="barra-inferior-contenido">
+<p>Tecnológico Nacional de México campus Zacatecas Norte</p>
+</div>
+</footer>
+</div>
+<!-- Modal del medidor de combustible (iframe a Gasolina.py) -->
+<div class="modal" id="modal-medidor" style="display: none;">
+<div class="modal-contenido" style="max-width: 580px; padding: 0; overflow: hidden;">
+<iframe id="iframe-medidor" src="" style="width: 100%; height: 760px; border: none; display: block;"></iframe>
+</div>
+</div>
+<!-- Modal de aviso personalizado -->
+<div class="modal" id="modal-aviso" style="display: none;">
+<div class="modal-contenido">
+<div class="modal-header">
+<i class="fas fa-exclamation-triangle modal-icono"></i>
+<h3 id="modal-titulo">Aviso</h3>
+</div>
+<p id="modal-mensaje"></p>
+<div class="modal-botones">
+<button class="btn-primario" id="modal-btn-aceptar">Aceptar</button>
+</div>
+</div>
+</div>
+<!-- ─── Modal visor de QR (lightbox) ─── -->
+<div aria-label="Visor de código QR" aria-modal="true" class="qr-lightbox" id="qr-lightbox" role="dialog" style="display:none;">
+<div class="qr-lightbox-backdrop" data-qr-cerrar=""></div>
+<div class="qr-lightbox-contenido">
+<button aria-label="Cerrar" class="qr-lightbox-cerrar" data-qr-cerrar="" title="Cerrar (Esc)">
+<i class="fas fa-times"></i>
+</button>
+<div class="qr-lightbox-cabecera">
+<h3 id="qr-lightbox-titulo">Código QR</h3>
+<p id="qr-lightbox-subtitulo">Transparencia ciudadana</p>
+</div>
+<div class="qr-lightbox-marco">
+<img alt="Código QR" id="qr-lightbox-img" src=""/>
+</div>
+<div class="qr-lightbox-acciones">
+<a class="btn-primario" download="" id="qr-lightbox-descargar">
+<i class="fas fa-download"></i> Descargar PNG
+                </a>
+<a class="btn-secundario" id="qr-lightbox-publico" rel="noopener" target="_blank">
+<i class="fas fa-external-link-alt"></i> Vista pública
+                </a>
+<button class="btn-secundario" id="qr-lightbox-imprimir" type="button">
+<i class="fas fa-print"></i> Imprimir
+                </button>
+</div>
+<p class="qr-lightbox-pie">Escanee con cualquier lector de QR para consultar el historial público del vehículo.</p>
+</div>
+</div>
+<script src="Config.js"></script>
+<script src="auth-guard.js"></script><script src="Script.js"></script>
+<script src="navbar.js"></script>
+<script src="catalogo-destino.js"></script>
+<script src="vales-combo.js"></script>
+<script src="modulos-router.js"></script><script src="pagina-modulo.js"></script><script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

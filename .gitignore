@@ -1,0 +1,8 @@
+.env
+env.env
+node_modules/
+backups/
+uploads/evidencias/
+uploads/perfiles/
+*.log
+node-install.log

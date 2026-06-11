@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuario · SIGEPAV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Styles.css">
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+
+    <!-- Overlay para modales -->
+    <div class="modal-overlay" id="modal-overlay" style="display: none;"></div>
+
+    <div id="app-container" style="display: flex;">
+
+        <!-- BARRA SUPERIOR / navbar de usuario -->
+        <header class="barra-superior">
+            <div class="barra-superior-contenido">
+                <div class="barra-izquierda">
+                    <div class="dropdown-modulos" id="dropdown-modulos-principal" data-menu-tipo="usuario">
+                        <button class="btn-dropdown" id="btnDropdownGlobal">
+                            <i class="fas fa-bars"></i> Opciones <i class="fas fa-angle-down"></i>
+                        </button>
+                        <div class="dropdown-contenido" id="dropdownMenuGlobal">
+                            <div class="dropdown-seccion">
+                                <div class="dropdown-titulo-seccion"><i class="fas fa-route"></i> Mis comisiones</div>
+                                <div class="modulo-dropdown" data-opcion="iniciar-viaje"><i class="fas fa-play-circle"></i> Iniciar nueva comisión</div>
+                                <div class="modulo-dropdown" data-opcion="historial"><i class="fas fa-history"></i> Mi historial de comisiones</div>
+                            </div>
+                            <div class="dropdown-seccion">
+                                <div class="dropdown-titulo-seccion"><i class="fas fa-robot"></i> Asistente</div>
+                                <div class="modulo-dropdown" data-opcion="ia"><i class="fas fa-microchip"></i> IA</div>
+                            </div>
+                            <div class="dropdown-seccion">
+                                <div class="dropdown-titulo-seccion"><i class="fas fa-life-ring"></i> Soporte</div>
+                                <div class="modulo-dropdown" data-opcion="ayuda"><i class="fas fa-question-circle"></i> Ayuda</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <img src="Logo.jpeg" alt="Logo" class="logo-barra">
+                    <div class="titulo-sistema">
+                        <h1><a href="Usuario.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1>
+                    </div>
+                </div>
+
+                <div class="barra-derecha">
+                    <!-- Campana de notificaciones -->
+                    <div class="dropdown-cuenta" id="usr-dropdown-notif" style="position: relative;">
+                        <button class="btn-notificaciones" id="btnNotificaciones" title="Notificaciones" style="position: relative;">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge-notificacion" id="badgeNotif" style="display:none;">0</span>
+                        </button>
+                        <div class="cuenta-panel" id="usr-panelNotif" style="display:none; right:0; min-width: 320px; max-height: 420px; overflow-y: auto; position:absolute; top:100%;">
+                            <div class="cuenta-cabecera">
+                                <div>
+                                    <h4>Notificaciones</h4>
+                                    <p id="usr-notif-count">0 sin leer</p>
+                                </div>
+                            </div>
+                            <div id="usr-notif-lista" style="padding: 0.4rem;">
+                                <p style="text-align:center; padding: 1rem; color:#666;">No hay notificaciones.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chip del usuario (clickeable) -->
+                    <div class="dropdown-cuenta" id="dropdown-cuenta">
+                        <button class="info-usuario info-usuario-btn" id="btnCuenta">
+                            <span class="icono-usuario"><i class="fas fa-user-circle"></i></span>
+                            <span class="correo-usuario">Usuario</span>
+                            <i class="fas fa-angle-down" style="font-size: 0.85rem; opacity: 0.85;"></i>
+                        </button>
+
+                        <div class="cuenta-panel" id="cuentaPanel">
+                            <div class="cuenta-cabecera">
+                                <div class="cuenta-avatar"><img src="Logo.jpeg" alt="Logo"></div>
+                                <div>
+                                    <h4>Usuario</h4>
+                                    <p>Usuario operativo</p>
+                                </div>
+                            </div>
+                            <div class="cuenta-datos">
+                                <div class="cuenta-fila">
+                                    <i class="fas fa-id-badge"></i>
+                                    <div>
+                                        <span class="cuenta-label">Usuario</span>
+                                        <span class="cuenta-valor">Usuario</span>
+                                    </div>
+                                </div>
+                                <div class="cuenta-fila">
+                                    <i class="fas fa-envelope"></i>
+                                    <div>
+                                        <span class="cuenta-label">Correo institucional</span>
+                                        <span class="cuenta-valor">diego@itszn.edu.mx</span>
+                                    </div>
+                                </div>
+                                <div class="cuenta-fila">
+                                    <i class="fas fa-building"></i>
+                                    <div>
+                                        <span class="cuenta-label">Departamento</span>
+                                        <span class="cuenta-valor">Subdirección Administrativa</span>
+                                    </div>
+                                </div>
+                                <div class="cuenta-fila">
+                                    <i class="fas fa-user-tag"></i>
+                                    <div>
+                                        <span class="cuenta-label">Rol</span>
+                                        <span class="cuenta-valor">Usuario</span>
+                                    </div>
+                                </div>
+                                <div class="cuenta-fila">
+                                    <i class="fas fa-clock"></i>
+                                    <div>
+                                        <span class="cuenta-label">Último acceso</span>
+                                        <span class="cuenta-valor" id="ultimoAcceso">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-cerrar-sesion" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ============== PANEL DE USUARIO ============== -->
+        <main id="panel-usuario" class="contenedor-principal">
+            <!-- ====== Estado: SIN comisión activa ====== -->
+            <section class="viaje-destacado" id="estado-sin-comision">
+                <div class="viaje-mensaje">
+                    <i class="fas fa-route viaje-icono"></i>
+                    <div>
+                        <h2>Iniciar comisión</h2>
+                        <p>Cuando estés listo, registra el inicio de tu comisión para activar el seguimiento del vehículo oficial.</p>
+                    </div>
+                </div>
+                <button id="btn-iniciar-viaje" class="btn-viaje">
+                    <i class="fas fa-play-circle"></i> Iniciar comisión
+                </button>
+            </section>
+
+            <!-- ====== Estado: CON comisión activa ====== -->
+            <section class="viaje-destacado viaje-destacado-activa" id="estado-con-comision" style="display:none;">
+                <div class="viaje-mensaje">
+                    <i class="fas fa-circle-check viaje-icono"></i>
+                    <div>
+                        <h2>Comisión en curso</h2>
+                        <p id="info-comision-activa">Tienes una comisión activa. Cuando termines, finalízala desde aquí.</p>
+                    </div>
+                </div>
+                <button id="btn-finalizar-viaje" class="btn-viaje btn-viaje-finalizar">
+                    <i class="fas fa-flag-checkered"></i> Finalizar comisión
+                </button>
+            </section>
+
+        </main>
+
+        <!-- ============== FORMULARIO DE INICIO DE COMISIÓN (OCULTO) ============== -->
+        <main id="formulario-viaje" class="contenedor-principal" style="display: none;">
+            <div class="subtitulo-seccion">
+                <div class="encabezado-formulario">
+                    <h2>Datos de la comisión</h2>
+                    <p class="subtitulo-secundario">Información general de la comisión</p>
+                </div>
+            </div>
+
+            <section class="formulario-viaje-contenido">
+                <div class="form-grid">
+                    <div class="campo">
+                        <label for="fecha-viaje">Fecha de inicio</label>
+                        <input type="date" id="fecha-viaje" class="input-estilizado">
+                    </div>
+                    <div class="campo">
+                        <label for="no-viaje">Número de vale</label>
+                        <select id="no-viaje" class="input-estilizado">
+                            <option value="">(S/V) — Sin vale</option>
+                        </select>
+                    </div>
+                    <!-- Datos del vale seleccionado (autorellenados, solo lectura) -->
+                    <div class="campo vale-info" id="vale-info-box" style="display:none">
+                        <label>Datos del vale</label>
+                        <div class="vale-info-grid">
+                            <span>Folio:    <strong id="vale-folio">—</strong></span>
+                            <span>Litros:   <strong id="vale-litros">—</strong></span>
+                            <span>$/L:      <strong id="vale-precio">—</strong></span>
+                            <span>Total:    <strong id="vale-cantidad">—</strong></span>
+                        </div>
+                    </div>
+                    <div class="campo">
+                        <label for="oficio-no">
+                            Oficio No.
+                            <span class="campo-auto-tag"><i class="fas fa-wand-magic-sparkles"></i> automático</span>
+                        </label>
+                        <input type="text" id="oficio-no" class="input-estilizado input-readonly"
+                               value="Se asignará al guardar (formato CM-DD-MM-AA-NN)"
+                               readonly tabindex="-1" aria-readonly="true">
+                    </div>
+                    <div class="campo">
+                        <label for="destino-estado">Estado (destino)</label>
+                        <select id="destino-estado" class="input-estilizado">
+                            <option value="">Seleccione un estado</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="destino-municipio">Municipio (destino)</label>
+                        <select id="destino-municipio" class="input-estilizado" disabled>
+                            <option value="">Primero elija un estado</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="destino-localidad">Localidad (opcional)</label>
+                        <select id="destino-localidad" class="input-estilizado" disabled>
+                            <option value="">Primero elija un municipio</option>
+                        </select>
+                    </div>
+                    <input type="hidden" id="lugar-destino" value="">
+                    <input type="hidden" id="dest-estado-nombre" value="">
+                    <input type="hidden" id="dest-municipio-nombre" value="">
+                    <input type="hidden" id="dest-localidad-nombre" value="">
+                        <div class="campo campo-doble">
+                            <label for="vehiculo-select">Vehículo oficial</label>
+                            <select id="vehiculo-select" class="select-estilizado">
+                                <option value="">-- Cargando vehículos... --</option>
+                            </select>
+                        </div>  
+                    <div class="campo campo-doble">
+                        <label for="responsable">Usuario responsable</label>
+                        <input type="text" id="responsable" class="input-estilizado"
+                               readonly
+                               title="Se toma automáticamente de tu sesión"
+                               style="background:#f1f5f9;color:#475569;cursor:not-allowed;">
+                        <small style="display:block;margin-top:4px;font-size:.75rem;color:#64748b;">
+                            <i class="fas fa-info-circle"></i> Se asigna automáticamente con tu cuenta.
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Lecturas iniciales con medidor -->
+                <div class="lecturas-iniciales">
+                    <h3><i class="fas fa-tachometer-alt"></i> Lecturas iniciales</h3>
+                    <p class="instruccion-lectura">Verifique el nivel de combustible y capture el kilometraje al iniciar.</p>
+                    <div class="lectura-container">
+                        <div class="nivel-combustible">
+                            <label>Nivel de combustible inicial</label>
+                            <div class="gauge-container">
+                                <div class="gauge" id="gauge">
+                                    <div class="gauge-fill" id="gauge-fill" style="transform: rotate(-90deg);"></div>
+                                    <div class="gauge-cover">
+                                        <span class="gauge-value" id="gauge-value">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="btn-verificar-combustible" class="btn-secundario btn-medir">
+                                <i class="fas fa-gas-pump"></i> Verificar nivel de combustible
+                            </button>
+                            <p class="etiqueta-tanque" id="etiqueta-tanque"></p>
+                        </div>
+                        <div class="kilometraje-inicial">
+                            <label for="kilometraje">Kilometraje actual</label>
+                            <input type="number" id="kilometraje" class="input-estilizado" placeholder="Lectura del odómetro" min="0">
+                            <small class="ayuda-campo">Indique la lectura del odómetro al iniciar</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="campo campo-doble">
+                    <label for="motivo-viaje">Motivo de la comisión (opcional)</label>
+                    <textarea id="motivo-viaje" rows="2" class="input-estilizado" placeholder="Describa brevemente el propósito de la comisión"></textarea>
+                </div>
+
+                <div class="botones-viaje">
+                    <button id="btn-cancelar-viaje" class="btn-secundario">Cancelar</button>
+                    <button id="btn-iniciar-viaje-confirm" class="btn-primario">Iniciar comisión</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- ============== HISTORIAL DE COMISIONES (USUARIO) ============== -->
+        <main id="historial-comisiones" class="contenedor-principal" style="display: none;">
+            <div class="subtitulo-seccion">
+                <div class="encabezado-formulario">
+                    <h2>Mi historial de comisiones</h2>
+                    <p class="subtitulo-secundario">Aquí puedes ver tus comisiones y solicitar finalizarlas.</p>
+                </div>
+            </div>
+
+            <section class="panel-tabla">
+                <div class="panel-tabla-cabecera">
+                    <div>
+                        <span><i class="fas fa-list"></i> Mis comisiones</span>
+                        <span class="resultados-count" id="hc-res-count">0 registros</span>
+                    </div>
+                </div>
+                <div class="tabla-contenedor">
+                    <table class="tabla-sigepav">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Destino</th>
+                                <th>Motivo</th>
+                                <th>Vehículo</th>
+                                <th>Km inicial</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hc-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- ============== FORMULARIO DE SOLICITUD DE FINALIZACIÓN (USUARIO) ============== -->
+        <main id="form-finalizar-comision" class="contenedor-principal" style="display: none;">
+            <div class="subtitulo-seccion">
+                <div class="encabezado-formulario">
+                    <h2>Solicitar finalización de comisión</h2>
+                    <p class="subtitulo-secundario">Captura los datos de cierre. La solicitud quedará en revisión por el administrador.</p>
+                </div>
+            </div>
+
+            <section class="formulario-viaje-contenido">
+                <input type="hidden" id="ff-viaje-id">
+                <div class="form-grid">
+                    <div class="campo">
+                        <label>Comisión</label>
+                        <input type="text" id="ff-comision-info" class="input-estilizado" readonly>
+                    </div>
+                    <div class="campo">
+                        <label for="ff-km-final">Kilometraje final</label>
+                        <input type="number" id="ff-km-final" class="input-estilizado input-medio" placeholder="Lectura del odómetro al cierre" min="0">
+                    </div>
+                    <div class="campo">
+                        <!-- FIX req 3: nivel final SIEMPRE se captura con Gasolina.py -->
+                        <label>Nivel de combustible final</label>
+                        <input type="hidden" id="ff-nivel-comb">
+                        <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+                            <button id="ff-btn-medir" class="btn-secundario btn-medir" type="button">
+                                <i class="fas fa-gas-pump"></i> Registrar nivel de combustible
+                            </button>
+                            <span id="ff-nivel-actual" style="font-size:0.9rem; color:#2d3748;">— (sin capturar)</span>
+                        </div>
+                        <small class="ayuda-campo">El nivel se captura desde el medidor (Gasolina.py).</small>
+                    </div>
+                    <div class="campo">
+                        <label for="ff-motivo">Motivo / Resumen</label>
+                        <input type="text" id="ff-motivo" class="input-estilizado" placeholder="Ej. Comisión cumplida, sin incidentes.">
+                    </div>
+                    <div class="campo campo-doble">
+                        <label for="ff-actividades">Actividades realizadas</label>
+                        <textarea id="ff-actividades" rows="5" class="input-estilizado"
+                                  placeholder="Escribe una actividad por línea, por ejemplo:&#10;Reunión con autoridades municipales&#10;Entrega de documentación&#10;Inspección de obra en instalaciones"></textarea>
+                        <small class="ayuda-campo">Una línea = una actividad. Estas se mostrarán al ciudadano en su reporte y en el reporte público.</small>
+                    </div>
+                    <div class="campo campo-doble">
+                        <label for="ff-obs">Observaciones</label>
+                        <textarea id="ff-obs" rows="3" class="input-estilizado" placeholder="Detalle cualquier incidente, falla, retraso, etc."></textarea>
+                    </div>
+                </div>
+                <div class="botones-viaje">
+                    <button id="ff-btn-cancelar" class="btn-secundario">Cancelar</button>
+                    <button id="ff-btn-enviar" class="btn-primario"><i class="fas fa-paper-plane"></i> Enviar solicitud</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- BARRA INFERIOR -->
+        <footer class="barra-inferior">
+            <div class="barra-inferior-contenido">
+                <p>Tecnológico Nacional de México campus Zacatecas Norte</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal del medidor de combustible (iframe a Gasolina.py) -->
+    <div class="modal" id="modal-medidor" style="display: none;">
+        <div class="modal-contenido" style="max-width: 580px; padding: 0; overflow: hidden;">
+            <iframe id="iframe-medidor" src="" style="width: 100%; height: 760px; border: none; display: block;"></iframe>
+        </div>
+    </div>
+
+    <!-- Modal de aviso personalizado -->
+    <div class="modal" id="modal-aviso" style="display: none;">
+        <div class="modal-contenido">
+            <div class="modal-header">
+                <i class="fas fa-exclamation-triangle modal-icono"></i>
+                <h3 id="modal-titulo">Aviso</h3>
+            </div>
+            <p id="modal-mensaje"></p>
+            <div class="modal-botones">
+                <button class="btn-primario" id="modal-btn-aceptar">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+<script src="Config.js"></script>
+<script src="auth-guard.js"></script>
+<script>
+    // Base URL del API: detección automática (window.API_BASE viene de Config.js)
+    // Soporta localhost, ngrok, Apache/Laragon, file://, etc.
+    const API_BASE = (typeof window !== 'undefined' && window.API_BASE) ? window.API_BASE : (window.location && window.location.origin ? window.location.origin : 'http://localhost:3000');
+
+    const apiFetch = (path, options = {}) => fetch(`${API_BASE}${path}`, options);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Vistas
+        const panelUsuario = document.getElementById('panel-usuario');
+        const formularioViaje = document.getElementById('formulario-viaje');
+
+        const btnIniciarViaje = document.getElementById('btn-iniciar-viaje');
+        // btnVolverPanel fue eliminado (req 6: navegación por SIGEPAV)
+        const btnCancelarViaje = document.getElementById('btn-cancelar-viaje');
+        const btnIniciarConfirm = document.getElementById('btn-iniciar-viaje-confirm');
+        const btnVerificarCombustible = document.getElementById('btn-verificar-combustible');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        const vehiculoSelect = document.getElementById('vehiculo-select');
+        const fechaViaje = document.getElementById('fecha-viaje');
+        const noViaje = document.getElementById('no-viaje');
+        const responsable = document.getElementById('responsable');
+
+        const gaugeFill = document.getElementById('gauge-fill');
+        const gaugeValue = document.getElementById('gauge-value');
+        const etiquetaTanque = document.getElementById('etiqueta-tanque');
+
+        // Modal de aviso
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalAviso = document.getElementById('modal-aviso');
+        const modalTitulo = document.getElementById('modal-titulo');
+        const modalMensaje = document.getElementById('modal-mensaje');
+        const modalBtnAceptar = document.getElementById('modal-btn-aceptar');
+
+        // Modal del medidor
+        const modalMedidor = document.getElementById('modal-medidor');
+        const iframeMedidor = document.getElementById('iframe-medidor');
+
+        // FIX: Verificar sesión apenas carga la página. Si no hay sesión, al login.
+        const sesion = JSON.parse(sessionStorage.getItem('sigepav_usuario') || 'null');
+        if (!sesion || !sesion.id) {
+            window.location.href = 'index.html';
+            return;
+        }
+        // Si un administrador entra directo a Usuario.html, redirigir al panel admin.
+        {
+            const _rol = String(sesion.rol || '').trim().toLowerCase();
+            if (_rol === 'administrador' || _rol === 'admin') {
+                window.location.href = 'menu.html';
+                return;
+            }
+        }
+
+        // ========== UTILIDADES ==========
+        function nombreCompletoResponsable() {
+            // En alta de usuarios, `nombre` es el usuario/login y `apellidos` el nombre completo.
+            return String(sesion.apellidos || sesion.nombre || '').replace(/\s+/g, ' ').trim();
+        }
+
+        function mostrarAviso(titulo, mensaje, callback) {
+            modalTitulo.textContent = titulo;
+            modalMensaje.textContent = mensaje;
+            modalOverlay.style.display = 'block';
+            modalAviso.style.display = 'block';
+            modalBtnAceptar.focus();
+            modalBtnAceptar.onclick = () => {
+                ocultarAviso();
+                if (callback) callback();
+            };
+        }
+        function ocultarAviso() {
+            modalOverlay.style.display = 'none';
+            modalAviso.style.display = 'none';
+        }
+
+        function generarNumeroViaje() {
+            const ahora = new Date();
+            const año = ahora.getFullYear();
+            const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+            const dia = String(ahora.getDate()).padStart(2, '0');
+            return `VJ-${año}${mes}${dia}-001`;
+        }
+
+        function actualizarMedidor(porcentaje) {
+            const degrees = -90 + (porcentaje / 100) * 180;
+            gaugeFill.style.transform = `rotate(${degrees}deg)`;
+            gaugeValue.textContent = `${porcentaje}%`;
+            etiquetaTanque.textContent =
+                porcentaje >= 80 ? 'Nivel alto' :
+                porcentaje >= 50 ? 'Medio tanque' :
+                porcentaje >= 25 ? 'Nivel bajo' :
+                porcentaje > 0   ? 'Crítico' : '';
+        }
+
+        // ========== ANIMACIÓN DE NÚMEROS ==========
+        function animarConteo(elemento, valorFinal) {
+            let valorActual = 0;
+            const incremento = Math.max(valorFinal / 40, 1);
+            elemento.classList.add('animado');
+            const intervalo = setInterval(() => {
+                valorActual += incremento;
+                if (valorActual >= valorFinal) {
+                    elemento.textContent = valorFinal;
+                    clearInterval(intervalo);
+                } else {
+                    elemento.textContent = Math.floor(valorActual);
+                }
+            }, 20);
+        }
+        function animarNumerosEnSeccion(seccion) {
+            if (!seccion) return;
+            const numeros = seccion.querySelectorAll('.card-numero[data-valor]');
+            numeros.forEach(el => {
+                const final = parseInt(el.getAttribute('data-valor'));
+                if (final && !el.classList.contains('animado')) animarConteo(el, final);
+            });
+        }
+        animarNumerosEnSeccion(panelUsuario);
+
+        // ========== INICIALIZACIÓN DE FORMULARIO ==========
+        fechaViaje.value = new Date().toISOString().split('T')[0];
+        noViaje.value = generarNumeroViaje();
+
+        // Pre-llenar el responsable solo con el nombre completo y bloquearlo
+        if (responsable) {
+            const nombreCompleto = nombreCompletoResponsable() || 'Usuario';
+            responsable.value = nombreCompleto;
+            responsable.readOnly = true;
+        }
+
+        // FIX: Cache global de vehículos para que la IA y otras funciones lo reutilicen
+        window.__sigepav_vehiculos_cache = [];
+
+        // FIX: Carga de vehículos con manejo de error visible al usuario
+        async function cargarVehiculos() {
+            try {
+                const r = await apiFetch('/api/vehiculos');
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                const ct = r.headers.get('content-type') || '';
+                if (!ct.includes('application/json')) {
+                    throw new Error('Respuesta no es JSON. ¿El server Node está corriendo en :3000?');
+                }
+                const d = await r.json();
+                if (!d.ok) throw new Error(d.error || 'Error al cargar vehículos');
+
+                window.__sigepav_vehiculos_cache = d.vehiculos || [];
+
+                const tipoLabel = {
+                    sedan:'Sedán', coupe:'Coupé', pickup:'Pickup', suv:'SUV',
+                    hatchback:'Hatchback', van:'Van', motocicleta:'Motocicleta', otro:'Otro'
+                };
+
+                vehiculoSelect.innerHTML = '<option value="">-- Seleccione un vehículo --</option>';
+                d.vehiculos.forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v.id;
+                    let extra = '';
+                    if (v.tipo) {
+                        const t = tipoLabel[String(v.tipo).toLowerCase()] || v.tipo;
+                        extra = (v.capacidad != null && v.capacidad !== '')
+                            ? ` — ${t}, ${v.capacidad} pers.`
+                            : ` — ${t}`;
+                    }
+                    opt.textContent = `${v.marca} ${v.linea} ${v.modelo} (No. Eco ${v.no_economico})${extra}`;
+                    opt.dataset.combustible = v.combustible || '';
+                    opt.dataset.km          = v.km_actual || 0;
+                    opt.dataset.tipo        = v.tipo || '';
+                    opt.dataset.capacidad   = (v.capacidad != null) ? v.capacidad : '';
+                    vehiculoSelect.appendChild(opt);
+                });
+
+                if (d.vehiculos.length === 0) {
+                    vehiculoSelect.innerHTML = '<option value="">No hay vehículos registrados</option>';
+                }
+            } catch (err) {
+                console.error('Error cargando vehículos:', err);
+                vehiculoSelect.innerHTML = `<option value="">Error: ${err.message}</option>`;
+                mostrarAviso('Error de conexión',
+                    'No se pudieron cargar los vehículos. Verifica que el servidor Node esté corriendo en http://localhost:3000');
+            }
+        }
+        cargarVehiculos();
+
+        // Cargar resumen del mes con datos reales
+        (async () => {
+            try {
+                const correoEl = document.querySelector('.barra-derecha .correo-usuario');
+                if (correoEl) correoEl.textContent = sesion.email || sesion.nombre;
+
+                const r = await apiFetch(`/api/resumen-mes/${sesion.id}`);
+                const d = await r.json();
+                if (d.ok) {
+                    const cards = panelUsuario.querySelectorAll('.card-numero[data-valor]');
+                    if (cards[0]) cards[0].setAttribute('data-valor', d.resumen.viajes || 0);
+                    if (cards[1]) cards[1].setAttribute('data-valor', d.resumen.km || 0);
+                    if (cards[2]) cards[2].setAttribute('data-valor', Math.round(d.resumen.litros || 0));
+                    cards.forEach(c => { c.classList.remove('animado'); c.textContent = '0'; });
+                    animarNumerosEnSeccion(panelUsuario);
+                }
+            } catch (err) {
+                console.warn('No se pudo cargar resumen mes:', err);
+            }
+        })();
+
+        // ========== MEDIDOR DE COMBUSTIBLE ==========
+        function abrirMedidor() {
+            iframeMedidor.src = window.sigepavUrl(`${window.FUEL_BASE || ((window.API_BASE || window.location.origin) + '/gasolina')}/?t=${Date.now()}`);
+            modalOverlay.style.display = 'block';
+            modalMedidor.style.display = 'block';
+        }
+        function cerrarMedidor() {
+            modalOverlay.style.display = 'none';
+            modalMedidor.style.display = 'none';
+            iframeMedidor.src = '';
+        }
+        window.addEventListener('message', (event) => {
+            if (!event.data || typeof event.data !== 'object') return;
+            if (event.data.tipo === 'medidor-confirmar') {
+                const pct = Math.round(event.data.percentage);
+                // FIX (req 3): ruta el resultado según el destino que disparó el medidor
+                if (window.__sigepav_medidor_destino === 'finalizar') {
+                    const hidden = document.getElementById('ff-nivel-comb');
+                    const lbl = document.getElementById('ff-nivel-actual');
+                    if (hidden) hidden.value = String(pct);
+                    if (lbl)    lbl.textContent = `${pct}% (capturado con Gasolina.py)`;
+                } else {
+                    // Por defecto, era el medidor del inicio de viaje
+                    actualizarMedidor(pct);
+                }
+                window.__sigepav_medidor_destino = null;
+                cerrarMedidor();
+            } else if (event.data.tipo === 'medidor-cancelar') {
+                window.__sigepav_medidor_destino = null;
+                cerrarMedidor();
+            }
+        });
+        btnVerificarCombustible.addEventListener('click', () => {
+            const vehiculo = vehiculoSelect.value;
+            if (!vehiculo) {
+                mostrarAviso('Selección requerida', 'Seleccione primero un vehículo oficial.');
+                return;
+            }
+            fetch(`${window.FUEL_BASE || ((window.API_BASE || window.location.origin) + '/gasolina')}/fuel?t=${Date.now()}`, { cache: 'no-store' })
+                .then(r => {
+                    if (!r.ok) throw new Error('Servidor no disponible');
+                    abrirMedidor();
+                })
+                .catch(() => {
+                    mostrarAviso('Error de conexión',
+                        'No se pudo conectar con el servidor de combustible. Asegúrese de que el archivo Gasolina.py esté en ejecución y disponible en el servidor de combustible');
+                });
+        });
+
+        // ========== NAVEGACIÓN ==========
+        function volverPanel() {
+            // Oculta cualquier vista activa (formulario viaje, historial, form finalización)
+            if (typeof ocultarTodasLasVistas === 'function') {
+                ocultarTodasLasVistas();
+            } else {
+                formularioViaje.style.display = 'none';
+            }
+            panelUsuario.style.display = 'flex';
+            // Refrescar el banner de "iniciar/finalizar comisión" por si el
+            // estado cambió (acabas de iniciar o finalizar una comisión).
+            if (typeof verificarComisionActiva === 'function') {
+                verificarComisionActiva();
+            }
+        }
+
+        // FIX (req 6): clic en SIGEPAV / logo de la barra azul → vuelve al panel principal.
+        // Usamos delegación de eventos en document para que funcione aunque el
+        // header se renderice más tarde o haya elementos superpuestos.
+        document.addEventListener('click', (e) => {
+            const t = e.target.closest('.titulo-sistema, .titulo-sistema h1, .logo-barra');
+            if (!t) return;
+            if (!t.closest('.barra-superior')) return;
+            volverPanel();
+        });
+        // Estilos visuales (cursor pointer + tooltip)
+        document.querySelectorAll('.barra-superior .titulo-sistema, .barra-superior .titulo-sistema h1, .barra-superior .logo-barra').forEach(el => {
+            el.style.cursor = 'pointer';
+            el.title = 'Volver al panel principal';
+        });
+
+        btnIniciarViaje.addEventListener('click', () => {
+            if (typeof ocultarTodasLasVistas === 'function') ocultarTodasLasVistas();
+            else panelUsuario.style.display = 'none';
+            formularioViaje.style.display = 'flex';
+            actualizarMedidor(0);
+        });
+        // btnVolverPanel fue eliminado del HTML (req 6); la navegación se hace por SIGEPAV.
+        if (btnCancelarViaje) btnCancelarViaje.addEventListener('click', volverPanel);
+
+        // ─────────────────────────────────────────────────────────────
+        //  Banner inteligente: sin/con comisión activa
+        // ─────────────────────────────────────────────────────────────
+        //  Al cargar el panel y después de iniciar/finalizar una comisión,
+        //  consultamos /api/viajes/usuario/{id} para saber si hay una activa.
+        //  - Si NO hay → mostramos banner "Iniciar comisión" (verde, original).
+        //  - Si SÍ hay → mostramos banner rojo "Finalizar comisión" + info.
+        const bannerSinComision = document.getElementById('estado-sin-comision');
+        const bannerConComision = document.getElementById('estado-con-comision');
+        const infoComisionActiva = document.getElementById('info-comision-activa');
+        const btnFinalizarViaje = document.getElementById('btn-finalizar-viaje');
+
+        // Guarda la comisión activa actual (si existe) para que el botón "Finalizar"
+        // sepa qué viaje finalizar sin pedirle al usuario que elija de una lista.
+        let __comisionActivaActual = null;
+
+        async function verificarComisionActiva() {
+            if (!sesion || !sesion.id) return;
+            try {
+                const r = await apiFetch(`/api/viajes/usuario/${sesion.id}`);
+                const d = await r.json();
+                if (!d.ok) throw new Error(d.error || 'No se pudo verificar el estado de comisiones');
+
+                // Busca la primera comisión en estado "En comision"
+                const activa = (d.viajes || []).find(v => esEnComision(v.estado));
+
+                if (activa) {
+                    __comisionActivaActual = activa;
+                    // Texto descriptivo
+                    const destino = activa.lugar_destino ? ` a ${activa.lugar_destino}` : '';
+                    const oficio = activa.no_oficio ? ` (${activa.no_oficio})` : '';
+                    if (infoComisionActiva) {
+                        infoComisionActiva.textContent =
+                            `Tienes una comisión activa${destino}${oficio}. Cuando termines, finalízala desde aquí.`;
+                    }
+                    if (bannerSinComision) bannerSinComision.style.display = 'none';
+                    if (bannerConComision) bannerConComision.style.display = 'flex';
+                } else {
+                    __comisionActivaActual = null;
+                    if (bannerSinComision) bannerSinComision.style.display = 'flex';
+                    if (bannerConComision) bannerConComision.style.display = 'none';
+                }
+            } catch (err) {
+                // En caso de error, mostramos el banner por defecto (sin comisión)
+                console.warn('verificarComisionActiva:', err);
+                __comisionActivaActual = null;
+                if (bannerSinComision) bannerSinComision.style.display = 'flex';
+                if (bannerConComision) bannerConComision.style.display = 'none';
+            }
+        }
+
+        // Click en "Finalizar comisión" → abre directamente el formulario de
+        // finalización con la comisión activa precargada. El usuario no tiene
+        // que ir al historial y buscarla.
+        if (btnFinalizarViaje) {
+            btnFinalizarViaje.addEventListener('click', () => {
+                if (!__comisionActivaActual) {
+                    // Por algún motivo se perdió la referencia. Re-verificar.
+                    verificarComisionActiva();
+                    mostrarAviso('Sin comisión activa', 'No se detectó una comisión activa. Si crees que es un error, recarga la página.');
+                    return;
+                }
+                abrirFormFinalizar(
+                    __comisionActivaActual.id,
+                    __comisionActivaActual.lugar_destino || ''
+                );
+            });
+        }
+
+        // Verifica al cargar la página
+        verificarComisionActiva();
+
+        // FIX: validación robusta + mensajes claros + parseo correcto del vehiculo_id
+        btnIniciarConfirm.addEventListener('click', async () => {
+            const lugar = document.getElementById('lugar-destino').value.trim();
+            const vehiculoIdStr = vehiculoSelect.value;
+            const km = parseInt(document.getElementById('kilometraje').value, 10);
+            // El campo oficio-no es de solo lectura: el servidor lo genera (CM-DD-MM-AA-NN).
+            const motivo = document.getElementById('motivo-viaje').value.trim();
+
+            // FIX: validar que el vehiculo_id sea un número entero válido (no "nissan-versa")
+            const vehiculo_id = parseInt(vehiculoIdStr, 10);
+
+            if (!lugar) {
+                mostrarAviso('Falta destino', 'Ingrese el lugar o destino de la comisión.');
+                return;
+            }
+            if (!vehiculoIdStr || isNaN(vehiculo_id)) {
+                mostrarAviso('Vehículo requerido', 'Seleccione un vehículo oficial de la lista.');
+                return;
+            }
+            if (isNaN(km) || km < 0) {
+                mostrarAviso('Kilometraje inválido', 'Ingrese un kilometraje válido (número entero).');
+                return;
+            }
+
+            // Botón en estado "guardando" para evitar dobles clicks
+            btnIniciarConfirm.disabled = true;
+            const txtOriginal = btnIniciarConfirm.innerHTML;
+            btnIniciarConfirm.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            if (window.sigepavLoading) window.sigepavLoading.show('Guardando comisión...');
+
+            // Responsable: nombre completo del usuario logueado.
+            const responsableAutorelleno = nombreCompletoResponsable() || 'Usuario';
+
+            // Vale seleccionado del combo (puede ser vacío = S/V)
+            const valeId = document.getElementById('no-viaje')?.value || null;
+
+            try {
+                const resp = await apiFetch('/api/viajes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        usuario_id: sesion.id,
+                        vehiculo_id: vehiculo_id,
+                        vale_id: valeId,
+                        // no_oficio NO se envía: el servidor lo genera (CM-DD-MM-AA-NN).
+                        lugar_destino: lugar,
+                        responsable: responsableAutorelleno,
+                        // Campos separados (del catálogo INEGI)
+                        estadoDst: document.getElementById('dest-estado-nombre')?.value.trim() || null,
+                        municipio: document.getElementById('dest-municipio-nombre')?.value.trim() || null,
+                        localidad: document.getElementById('dest-localidad-nombre')?.value.trim() || null,
+                        motivo,
+                        km_inicial: km,
+                        fecha_inicio: new Date().toISOString().slice(0, 19).replace('T', ' ')
+                    })
+                });
+
+                // FIX: validar content-type antes de parsear JSON
+                const ct = resp.headers.get('content-type') || '';
+                if (!ct.includes('application/json')) {
+                    throw new Error(`Respuesta no es JSON (status ${resp.status}). ¿El server está corriendo?`);
+                }
+
+                const data = await resp.json();
+                if (!data.ok) throw new Error(data.error || 'Error desconocido del servidor');
+
+                const oficioAsignado = data.no_oficio || '(sin asignar)';
+                mostrarAviso(
+                    'Comisión iniciada',
+                    `Comisión #${data.id} registrada correctamente.\n\nNúmero de oficio asignado: ${oficioAsignado}`,
+                    () => {
+                        // Limpiar formulario
+                        document.getElementById('lugar-destino').value = '';
+                        document.getElementById('kilometraje').value = '';
+                        // El campo oficio-no se queda con el placeholder de "se asignará al guardar"
+                        document.getElementById('oficio-no').value = 'Se asignará al guardar (formato CM-DD-MM-AA-NN)';
+                        document.getElementById('motivo-viaje').value = '';
+                        vehiculoSelect.value = '';
+                        actualizarMedidor(0);
+                        volverPanel();
+                });
+            } catch (err) {
+                console.error('Error guardando viaje:', err);
+                mostrarAviso('Error', 'No se pudo guardar la comisión: ' + err.message);
+            } finally {
+                btnIniciarConfirm.disabled = false;
+                btnIniciarConfirm.innerHTML = txtOriginal;
+                if (window.sigepavLoading) window.sigepavLoading.hide();
+            }
+        });
+
+        // ========== DROPDOWN DE OPCIONES ==========
+        const btnDropdown = document.getElementById('btnDropdownGlobal');
+        const dropdownMenu = document.getElementById('dropdownMenuGlobal');
+
+        if (btnDropdown && dropdownMenu) {
+            btnDropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('show');
+            });
+            document.addEventListener('click', (e) => {
+                if (!dropdownMenu.contains(e.target) && e.target !== btnDropdown) {
+                    dropdownMenu.classList.remove('show');
+                }
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') dropdownMenu.classList.remove('show');
+            });
+
+            document.querySelectorAll('.modulo-dropdown').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const opcion = item.getAttribute('data-opcion');
+                    switch (opcion) {
+                        case 'iniciar-viaje':
+                            ocultarTodasLasVistas();
+                            formularioViaje.style.display = 'flex';
+                            actualizarMedidor(0);
+                            break;
+                        case 'historial':
+                            abrirHistorial();
+                            break;
+                        case 'ia':
+                            window.location.href = 'Ia.html';
+                            break;
+                        case 'ayuda':
+                            if (typeof window.descargarManualSIGEPAV === 'function') {
+                                window.descargarManualSIGEPAV();
+                            } else {
+                                window.location.href = 'Manual_SIGEPAV.pdf';
+                            }
+                            break;
+                    }
+                    dropdownMenu.classList.remove('show');
+                });
+            });
+        }
+
+        // ========== PANEL DE CUENTA ==========
+        const btnCuenta = document.getElementById('btnCuenta');
+        const cuentaPanel = document.getElementById('cuentaPanel');
+        const ultimoAcceso = document.getElementById('ultimoAcceso');
+
+        if (ultimoAcceso) {
+            ultimoAcceso.textContent = new Date().toLocaleString('es-MX', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        // Llenar el panel con datos REALES de la sesión sin cambiar el flujo operativo.
+        // El guard global ya renderiza el menú completo; aquí solo dejamos compatibilidad
+        // por si el HTML viejo se carga antes del guard.
+        try {
+            const cabecera = document.querySelector('.cuenta-cabecera div:last-child');
+            const rolNormU = String(sesion.rol || '').trim().toLowerCase();
+            const esAdminU = (rolNormU === 'administrador' || rolNormU === 'admin' || Number(sesion.rol_id) === 1);
+            const nombreCompleto = `${sesion.nombre || ''} ${sesion.apellidos || ''}`.trim();
+            if (cabecera) {
+                cabecera.innerHTML = `
+                    <h4>${sesion.email || 'Usuario'}</h4>
+                    <p>${nombreCompleto || sesion.cargo || (esAdminU ? 'Administrador' : 'Usuario operativo')}</p>
+                `;
+            }
+            const datos = document.querySelectorAll('.cuenta-fila .cuenta-valor');
+            if (datos[0]) datos[0].textContent = sesion.email || '—';
+            if (datos[1]) datos[1].textContent = nombreCompleto || '—';
+            if (datos[2]) datos[2].textContent = sesion.departamento || '—';
+            if (datos[3]) datos[3].textContent = esAdminU ? 'Administrador' : 'Usuario operativo';
+        } catch (e) {
+            console.warn('No se pudo cargar datos de cuenta:', e);
+        }
+
+        if (btnCuenta && cuentaPanel && !btnCuenta._sigepavCuentaBound) {
+            btnCuenta.addEventListener('click', (e) => {
+                e.stopPropagation();
+                cuentaPanel.classList.toggle('show');
+                if (dropdownMenu) dropdownMenu.classList.remove('show');
+            });
+            document.addEventListener('click', (e) => {
+                if (!cuentaPanel.contains(e.target) && e.target !== btnCuenta && !btnCuenta.contains(e.target)) {
+                    cuentaPanel.classList.remove('show');
+                }
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') cuentaPanel.classList.remove('show');
+            });
+        }
+
+        // ========== CAMPANA DE NOTIFICACIONES (real, lee /api/notificaciones) ==========
+        const btnNotificaciones = document.getElementById('btnNotificaciones');
+        const badgeNotif = document.getElementById('badgeNotif');
+        const usrPanelNotif = document.getElementById('usr-panelNotif');
+        const usrNotifLista = document.getElementById('usr-notif-lista');
+        const usrNotifCount = document.getElementById('usr-notif-count');
+
+        function escHtmlNotif(s) {
+            return String(s || '').replace(/[&<>"']/g, c => ({
+                '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+            }[c]));
+        }
+
+        function escAttrNotif(s) { return escHtmlNotif(s).replace(/`/g, '&#96;'); }
+
+        function urlNotificacionUsuario(n) {
+            if (!n) return null;
+            const id = n.referencia_id ? encodeURIComponent(n.referencia_id) : '';
+            switch (n.tipo) {
+                case 'comision_rechazada':
+                    return id ? `Usuario.html?abrir=finalizar&viaje_id=${id}#form-finalizar-comision` : 'Usuario.html#historial-comisiones';
+                case 'comision_aprobada':
+                    return id ? `Usuario.html?abrir=historial&viaje_id=${id}#historial-comisiones` : 'Usuario.html#historial-comisiones';
+                case 'solicitud_finalizacion':
+                    return id ? `solicitudes-finalizacion.html?solicitud_id=${id}` : 'solicitudes-finalizacion.html';
+                case 'reporte_ciudadano':
+                    return id ? `reportes.html?reporte_id=${id}` : 'reportes.html';
+                case 'vehiculo':
+                    return id ? `vehiculos.html?vehiculo_id=${id}` : 'vehiculos.html';
+                default:
+                    return null;
+            }
+        }
+
+        async function abrirNotificacionUsuario(notifId, url) {
+            const id = parseInt(notifId, 10);
+            if (id) {
+                try { await apiFetch(`/api/notificaciones/${id}/leida`, { method: 'PUT' }); } catch (_) {}
+            }
+            if (url) window.location.href = url;
+            else cargarNotificaciones();
+        }
+
+        async function cargarNotificaciones() {
+            if (!sesion || !sesion.id) return;
+            try {
+                const r = await apiFetch(`/api/notificaciones/${sesion.id}`);
+                const d = await r.json();
+                if (!d.ok) return;
+                const lista = d.notificaciones || [];
+                const noLeidas = lista.filter(n => !n.leida).length;
+
+                if (badgeNotif) {
+                    if (noLeidas > 0) {
+                        badgeNotif.textContent = noLeidas > 99 ? '99+' : noLeidas;
+                        badgeNotif.style.display = 'flex';
+                    } else {
+                        badgeNotif.style.display = 'none';
+                    }
+                }
+                if (usrNotifCount) usrNotifCount.textContent = `${noLeidas} sin leer`;
+
+                if (!usrNotifLista) return;
+                if (!lista.length) {
+                    usrNotifLista.innerHTML = '<p style="text-align:center; padding: 1rem; color:#666;">No hay notificaciones.</p>';
+                    return;
+                }
+                usrNotifLista.innerHTML = lista.slice(0, 20).map(n => {
+                    const url = urlNotificacionUsuario(n);
+                    return `
+                    <div data-notif-id="${n.id}"
+                         ${url ? `data-notif-url="${escAttrNotif(url)}" title="Abrir registro relacionado"` : ''}
+                         style="padding: 0.7rem; border-bottom: 1px solid #eee; ${n.leida ? 'opacity:0.55;' : ''} ${url ? 'cursor:pointer;' : ''}">
+                        <div style="display:flex; justify-content:space-between; gap:0.5rem;">
+                            <strong style="font-size:0.9rem;">${escHtmlNotif(n.titulo)}</strong>
+                            ${n.leida ? '' : `<button class="btn-icono" data-marcar-leida="${n.id}" title="Marcar leída" style="color:#006dc8;background:none;border:none;cursor:pointer;"><i class="fas fa-check"></i></button>`}
+                        </div>
+                        <p style="margin: 0.25rem 0; font-size:0.85rem; color:#444;">${escHtmlNotif(n.cuerpo)}</p>
+                        <span style="font-size:0.7rem; color:#888;">${(n.created_at || '').toString().slice(0,16).replace('T',' ')}</span>
+                        ${url ? '<div style="font-size:0.72rem;color:#006dc8;margin-top:0.25rem;"><i class="fas fa-external-link-alt"></i> Clic para abrir</div>' : ''}
+                    </div>`;
+                }).join('');
+            } catch (err) {
+                console.warn('No se pudieron cargar notificaciones:', err);
+            }
+        }
+
+        if (btnNotificaciones && usrPanelNotif) {
+            btnNotificaciones.addEventListener('click', (e) => {
+                e.stopPropagation();
+                usrPanelNotif.style.display = usrPanelNotif.style.display === 'block' ? 'none' : 'block';
+                if (usrPanelNotif.style.display === 'block') cargarNotificaciones();
+            });
+            document.addEventListener('click', (e) => {
+                if (!usrPanelNotif.contains(e.target) && e.target !== btnNotificaciones) {
+                    usrPanelNotif.style.display = 'none';
+                }
+            });
+            usrNotifLista?.addEventListener('click', async (e) => {
+                const t = e.target.closest('[data-marcar-leida]');
+                if (t) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const id = parseInt(t.dataset.marcarLeida, 10);
+                    try {
+                        await apiFetch(`/api/notificaciones/${id}/leida`, { method: 'PUT' });
+                        await cargarNotificaciones();
+                    } catch (err) {
+                        console.warn(err);
+                    }
+                    return;
+                }
+                const item = e.target.closest('[data-notif-id]');
+                if (!item) return;
+                await abrirNotificacionUsuario(item.dataset.notifId, item.dataset.notifUrl || '');
+            });
+        }
+
+        // Carga inicial y polling cada 30s
+        cargarNotificaciones();
+        setInterval(cargarNotificaciones, 30000);
+        // Exponer para que otros módulos refresquen tras acciones
+        window.__sigepav_refrescarNotifUsuario = cargarNotificaciones;
+
+        // ========== HISTORIAL DE COMISIONES ==========
+        const panelHistorial = document.getElementById('historial-comisiones');
+        const formFinalizar  = document.getElementById('form-finalizar-comision');
+        const hcTbody        = document.getElementById('hc-tbody');
+        const hcResCount     = document.getElementById('hc-res-count');
+
+        function ocultarTodasLasVistas() {
+            [panelUsuario, formularioViaje, panelHistorial, formFinalizar].forEach(v => {
+                if (v) v.style.display = 'none';
+            });
+        }
+
+        function estadoBadgeHist(e) {
+            const map = {
+                'Finalizado':              'badge-success',
+                'En comision':             'badge-info',
+                'En comisión':             'badge-info',
+                'Solicitud finalización':  'badge-warning',
+                'Solicitud finalizacion':  'badge-warning',
+                'Pendiente':               'badge-warning',
+                'Cancelado':               'badge-danger'
+            };
+            return `<span class="badge ${map[e] || 'badge-muted'}">${escHtmlNotif(e || '')}</span>`;
+        }
+
+        function esEnComision(estado) {
+            return estado === 'En comision' || estado === 'En comisión';
+        }
+
+        async function cargarHistorial() {
+            if (!sesion || !sesion.id) return;
+            try {
+                const r = await apiFetch(`/api/viajes/usuario/${sesion.id}`);
+                const d = await r.json();
+                if (!d.ok) throw new Error(d.error || 'Error al cargar historial');
+                const viajes = d.viajes || [];
+                if (hcResCount) hcResCount.textContent = `${viajes.length} registro(s)`;
+
+                if (!viajes.length) {
+                    hcTbody.innerHTML = `<tr><td colspan="8">
+                        <div class="estado-vacio"><i class="fas fa-inbox"></i><p>Aún no has registrado comisiones.</p></div>
+                    </td></tr>`;
+                    return;
+                }
+
+                hcTbody.innerHTML = viajes.map(v => {
+                    const veh = (v.linea || v.marca)
+                        ? `${v.linea || ''} ${v.marca || ''}`.trim() + (v.no_economico ? ` (${v.no_economico})` : '')
+                        : '—';
+                    const fecha = (v.fecha_inicio || '').toString().slice(0, 10);
+                    let acciones = '';
+                    if (esEnComision(v.estado)) {
+                        acciones = `<button class="btn-secundario btn-mini" data-accion="finalizar" data-id="${v.id}" data-info="${escHtmlNotif(v.lugar_destino || '')}">
+                            <i class="fas fa-flag-checkered"></i> Finalizar comisión
+                        </button>`;
+                    } else if (v.estado === 'Solicitud finalización' || v.estado === 'Solicitud finalizacion') {
+                        acciones = `<span style="color:#a87900;font-size:0.85rem;"><i class="fas fa-hourglass-half"></i> En revisión</span>`;
+                    } else {
+                        acciones = `<span style="color:#666;font-size:0.85rem;">—</span>`;
+                    }
+                    return `<tr>
+                        <td>#${v.id}</td>
+                        <td>${escHtmlNotif(v.lugar_destino || '—')}</td>
+                        <td>${escHtmlNotif(v.motivo || '—')}</td>
+                        <td>${veh}</td>
+                        <td class="celda-mono">${v.km_inicial != null ? Number(v.km_inicial).toLocaleString() : '—'}</td>
+                        <td class="celda-mono">${fecha || '—'}</td>
+                        <td>${estadoBadgeHist(v.estado)}</td>
+                        <td>${acciones}</td>
+                    </tr>`;
+                }).join('');
+            } catch (err) {
+                mostrarAviso('Error', 'No se pudo cargar el historial: ' + err.message);
+            }
+        }
+
+        function abrirHistorial() {
+            ocultarTodasLasVistas();
+            if (panelHistorial) panelHistorial.style.display = 'flex';
+            cargarHistorial();
+        }
+
+        hcTbody?.addEventListener('click', (e) => {
+            const t = e.target.closest('[data-accion="finalizar"]');
+            if (!t) return;
+            const id = parseInt(t.dataset.id, 10);
+            const destino = t.dataset.info || '';
+            abrirFormFinalizar(id, destino);
+        });
+
+        // ========== FORMULARIO DE SOLICITUD DE FINALIZACIÓN ==========
+        function abrirFormFinalizar(viajeId, destino) {
+            ocultarTodasLasVistas();
+            if (formFinalizar) formFinalizar.style.display = 'flex';
+            document.getElementById('ff-viaje-id').value = viajeId;
+            document.getElementById('ff-comision-info').value = `Comisión #${viajeId}${destino ? ' — ' + destino : ''}`;
+            document.getElementById('ff-km-final').value = '';
+            document.getElementById('ff-nivel-comb').value = '';      // hidden
+            const lbl = document.getElementById('ff-nivel-actual');
+            if (lbl) lbl.textContent = '— (sin capturar)';
+            document.getElementById('ff-motivo').value = '';
+            document.getElementById('ff-obs').value = '';
+            document.getElementById('ff-actividades').value = '';
+        }
+
+        async function abrirDestinoDesdeURL() {
+            const params = new URLSearchParams(window.location.search);
+            const viajeId = parseInt(params.get('viaje_id') || '0', 10);
+            const abrir = params.get('abrir') || '';
+            if (abrir === 'finalizar' && viajeId) {
+                abrirFormFinalizar(viajeId, '');
+                return;
+            }
+            if (abrir === 'historial' || viajeId || window.location.hash === '#historial-comisiones') {
+                abrirHistorial();
+            }
+        }
+
+        document.getElementById('ff-btn-cancelar')?.addEventListener('click', abrirHistorial);
+        abrirDestinoDesdeURL();
+
+        // FIX (req 3): el nivel de combustible final se captura con Gasolina.py.
+        // Marcamos un destino para distinguirlo del flujo de "inicio de viaje".
+        document.getElementById('ff-btn-medir')?.addEventListener('click', () => {
+            fetch(`${window.FUEL_BASE || ((window.API_BASE || window.location.origin) + '/gasolina')}/fuel?t=${Date.now()}`, { cache: 'no-store' })
+                .then(r => {
+                    if (!r.ok) throw new Error('Servidor no disponible');
+                    window.__sigepav_medidor_destino = 'finalizar';
+                    abrirMedidor();
+                })
+                .catch(() => {
+                    mostrarAviso('Error de conexión',
+                        'No se pudo conectar con el servidor de combustible. Asegúrese de que el archivo Gasolina.py esté en ejecución y disponible en el servidor de combustible');
+                });
+        });
+
+        document.getElementById('ff-btn-enviar')?.addEventListener('click', async () => {
+            const viaje_id = parseInt(document.getElementById('ff-viaje-id').value, 10);
+            const km_final = document.getElementById('ff-km-final').value;
+            const nivel_comb_fin = document.getElementById('ff-nivel-comb').value;  // hidden
+            const motivo = document.getElementById('ff-motivo').value.trim();
+            const observaciones = document.getElementById('ff-obs').value.trim();
+            const actividades = document.getElementById('ff-actividades').value.trim();
+
+            if (!viaje_id) {
+                mostrarAviso('Error', 'No se identificó la comisión.');
+                return;
+            }
+            if (km_final === '' || isNaN(parseInt(km_final, 10))) {
+                mostrarAviso('Falta kilometraje', 'Captura el kilometraje final.');
+                return;
+            }
+            if (!nivel_comb_fin) {
+                mostrarAviso('Falta nivel de combustible',
+                    'Pulsa "Verificar con Gasolina.py" para capturar el nivel de combustible final.');
+                return;
+            }
+
+            const btn = document.getElementById('ff-btn-enviar');
+            const txt = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            if (window.sigepavLoading) window.sigepavLoading.show('Enviando solicitud...');
+
+            try {
+                const r = await apiFetch('/api/solicitudes-finalizacion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        viaje_id,
+                        usuario_id: sesion.id,
+                        km_final: parseInt(km_final, 10),
+                        nivel_comb_fin: nivel_comb_fin || null,
+                        observaciones: observaciones || null,
+                        actividades: actividades || null,
+                        motivo: motivo || null
+                    })
+                });
+                const d = await r.json();
+                if (!d.ok) throw new Error(d.error || 'Error al enviar la solicitud');
+
+                mostrarAviso('Solicitud enviada', 'Tu solicitud quedó en revisión por el administrador.', () => {
+                    abrirHistorial();
+                });
+            } catch (err) {
+                mostrarAviso('Error', 'No se pudo enviar la solicitud: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = txt;
+                if (window.sigepavLoading) window.sigepavLoading.hide();
+            }
+        });
+
+        // ========== CAMPANA DE NOTIFICACIONES (handlers ya conectados arriba) ==========
+
+        // FIX: limpiar toda la sesión al cerrar sesión
+        logoutBtn.addEventListener('click', () => {
+            sessionStorage.removeItem('sigepav_usuario');
+            localStorage.removeItem('sigepav_usuario');
+            window.location.href = 'index.html';
+        });
+
+        console.log('✅ Panel de usuario listo. Sesión:', sesion.email);
+    });
+</script>
+<script src="catalogo-destino.js"></script>
+<script src="vales-combo.js"></script>
+<script src="manual-descarga.js"></script>
+<script src="navbar.js"></script>
+<script src="modulos-router.js"></script>
+
+<!-- Loading overlay global -->
+<div id="sigepav-loading-overlay" role="status" aria-live="polite" aria-label="Cargando">
+  <div class="sigepav-loading-card">
+    <div class="sigepav-loading-spinner"></div>
+    <p class="sigepav-loading-msg" id="sigepav-loading-msg">Procesando...</p>
+  </div>
+</div>
+<script>
+window.sigepavLoading = {
+  show: function(msg) {
+    var el = document.getElementById('sigepav-loading-overlay');
+    var txt = document.getElementById('sigepav-loading-msg');
+    if (txt) txt.textContent = msg || 'Procesando...';
+    if (el) el.classList.add('activo');
+  },
+  hide: function() {
+    var el = document.getElementById('sigepav-loading-overlay');
+    if (el) el.classList.remove('activo');
+  }
+};
+</script>
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

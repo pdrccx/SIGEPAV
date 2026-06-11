@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reportes ciudadanos · SIGEPAV</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="Styles.css">
+<style>
+  /* ===== Estilos específicos del módulo de reportes ciudadanos ===== */
+  .rep-toolbar {
+    background: var(--color-blanco);
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-end;
+  }
+  .rep-toolbar .campo { display: flex; flex-direction: column; gap: 4px; min-width: 140px; }
+  .rep-toolbar label { font-size: 12px; color: var(--color-texto-claro); font-weight: 500; }
+  .rep-toolbar select, .rep-toolbar input[type="date"] {
+    padding: 6px 10px; border: 1px solid var(--color-borde); border-radius: 6px;
+    font-size: 13px; background: #fff;
+  }
+  .rep-toolbar .acciones { margin-left: auto; display: flex; gap: 6px; }
+
+  .rep-lista { display: flex; flex-direction: column; gap: 10px; }
+
+  .rep-card {
+    background: var(--color-blanco);
+    border: 1px solid var(--color-borde);
+    border-left: 5px solid #94a3b8;
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: box-shadow .15s ease, transform .15s ease;
+    display: flex;
+    gap: 14px;
+  }
+  .rep-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+  .rep-card.estatus-nuevo        { border-left-color: #dc2626; background: #fef9f9; }
+  .rep-card.estatus-en_revision  { border-left-color: #f59e0b; background: #fffbf2; }
+  .rep-card.estatus-resuelto     { border-left-color: #16a34a; opacity: .85; }
+  .rep-card.estatus-descartado   { border-left-color: #6b7280; opacity: .65; }
+
+  .rep-card-body { flex: 1; min-width: 0; }
+  .rep-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .rep-motivo { font-weight: 600; font-size: 14px; color: var(--color-texto); }
+  .rep-fecha  { margin-left: auto; font-size: 12px; color: var(--color-texto-claro); }
+
+  .badge-estatus {
+    font-size: 10.5px; padding: 3px 9px; border-radius: 12px;
+    font-weight: 700; letter-spacing: .3px; text-transform: uppercase;
+  }
+  .badge-nuevo        { background: #dc2626; color: #fff; }
+  .badge-en_revision  { background: #fef3c7; color: #92400e; }
+  .badge-resuelto     { background: #dcfce7; color: #166534; }
+  .badge-descartado   { background: #e5e7eb; color: #374151; }
+
+  .rep-meta {
+    font-size: 12.5px; color: var(--color-texto-claro);
+    margin-bottom: 6px; display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .rep-meta strong { color: var(--color-texto); font-weight: 600; }
+  .rep-meta i { margin-right: 3px; color: var(--color-degradado-fin); }
+
+  .rep-desc {
+    font-size: 13.5px; color: var(--color-texto); line-height: 1.5;
+    margin: 4px 0 10px; padding-left: 10px;
+    border-left: 2px solid var(--color-borde);
+    font-style: italic;
+  }
+
+  .rep-acciones { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rep-acciones .btn-mini {
+    font-size: 12px; padding: 5px 10px; border-radius: 6px;
+    border: 1px solid var(--color-borde); background: #fff;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+    transition: all .12s;
+  }
+  .rep-acciones .btn-mini:hover { background: #f8fafc; }
+  .btn-revisar  { color: #b45309; border-color: #fcd34d; }
+  .btn-revisar:hover  { background: #fef3c7; }
+  .btn-resolver { color: #166534; border-color: #86efac; }
+  .btn-resolver:hover { background: #dcfce7; }
+  .btn-descartar { color: #374151; }
+  .btn-ver { color: var(--color-degradado-fin); }
+
+  .rep-resolucion {
+    margin-top: 8px; padding: 8px 12px;
+    background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px;
+    font-size: 12.5px; color: #166534;
+  }
+
+  /* Panel inline de detalle del reporte */
+  .rep-detalle {
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: #f8fafc;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    animation: slide-down .2s ease;
+  }
+  @keyframes slide-down {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .det-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 18px;
+  }
+  @media (max-width: 700px) { .det-grid { grid-template-columns: 1fr; } }
+  .det-bloque { font-size: 13px; }
+  .det-bloque label {
+    display: block;
+    font-size: 11px;
+    color: var(--color-texto-claro);
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .det-bloque.det-doble { grid-column: 1 / -1; }
+
+  .rep-paginacion {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 4px; font-size: 13px; color: var(--color-texto-claro);
+  }
+  .rep-paginacion .paginas { display: flex; gap: 4px; }
+  .rep-paginacion button {
+    min-width: 32px; padding: 4px 10px; border: 1px solid var(--color-borde);
+    background: #fff; border-radius: 6px; cursor: pointer; font-size: 12.5px;
+  }
+  .rep-paginacion button:disabled { opacity: .4; cursor: not-allowed; }
+  .rep-paginacion button.activo {
+    background: var(--color-degradado-fin); color: #fff; border-color: var(--color-degradado-fin);
+  }
+
+  /* Modal de evidencia */
+  .modal-evidencia {
+    position: fixed; inset: 0; background: rgba(0,0,0,.75);
+    display: none; align-items: center; justify-content: center; z-index: 9999;
+    padding: 2rem;
+  }
+  .modal-evidencia.abierto { display: flex; }
+  .modal-evidencia img {
+    max-width: 90vw; max-height: 85vh; border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.4);
+  }
+  .modal-evidencia .cerrar {
+    position: absolute; top: 20px; right: 24px; color: #fff; font-size: 32px;
+    cursor: pointer; background: none; border: none;
+  }
+
+  /* Modal interno para resolución/descartado de reportes */
+  .modal-resolucion {
+    position: fixed; inset: 0; background: rgba(15, 23, 42, .55);
+    display: none; align-items: center; justify-content: center;
+    z-index: 10000; padding: 1rem;
+  }
+  .modal-resolucion.abierto { display: flex; }
+  .modal-resolucion-card {
+    width: min(560px, 96vw); background: #fff; border-radius: 14px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.22); overflow: hidden;
+    border: 1px solid var(--color-borde);
+  }
+  .modal-resolucion-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 18px; border-bottom: 1px solid var(--color-borde);
+  }
+  .modal-resolucion-head h3 { margin: 0; font-size: 1rem; color: var(--color-texto); }
+  .modal-resolucion-head button { background: transparent; border: 0; cursor: pointer; font-size: 18px; color: #64748b; }
+  .modal-resolucion-body { padding: 16px 18px; }
+  .modal-resolucion-body label {
+    display: block; font-weight: 700; font-size: .86rem; color: var(--color-texto); margin-bottom: 8px;
+  }
+  .modal-resolucion-body textarea {
+    width: 100%; min-height: 130px; resize: vertical; border: 1px solid var(--color-borde);
+    border-radius: 10px; padding: 10px 12px; font: inherit; line-height: 1.45; outline: none;
+  }
+  .modal-resolucion-body textarea:focus { border-color: var(--color-degradado-fin); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .modal-resolucion-ayuda { margin: 8px 0 0; color: #64748b; font-size: .82rem; }
+  .modal-resolucion-error { margin: 8px 0 0; color: #dc2626; font-size: .84rem; display: none; }
+  .modal-resolucion-actions {
+    display: flex; justify-content: flex-end; gap: 8px; padding: 14px 18px;
+    background: #f8fafc; border-top: 1px solid var(--color-borde);
+  }
+  .btn-secundario {
+    padding: 8px 14px; border-radius: 8px; border: 1px solid var(--color-borde); background: #fff; cursor: pointer;
+  }
+  .btn-guardar-resolucion {
+    padding: 8px 14px; border-radius: 8px; border: 0; background: #16a34a; color: #fff; cursor: pointer; font-weight: 700;
+  }
+  .btn-guardar-resolucion.descartar { background: #4b5563; }
+
+</style>
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+
+<div class="modal-overlay" id="modal-overlay" style="display:none;"></div>
+
+<div id="app-container" style="display:flex;">
+
+  <!-- ===== BARRA SUPERIOR ===== -->
+  <header class="barra-superior">
+    <div class="barra-superior-contenido">
+      <div class="barra-izquierda">
+        <div class="dropdown-modulos" id="dropdown-modulos-principal" data-navbar></div>
+        <img src="Logo.jpeg" alt="Logo" class="logo-barra" onerror="this.style.display='none'">
+        <div class="titulo-sistema"><h1><a href="menu.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1></div>
+      </div>
+      <div class="info-usuario">
+        <span class="icono-usuario"><i class="fas fa-user-circle"></i></span>
+        <span class="correo-usuario" id="user-email-display">Usuario</span>
+        <button id="logoutBtn" class="btn-logout-header">
+          <i class="fas fa-sign-out-alt"></i> Salir
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== CONTENIDO PRINCIPAL ===== -->
+  <main class="contenedor-principal">
+
+    <div class="subtitulo-seccion">
+      <h2><i class="fas fa-flag" style="margin-right:8px;color:#dc2626;"></i>Reportes ciudadanos</h2>
+      <p class="subtitulo-secundario">Denuncias enviadas por ciudadanos al escanear el QR de un vehículo del parque vehicular</p>
+    </div>
+
+    <!-- ===== KPIs ===== -->
+    <section class="resumen-cards">
+      <div class="card-resumen">
+        <div class="card-icono" style="background:#fee2e2;color:#dc2626;"><i class="fas fa-exclamation-circle"></i></div>
+        <div class="card-info">
+          <span class="card-numero" id="kpi-nuevos">0</span>
+          <span class="card-etiqueta">Nuevos</span>
+        </div>
+      </div>
+      <div class="card-resumen">
+        <div class="card-icono" style="background:#fef3c7;color:#b45309;"><i class="fas fa-hourglass-half"></i></div>
+        <div class="card-info">
+          <span class="card-numero" id="kpi-revision">0</span>
+          <span class="card-etiqueta">En revisión</span>
+        </div>
+      </div>
+      <div class="card-resumen">
+        <div class="card-icono" style="background:#dcfce7;color:#166534;"><i class="fas fa-check-circle"></i></div>
+        <div class="card-info">
+          <span class="card-numero" id="kpi-resueltos">0</span>
+          <span class="card-etiqueta">Resueltos</span>
+        </div>
+      </div>
+      <div class="card-resumen">
+        <div class="card-icono" style="background:#e5e7eb;color:#4b5563;"><i class="fas fa-times-circle"></i></div>
+        <div class="card-info">
+          <span class="card-numero" id="kpi-descartados">0</span>
+          <span class="card-etiqueta">Descartados</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== FILTROS ===== -->
+    <div class="rep-toolbar">
+      <div class="campo">
+        <label>Estatus</label>
+        <select id="f-estatus">
+          <option value="">Todos</option>
+          <option value="nuevo">Nuevo</option>
+          <option value="en_revision">En revisión</option>
+          <option value="resuelto">Resuelto</option>
+          <option value="descartado">Descartado</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>Vehículo</label>
+        <select id="f-vehiculo"><option value="">Todos</option></select>
+      </div>
+      <div class="campo">
+        <label>Motivo</label>
+        <select id="f-motivo">
+          <option value="">Todos</option>
+          <option>Mal estacionado</option>
+          <option>Uso indebido</option>
+          <option>Conducción peligrosa</option>
+          <option>Fuera de horario</option>
+          <option>Daño a propiedad</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>Desde</label>
+        <input type="date" id="f-desde">
+      </div>
+      <div class="campo">
+        <label>Hasta</label>
+        <input type="date" id="f-hasta">
+      </div>
+      <div class="acciones">
+        <button class="btn-primario" onclick="cargarReportes(1)">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+        <button class="btn-primario btn-mini" onclick="exportarCSV()" style="background:#16a34a;">
+          <i class="fas fa-download"></i> Exportar CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== LISTA DE REPORTES ===== -->
+    <div class="rep-lista" id="rep-lista">
+      <div class="estado-vacio">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Cargando reportes…</p>
+      </div>
+    </div>
+
+    <!-- ===== PAGINACIÓN ===== -->
+    <div class="rep-paginacion" id="rep-paginacion" style="display:none;">
+      <span id="rep-info-total"></span>
+      <div class="paginas" id="rep-paginas"></div>
+    </div>
+
+  </main>
+</div>
+
+<footer class="barra-inferior">
+  <div class="barra-inferior-contenido">
+    <p>🏫 Tecnológico Nacional de México campus Zacatecas Norte</p>
+  </div>
+</footer>
+
+<!-- Modal de evidencia (foto/archivo) -->
+<div class="modal-evidencia" id="modal-evid">
+  <button class="cerrar" onclick="cerrarEvidencia()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+  <img id="modal-evid-img" src="" alt="Evidencia ciudadana">
+</div>
+
+<div id="toast"></div>
+
+<!-- Modal interno para guardar comentario de resolución -->
+<div class="modal-resolucion" id="modal-resolucion" role="dialog" aria-modal="true" aria-labelledby="modal-resolucion-titulo">
+  <div class="modal-resolucion-card">
+    <div class="modal-resolucion-head">
+      <h3 id="modal-resolucion-titulo">Resolver reporte</h3>
+      <button type="button" onclick="cerrarModalResolucion()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-resolucion-body">
+      <label for="txt-resolucion-admin" id="lbl-resolucion-admin">Comentario del administrador</label>
+      <textarea id="txt-resolucion-admin" maxlength="5000" placeholder="Escribe qué se revisó, qué acción se tomó y cualquier observación para dejar evidencia del cierre..."></textarea>
+      <p class="modal-resolucion-ayuda">Este texto se guardará en la base de datos junto con el cambio de estatus.</p>
+      <p class="modal-resolucion-error" id="err-resolucion-admin">Escribe un comentario antes de guardar.</p>
+    </div>
+    <div class="modal-resolucion-actions">
+      <button type="button" class="btn-secundario" onclick="cerrarModalResolucion()">Cancelar</button>
+      <button type="button" class="btn-guardar-resolucion" id="btn-guardar-resolucion" onclick="confirmarResolucionReporte()">Guardar resolución</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="Config.js"></script>
+<script src="auth-guard.js"></script>
+<script src="Script.js"></script>
+<script src="navbar.js"></script>
+<script src="modulos-router.js"></script>
+<script>
+'use strict';
+
+/* ============================================================
+   GUARDIA: solo Administradores acceden a esta pestaña
+   ============================================================ */
+(function guardiaAdmin() {
+  const S = window.SIGEPAV;
+  const sesion = S && S.getSession ? S.getSession() : null;
+  if (!sesion) { window.location.href = 'index.html'; return; }
+  // rol_id: 1 = Administrador. Tu sesión guarda rol en .rol o .rol_id según el caso.
+  const rol = sesion.rol_id ?? sesion.rol ?? sesion.role;
+  if (rol !== 1 && rol !== '1' && rol !== 'Administrador') {
+    alert('Acceso restringido: esta sección es solo para administradores.');
+    window.location.href = 'dashboard.html';
+    return;
+  }
+})();
+
+/* ============================================================
+   NAVBAR: ahora se renderiza desde navbar.js (menú unificado)
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Email del usuario
+  const S = window.SIGEPAV;
+  const emailEl = document.getElementById('user-email-display');
+  if (emailEl && S && S.getSession) {
+    emailEl.textContent = (S.getSession() || {}).email || 'Usuario';
+  }
+
+  // Logout
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) logoutBtn.onclick = () => {
+    if (S && S.clearSession) S.clearSession();
+    window.location.href = 'index.html';
+  };
+
+  // Poblar selector de vehículos
+  poblarVehiculos();
+
+  const reporteURL = parseInt(new URLSearchParams(window.location.search).get('reporte_id') || '0', 10);
+  if (reporteURL) {
+    const filtroEstatus = document.getElementById('f-estatus');
+    if (filtroEstatus) filtroEstatus.value = '';
+    ESTADO.porPagina = 100;
+  }
+
+  // Carga inicial
+  cargarKPIs();
+  cargarReportes(1).then(() => abrirReporteDesdeURL());
+
+  // SSE: escuchar nuevos reportes en tiempo real
+  iniciarSSE();
+});
+
+/* ============================================================
+   ESTADO GLOBAL
+   ============================================================ */
+const ESTADO = { pagina: 1, porPagina: 10, totalPaginas: 1 };
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function toast(msg, tipo) {
+  const S = window.SIGEPAV;
+  if (S && S.toast) { S.toast(msg, tipo); return; }
+  const el = document.getElementById('toast');
+  if (!el) return alert(msg);
+  el.textContent = msg;
+  el.className = 'toast toast-visible' + (tipo ? ' toast-' + tipo : '');
+  setTimeout(() => el.classList.remove('toast-visible'), 2600);
+}
+
+function fmtFechaHora(s) {
+  if (!s) return '—';
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return s;
+  const now = new Date();
+  const diff = (now - d) / 1000; // segundos
+  if (diff < 60)        return 'hace un momento';
+  if (diff < 3600)      return `hace ${Math.floor(diff/60)} min`;
+  if (diff < 86400)     return `hace ${Math.floor(diff/3600)} h`;
+  if (diff < 86400 * 7) return `hace ${Math.floor(diff/86400)} días`;
+  return d.toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function leerFiltros() {
+  return {
+    estatus:  document.getElementById('f-estatus').value,
+    vehiculo: document.getElementById('f-vehiculo').value,
+    motivo:   document.getElementById('f-motivo').value,
+    desde:    document.getElementById('f-desde').value,
+    hasta:    document.getElementById('f-hasta').value,
+  };
+}
+
+/* ============================================================
+   POBLAR SELECTOR DE VEHÍCULOS
+   ============================================================ */
+async function poblarVehiculos() {
+  const sel = document.getElementById('f-vehiculo');
+  if (!sel) return;
+  try {
+    const r = await fetch('/api/vehiculos');
+    if (!r.ok) return;
+    const lista = await r.json();
+    (lista.vehiculos || lista || []).forEach(v => {
+      const label = [v.no_economico, v.marca, v.linea, v.placas]
+        .filter(Boolean).join(' · ');
+      sel.add(new Option(label, v.id));
+    });
+  } catch (err) {
+    console.warn('No se pudieron cargar vehículos:', err);
+  }
+}
+
+/* ============================================================
+   KPIs
+   ============================================================ */
+async function cargarKPIs() {
+  try {
+    const r = await fetch('/api/reportes-ciudadanos/stats');
+    if (!r.ok) throw new Error('Error ' + r.status);
+    const data = await r.json();
+    const s = data.stats || data;
+    document.getElementById('kpi-nuevos').textContent      = s.nuevo        || 0;
+    document.getElementById('kpi-revision').textContent    = s.en_revision  || 0;
+    document.getElementById('kpi-resueltos').textContent   = s.resuelto     || 0;
+    document.getElementById('kpi-descartados').textContent = s.descartado   || 0;
+  } catch (err) {
+    console.error('Error cargando KPIs:', err);
+  }
+}
+
+/* ============================================================
+   LISTAR REPORTES
+   ============================================================ */
+async function cargarReportes(pagina = 1) {
+  ESTADO.pagina = pagina;
+  const cont = document.getElementById('rep-lista');
+  cont.innerHTML = `
+    <div class="estado-vacio">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Cargando reportes…</p>
+    </div>`;
+
+  try {
+    const f = leerFiltros();
+    const p = new URLSearchParams();
+    if (f.estatus)  p.set('estatus',  f.estatus);
+    if (f.vehiculo) p.set('vehiculo', f.vehiculo);
+    if (f.motivo)   p.set('motivo',   f.motivo);
+    if (f.desde)    p.set('desde',    f.desde);
+    if (f.hasta)    p.set('hasta',    f.hasta);
+    p.set('pagina',     pagina);
+    p.set('por_pagina', ESTADO.porPagina);
+
+    const r = await fetch('/api/reportes-ciudadanos?' + p.toString());
+    if (!r.ok) throw new Error('Error ' + r.status);
+    const data = await r.json();
+    const lista = data.reportes || data || [];
+    const total = data.total ?? lista.length;
+    ESTADO.totalPaginas = Math.max(1, Math.ceil(total / ESTADO.porPagina));
+
+    if (lista.length === 0) {
+      cont.innerHTML = `
+        <div class="estado-vacio">
+          <i class="fas fa-inbox"></i>
+          <p>No hay reportes que coincidan con los filtros.</p>
+        </div>`;
+      document.getElementById('rep-paginacion').style.display = 'none';
+      return;
+    }
+
+    cont.innerHTML = lista.map(renderReporte).join('');
+    renderPaginacion(total);
+
+  } catch (err) {
+    console.error(err);
+    cont.innerHTML = `
+      <div class="estado-vacio">
+        <i class="fas fa-exclamation-triangle" style="color:#dc2626;"></i>
+        <p>Error al cargar reportes: ${escapeHtml(err.message)}</p>
+      </div>`;
+  }
+}
+
+function renderReporte(r) {
+  const est = r.estatus || 'nuevo';
+  const vehiculo = r.vehiculo_label
+    || [r.no_economico, r.marca, r.linea, r.placas].filter(Boolean).join(' · ')
+    || (r.vehiculo_id ? `Vehículo #${r.vehiculo_id}` : 'Sin vehículo asociado');
+  const viaje = r.viaje_id ? `Comisión #${r.viaje_id}` : 'Sin comisión asociada';
+  const ciudadano = r.nombre_ciudadano || 'Anónimo';
+  const correo = r.correo_ciudadano || '—';
+
+  // Las acciones cambian según el estatus, pero "Ver detalle" siempre está.
+  const accionesEdicion = (est === 'resuelto' || est === 'descartado')
+    ? ''
+    : `
+       ${est === 'nuevo' ? `
+         <button class="btn-mini btn-revisar" onclick="cambiarEstatus(${r.id}, 'en_revision')">
+           <i class="fas fa-hourglass-half"></i> Marcar en revisión
+         </button>` : ''}
+       <button class="btn-mini btn-resolver" onclick="cambiarEstatus(${r.id}, 'resuelto')">
+         <i class="fas fa-check"></i> Resolver
+       </button>
+       <button class="btn-mini btn-descartar" onclick="cambiarEstatus(${r.id}, 'descartado')">
+         <i class="fas fa-times"></i> Descartar
+       </button>`;
+
+  const accionesHtml = `
+       <button class="btn-mini btn-ver" onclick="toggleDetalle(${r.id})">
+         <i class="fas fa-info-circle"></i> <span id="lbl-detalle-${r.id}">Ver detalle</span>
+       </button>
+       ${accionesEdicion}`;
+
+  const resolucionHtml = r.comentario_admin
+    ? `<div class="rep-resolucion">
+         <i class="fas fa-comment-dots"></i> Resolución: ${escapeHtml(r.comentario_admin)}
+       </div>`
+    : '';
+
+  // Panel de detalle (oculto por default). Se llena al hacer click.
+  const detalleHtml = `<div class="rep-detalle" id="detalle-${r.id}" style="display:none"></div>`;
+
+  const reporteURL = parseInt(new URLSearchParams(window.location.search).get('reporte_id') || '0', 10);
+  const resaltado = reporteURL && Number(r.id) === reporteURL;
+  return `
+    <article class="rep-card estatus-${est}" data-id="${r.id}" ${resaltado ? 'style="outline:2px solid #006dc8;box-shadow:0 0 0 4px rgba(0,109,200,.12);"' : ''}>
+      <div class="rep-card-body">
+        <div class="rep-head">
+          <span class="badge-estatus badge-${est}">${labelEstatus(est)}</span>
+          <span class="rep-motivo">${escapeHtml(r.motivo || 'Sin motivo')}</span>
+          <span class="rep-fecha">
+            <i class="far fa-clock"></i> ${fmtFechaHora(r.created_at)}
+          </span>
+        </div>
+        <div class="rep-meta">
+          <span><i class="fas fa-car"></i><strong>${escapeHtml(vehiculo)}</strong></span>
+          <span><i class="fas fa-user"></i>${escapeHtml(ciudadano)} (${escapeHtml(correo)})</span>
+          <span><i class="fas fa-route"></i>${viaje}</span>
+        </div>
+        ${r.descripcion ? `<div class="rep-desc">"${escapeHtml(r.descripcion)}"</div>` : ''}
+        <div class="rep-acciones">${accionesHtml}</div>
+        ${resolucionHtml}
+        ${detalleHtml}
+      </div>
+    </article>`;
+}
+
+function labelEstatus(e) {
+  return ({
+    nuevo: 'Nuevo',
+    en_revision: 'En revisión',
+    resuelto: 'Resuelto',
+    descartado: 'Descartado'
+  })[e] || e;
+}
+
+/* ============================================================
+   PAGINACIÓN
+   ============================================================ */
+function renderPaginacion(total) {
+  const pag = document.getElementById('rep-paginacion');
+  const info = document.getElementById('rep-info-total');
+  const cajas = document.getElementById('rep-paginas');
+  const ini = (ESTADO.pagina - 1) * ESTADO.porPagina + 1;
+  const fin = Math.min(ESTADO.pagina * ESTADO.porPagina, total);
+  info.textContent = `Mostrando ${ini}-${fin} de ${total} reportes`;
+
+  const btn = (txt, p, disabled, activo) =>
+    `<button onclick="cargarReportes(${p})" ${disabled?'disabled':''} class="${activo?'activo':''}">${txt}</button>`;
+
+  let html = btn('<i class="fas fa-chevron-left"></i>', ESTADO.pagina - 1, ESTADO.pagina <= 1, false);
+  for (let i = 1; i <= ESTADO.totalPaginas; i++) {
+    if (i === 1 || i === ESTADO.totalPaginas || Math.abs(i - ESTADO.pagina) <= 1) {
+      html += btn(i, i, false, i === ESTADO.pagina);
+    } else if (Math.abs(i - ESTADO.pagina) === 2) {
+      html += '<span style="padding:4px 6px;">…</span>';
+    }
+  }
+  html += btn('<i class="fas fa-chevron-right"></i>', ESTADO.pagina + 1, ESTADO.pagina >= ESTADO.totalPaginas, false);
+
+  cajas.innerHTML = html;
+  pag.style.display = 'flex';
+}
+
+/* ============================================================
+   ACCIONES (cambiar estatus, ver evidencia, etc.)
+   ============================================================ */
+let REPORTE_RESOLUCION_PENDIENTE = null;
+
+async function cambiarEstatus(id, nuevoEstatus) {
+  if (nuevoEstatus === 'resuelto' || nuevoEstatus === 'descartado') {
+    abrirModalResolucion(id, nuevoEstatus);
+    return;
+  }
+
+  await enviarCambioEstatus(id, nuevoEstatus, '');
+}
+
+function abrirModalResolucion(id, nuevoEstatus) {
+  REPORTE_RESOLUCION_PENDIENTE = { id, estatus: nuevoEstatus };
+
+  const modal = document.getElementById('modal-resolucion');
+  const titulo = document.getElementById('modal-resolucion-titulo');
+  const label = document.getElementById('lbl-resolucion-admin');
+  const textarea = document.getElementById('txt-resolucion-admin');
+  const error = document.getElementById('err-resolucion-admin');
+  const btn = document.getElementById('btn-guardar-resolucion');
+
+  const esResuelto = nuevoEstatus === 'resuelto';
+  titulo.textContent = esResuelto ? `Resolver reporte #${id}` : `Descartar reporte #${id}`;
+  label.textContent = esResuelto ? 'Comentario de resolución' : 'Motivo de descarte';
+  textarea.value = '';
+  textarea.placeholder = esResuelto
+    ? 'Ejemplo: Se revisó la comisión, se validó la evidencia y se atendió la situación reportada...'
+    : 'Ejemplo: Se revisó la evidencia y no se encontraron irregularidades relacionadas...';
+  error.style.display = 'none';
+  btn.textContent = esResuelto ? 'Guardar resolución' : 'Guardar descarte';
+  btn.classList.toggle('descartar', !esResuelto);
+
+  modal.classList.add('abierto');
+  setTimeout(() => textarea.focus(), 50);
+}
+
+function cerrarModalResolucion() {
+  const modal = document.getElementById('modal-resolucion');
+  if (modal) modal.classList.remove('abierto');
+  REPORTE_RESOLUCION_PENDIENTE = null;
+}
+
+async function confirmarResolucionReporte() {
+  if (!REPORTE_RESOLUCION_PENDIENTE) return;
+
+  const textarea = document.getElementById('txt-resolucion-admin');
+  const error = document.getElementById('err-resolucion-admin');
+  const comentario = textarea.value.trim();
+
+  if (!comentario) {
+    error.style.display = 'block';
+    textarea.focus();
+    return;
+  }
+
+  const { id, estatus } = REPORTE_RESOLUCION_PENDIENTE;
+  await enviarCambioEstatus(id, estatus, comentario);
+}
+
+async function enviarCambioEstatus(id, nuevoEstatus, comentario) {
+  try {
+    const r = await fetch(`/api/reportes-ciudadanos/${id}/estatus`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ estatus: nuevoEstatus, comentario })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || data.ok === false) throw new Error(data.error || ('Error ' + r.status));
+
+    cerrarModalResolucion();
+    toast('Reporte actualizado', 'ok');
+    cargarKPIs();
+    cargarReportes(ESTADO.pagina);
+  } catch (err) {
+    toast('Error al actualizar: ' + err.message, 'error');
+  }
+}
+
+function abrirEvidencia(url) {
+  const modal = document.getElementById('modal-evid');
+  const img = document.getElementById('modal-evid-img');
+  img.src = url;
+  modal.classList.add('abierto');
+}
+function cerrarEvidencia() {
+  document.getElementById('modal-evid').classList.remove('abierto');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { cerrarEvidencia(); cerrarModalResolucion(); }
+});
+
+async function toggleDetalle(id) {
+  const panel = document.getElementById(`detalle-${id}`);
+  const lbl   = document.getElementById(`lbl-detalle-${id}`);
+  if (!panel) return;
+
+  // Si ya está abierto, cerrar
+  if (panel.style.display === 'block') {
+    panel.style.display = 'none';
+    if (lbl) lbl.textContent = 'Ver detalle';
+    return;
+  }
+
+  // Loading inline
+  panel.style.display = 'block';
+  panel.innerHTML = '<div style="padding:14px;color:#64748b"><i class="fas fa-spinner fa-spin"></i> Cargando detalle...</div>';
+  if (lbl) lbl.textContent = 'Ocultar detalle';
+
+  try {
+    const r = await fetch(`/api/reportes-ciudadanos/${id}`);
+    if (!r.ok) throw new Error('Error ' + r.status);
+    const data = await r.json();
+    const rep = data.reporte || data;
+
+    // ── Construir el panel ──────────────────────────────────────────────
+    const evidenciaBlock = rep.evidencia_url
+      ? `<div class="det-bloque">
+           <label>Evidencia adjunta</label>
+           <a href="/${rep.evidencia_url}" target="_blank" rel="noopener">
+             <img src="/${rep.evidencia_url}" alt="Evidencia"
+                  style="max-width:100%;max-height:260px;border-radius:8px;border:1px solid var(--color-borde);cursor:zoom-in"
+                  onerror="this.outerHTML='<p style=\\'color:#94a3b8;font-size:.85rem\\'>No se pudo cargar la imagen. Puede ser un archivo no visualizable. <a href=&quot;/${rep.evidencia_url}&quot; target=&quot;_blank&quot;>Descargar</a>.</p>'">
+           </a>
+         </div>`
+      : `<div class="det-bloque">
+           <label>Evidencia adjunta</label>
+           <p style="color:#94a3b8;font-size:.85rem;margin:0">El ciudadano no adjuntó evidencia.</p>
+         </div>`;
+
+    // Si la comisión está finalizada, mostramos observaciones + actividades de la comisión
+    let comisionBlock = '';
+    if (rep.viaje_id && rep.viaje_estado === 'Finalizado') {
+      // Pedimos los datos de la comisión finalizada (público es suficiente)
+      try {
+        // No tenemos un endpoint admin de "ver comisión". Usamos los campos
+        // que ya vienen en el reporte si los tenemos, si no lo dejamos vacío.
+        // (Más adelante podemos agregar /api/viajes/:id para admin.)
+        comisionBlock = `
+          <div class="det-bloque">
+            <label>Comisión asociada</label>
+            <p style="margin:0;font-size:.85rem;color:#64748b">
+              Comisión #${rep.viaje_id} — ${escapeHtml(rep.lugar_destino || 'sin destino')}<br>
+              <strong style="color:#16a34a">✓ Finalizada</strong>
+            </p>
+          </div>`;
+      } catch (_) {}
+    }
+
+    panel.innerHTML = `
+      <div class="det-grid">
+        <div class="det-bloque">
+          <label>ID reporte</label>
+          <p style="margin:0;font-weight:600">#${rep.id}</p>
+        </div>
+        <div class="det-bloque">
+          <label>Fecha de registro</label>
+          <p style="margin:0">${new Date(rep.created_at).toLocaleString('es-MX')}</p>
+        </div>
+        <div class="det-bloque">
+          <label>Estatus actual</label>
+          <p style="margin:0">${labelEstatus(rep.estatus)}</p>
+        </div>
+        <div class="det-bloque">
+          <label>Ciudadano</label>
+          <p style="margin:0">${escapeHtml(rep.nombre_ciudadano || 'Anónimo')}<br>
+            <small style="color:#64748b">${escapeHtml(rep.correo_ciudadano || '—')}</small></p>
+        </div>
+        <div class="det-bloque det-doble">
+          <label>Descripción del reporte</label>
+          <p style="margin:0;white-space:pre-wrap">${escapeHtml(rep.descripcion || '(sin descripción)')}</p>
+        </div>
+        ${evidenciaBlock}
+        ${comisionBlock}
+        ${rep.comentario_admin ? `
+          <div class="det-bloque det-doble">
+            <label>Comentario del administrador</label>
+            <p style="margin:0;white-space:pre-wrap">${escapeHtml(rep.comentario_admin)}</p>
+          </div>` : ''}
+      </div>
+    `;
+  } catch (err) {
+    panel.innerHTML = `<div style="padding:14px;color:#c94545">
+      <i class="fas fa-exclamation-triangle"></i> Error al cargar el detalle: ${err.message}
+    </div>`;
+  }
+}
+
+function abrirReporteDesdeURL() {
+  const id = parseInt(new URLSearchParams(window.location.search).get('reporte_id') || '0', 10);
+  if (!id) return;
+  const card = document.querySelector(`.rep-card[data-id="${id}"]`);
+  if (!card) {
+    toast(`Reporte #${id} no apareció en la lista actual. Revisa filtros o paginación.`, 'info');
+    return;
+  }
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const detalle = document.getElementById(`detalle-${id}`);
+  if (detalle && detalle.style.display !== 'block') toggleDetalle(id);
+}
+
+/* ============================================================
+   EXPORTAR A CSV
+   ============================================================ */
+async function exportarCSV() {
+  try {
+    const f = leerFiltros();
+    const p = new URLSearchParams();
+    if (f.estatus)  p.set('estatus',  f.estatus);
+    if (f.vehiculo) p.set('vehiculo', f.vehiculo);
+    if (f.motivo)   p.set('motivo',   f.motivo);
+    if (f.desde)    p.set('desde',    f.desde);
+    if (f.hasta)    p.set('hasta',    f.hasta);
+    p.set('por_pagina', 1000);
+
+    const r = await fetch('/api/reportes-ciudadanos?' + p.toString());
+    const data = await r.json();
+    const lista = data.reportes || data;
+    if (!lista.length) { toast('No hay datos para exportar', 'info'); return; }
+
+    const headers = ['ID','Fecha','Estatus','Motivo','Ciudadano','Correo','Vehículo','Placas','Comisión','Descripción','Resolución'];
+    const filas = lista.map(r => [
+      r.id,
+      new Date(r.created_at).toLocaleString('es-MX'),
+      labelEstatus(r.estatus),
+      r.motivo || '',
+      r.nombre_ciudadano || 'Anónimo',
+      r.correo_ciudadano || '',
+      [r.no_economico, r.marca, r.linea].filter(Boolean).join(' '),
+      r.placas || '',
+      r.viaje_id || '',
+      (r.descripcion || '').replace(/\n/g,' '),
+      r.comentario_admin || ''
+    ]);
+    const csv = [headers, ...filas]
+      .map(row => row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `reportes-ciudadanos-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('CSV descargado', 'ok');
+  } catch (err) {
+    toast('Error al exportar: ' + err.message, 'error');
+  }
+}
+
+/* ============================================================
+   SSE — Notificación en tiempo real de nuevos reportes
+   ============================================================ */
+function iniciarSSE() {
+  const S = window.SIGEPAV;
+  const sesion = S && S.getSession ? S.getSession() : null;
+  const uid = sesion && sesion.id;
+  if (!uid) return;
+
+  try {
+    const es = new EventSource(`/api/notificaciones/stream/${uid}`);
+    es.addEventListener('nueva', (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.tipo === 'reporte_ciudadano') {
+          toast('🚨 ' + (data.titulo || 'Nuevo reporte ciudadano'), 'info');
+          // Refrescar la vista para que aparezca arriba
+          cargarKPIs();
+          cargarReportes(1);
+        }
+      } catch (_) {}
+    });
+    es.onerror = () => { /* reconecta solo */ };
+  } catch (err) {
+    console.warn('SSE no disponible:', err);
+  }
+}
+</script>
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seguimiento Público — SIGEPAV</title>
+  <link rel="stylesheet" href="ciudadano.css" />
+  <link rel="stylesheet" href="seguimiento-publicoStyles.css">
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="header-logo-wrap">
+        <img src="Logo.jpeg" alt="SIGEPAV" class="header-logo" onerror="this.style.display='none'" />
+      </div>
+      <div>
+        <div class="header-title">Seguimiento Público de Comisión</div>
+        <div class="header-sub">SIGEPAV</div>
+      </div>
+    </div>
+    <div class="header-badge"><span class="badge-icon">📋</span><span>Acceso Público</span></div>
+  </div>
+</header>
+
+<main class="main-container">
+
+  <div class="legal-banner">
+    <span class="legal-icon">⚖️</span>
+    <p>Esta página muestra el resultado público de una comisión finalizada o de tu reporte ciudadano.
+       Solo se muestra información autorizada por la Ley de Transparencia.
+       Los datos personales del personal institucional están protegidos.</p>
+  </div>
+
+  <div id="loadingState" class="state-card loading-card">
+    <div class="spinner"></div>
+    <p>Consultando información de seguimiento…</p>
+  </div>
+
+  <div id="errorState" class="state-card error-card hidden">
+    <div class="state-icon">⚠️</div>
+    <h2>Seguimiento no encontrado</h2>
+    <p>El enlace de seguimiento no es válido o ya expiró.
+       Verifica que hayas copiado el enlace completo del correo.</p>
+  </div>
+
+  <div id="trackingContent" class="hidden">
+
+    <div class="tracking-card">
+      <div class="tracking-header">
+        <div class="tracking-badge">📋</div>
+        <div>
+          <div class="tracking-title" id="trackingTitle">Reporte Ciudadano</div>
+          <div class="tracking-token" id="tokenDisplay">—</div>
+        </div>
+      </div>
+
+      <!-- Vehicle summary -->
+      <div class="report-meta" id="vehicleSummary"><!-- by JS --></div>
+
+      <!-- Timeline -->
+      <div class="status-timeline" id="timeline"><!-- by JS --></div>
+
+      <!-- Resolution box — only if resolved -->
+      <div id="resolutionBox" class="resolution-box hidden">
+        <h4>✅ Respuesta institucional</h4>
+        <p id="resolutionText">—</p>
+      </div>
+    </div>
+
+    <!-- Finalized trip details (public) -->
+    <div id="tripDetails" class="hidden">
+      <h2 class="section-title green-title"><span>🟢</span> Detalle de la comisión finalizada</h2>
+      <div class="tracking-card" id="tripDetailsCard"><!-- by JS --></div>
+    </div>
+
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="Logo.jpeg" alt="TecNM" class="footer-logo" onerror="this.style.display='none'" />
+      <span>TecNM campus Zacatecas Norte</span>
+    </div>
+    <div class="footer-links">
+      <span>Sistema SIGEPAV v2.0</span><span>·</span><span>Subdirección Administrativa</span>
+    </div>
+  </div>
+</footer>
+
+<script src="seguimiento-publicoScript.js"></script>
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

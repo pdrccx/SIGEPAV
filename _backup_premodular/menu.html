@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SIGEPAV - Menú principal</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
+<link href="Styles.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body data-menu-page="true">
+<!-- Overlay para modales -->
+<div class="modal-overlay" id="modal-overlay" style="display: none;"></div>
+<!-- ==================== LOGIN ==================== -->
+<!-- ==================== APLICACIÓN PRINCIPAL ==================== -->
+<div id="app-container" style="display: none;">
+<!-- BARRA SUPERIOR -->
+<header class="barra-superior">
+<div class="barra-superior-contenido">
+<div class="barra-izquierda">
+<div class="dropdown-modulos" id="dropdown-modulos-principal">
+<button class="btn-dropdown" id="btnDropdownGlobal">
+<i class="fas fa-bars"></i> Módulos <i class="fas fa-angle-down"></i>
+</button>
+<div class="dropdown-contenido" id="dropdownMenuGlobal">
+<div class="dropdown-seccion">
+<div class="dropdown-titulo-seccion"><i class="fas fa-receipt"></i> Gestión de comisiones</div>
+<div class="modulo-dropdown" data-modulo="registro-comisiones"><i class="fas fa-pen-alt"></i> Registro de comisiones</div>
+<div class="modulo-dropdown" data-modulo="consulta-comisiones"><i class="fas fa-clipboard-list"></i> Consulta de comisiones</div>
+<div class="modulo-dropdown" data-modulo="solicitudes-finalizacion"><i class="fas fa-check-double"></i> Solicitudes de finalización</div>
+<a class="modulo-dropdown" data-modulo="vales" href="vales.html"><i class="fas fa-ticket-alt"></i> Registro de vales</a>
+</div>
+<div class="dropdown-seccion">
+<div class="dropdown-titulo-seccion"><i class="fas fa-car"></i> Administración vehicular</div>
+<div class="modulo-dropdown" data-modulo="alta-edicion"><i class="fas fa-car-side"></i> Altas, edición y consultas</div>
+<div class="modulo-dropdown" data-modulo="mantenimiento"><i class="fas fa-cogs"></i> Mantenimiento</div>
+<div class="modulo-dropdown" data-modulo="alertas"><i class="fas fa-calendar-alt"></i> Alerta y vencimientos</div>
+</div>
+<div class="dropdown-seccion">
+<div class="dropdown-titulo-seccion"><i class="fas fa-chart-line"></i> Monitoreo y reportes</div>
+<div class="modulo-dropdown" data-modulo="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</div>
+<div class="modulo-dropdown" data-modulo="control-combustible"><i class="fas fa-oil-can"></i> Control de combustible</div>
+<div class="modulo-dropdown" data-modulo="reportes"><i class="fas fa-file-pdf"></i> Reportes</div>
+<div class="modulo-dropdown" data-modulo="bitacora"><i class="fas fa-history"></i> Bitácora / Auditorías</div>
+</div>
+<div class="dropdown-seccion">
+<div class="dropdown-titulo-seccion"><i class="fas fa-shield-alt"></i> Seguridad y respaldos</div>
+<div class="modulo-dropdown" data-modulo="agregar-usuario"><i class="fas fa-user-plus"></i> Agregar usuario</div>
+<div class="modulo-dropdown" data-modulo="expediente"><i class="fas fa-folder-open"></i> Expediente digital</div>
+<div class="modulo-dropdown" data-modulo="respaldos"><i class="fas fa-database"></i> Respaldos</div>
+</div>
+</div>
+</div>
+<img alt="Logo" class="logo-barra" src="Logo.jpeg"/>
+<div class="titulo-sistema">
+<h1><a href="menu.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1>
+</div>
+</div>
+<div class="info-usuario">
+<!-- Campana de notificaciones (admin) -->
+<div class="dropdown-cuenta" id="adm-dropdown-notif" style="position: relative; margin-right: 0.5rem;">
+<button class="btn-notificaciones" id="adm-btnNotif" style="position: relative;" title="Notificaciones">
+<i class="fas fa-bell"></i>
+<span class="badge-notificacion" id="adm-badgeNotif" style="display:none;">0</span>
+</button>
+<div class="cuenta-panel" id="adm-panelNotif" style="display:none; right:0; min-width: 320px; max-height: 420px; overflow-y: auto; position:absolute; top:100%;">
+<div class="cuenta-cabecera">
+<div>
+<h4>Notificaciones</h4>
+<p id="adm-notif-count">0 sin leer</p>
+</div>
+</div>
+<div id="adm-notif-lista" style="padding: 0.4rem;">
+<p style="text-align:center; padding: 1rem; color:#666;">No hay notificaciones.</p>
+</div>
+</div>
+</div>
+<span class="icono-usuario"><i class="fas fa-user-circle"></i></span>
+<span class="correo-usuario" id="user-email-display">Usuario</span>
+<button class="btn-logout-header" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Salir</button>
+</div>
+</div>
+</header>
+<!-- ============== MENÚ PRINCIPAL ============== -->
+<main class="contenedor-principal" id="menu-principal">
+<div class="subtitulo-seccion">
+<h2>Menú principal</h2>
+<p>Gestión vehicular institucional</p>
+</div>
+<section class="resumen-cards">
+<div class="card-resumen">
+<div class="card-icono"><i class="fas fa-car"></i></div>
+<div class="card-info">
+<span class="card-numero" data-valor="0">0</span>
+<span class="card-etiqueta">Vehículos activos</span>
+</div>
+</div>
+<div class="card-resumen">
+<div class="card-icono"><i class="fas fa-gas-pump"></i></div>
+<div class="card-info">
+<span class="card-numero" data-valor="0">0</span>
+<span class="card-etiqueta">Vales este mes</span>
+</div>
+</div>
+<div class="card-resumen">
+<div class="card-icono"><i class="fas fa-exclamation-triangle"></i></div>
+<div class="card-info">
+<span class="card-numero" data-valor="0">0</span>
+<span class="card-etiqueta">Alertas pendientes</span>
+</div>
+</div>
+<div class="card-resumen">
+<div class="card-icono"><i class="fas fa-tools"></i></div>
+<div class="card-info">
+<span class="card-numero" data-valor="0">0</span>
+<span class="card-etiqueta">Fallas sin atender</span>
+</div>
+</div>
+</section>
+</main>
+<!-- ============== REGISTRO DE COMISIONES ============== -->
+<!-- ============== FORMULARIO DE MANTENIMIENTO ============== -->
+<!-- ============== ALTA Y EDICIÓN DE VEHÍCULOS ============== -->
+<!-- ============== CONSULTA DE COMISIONES ============== -->
+<!-- ============== SOLICITUDES DE FINALIZACIÓN (ADMIN) ============== -->
+<!-- Modal: rechazar solicitud (pedir comentario al admin) -->
+<div class="modal" id="sf-modal-rechazo" style="display: none;">
+<div class="modal-contenido">
+<div class="modal-header">
+<i class="fas fa-times-circle modal-icono modal-icono-rojo"></i>
+<h3>Rechazar solicitud</h3>
+</div>
+<p>Indica el motivo del rechazo (opcional). El usuario recibirá una notificación.</p>
+<textarea class="input-estilizado" id="sf-rechazo-comentario" placeholder="Por ejemplo: kilometraje final no coincide..." rows="3"></textarea>
+<div class="modal-botones">
+<button class="btn-secundario" id="sf-rechazo-cancelar">Cancelar</button>
+<button class="btn-peligro" id="sf-rechazo-aceptar">Rechazar</button>
+</div>
+</div>
+</div>
+<!-- Modal de edición de comisión -->
+<div class="modal modal-grande" id="cc-modal-edicion" style="display: none;">
+<div class="modal-grande-header">
+<span><i class="fas fa-pen"></i> Editar comisión</span>
+<div class="acciones-cabecera">
+<button class="btn-cabecera" id="cc-btn-nueva-comision"><i class="fas fa-plus"></i> Nueva comisión</button>
+<button aria-label="Cerrar" class="btn-secundario btn-mini" id="cc-btn-cerrar-edicion" title="Cerrar"><i class="fas fa-times"></i></button>
+</div>
+</div>
+<div class="modal-grande-body">
+<input id="cc-e-id" type="hidden"/>
+<h4 class="seccion-titulo">Datos del Vale</h4>
+<div class="form-grid form-grid-4">
+<div class="campo campo-corto"><label for="cc-e-vale">Vale</label><input class="input-estilizado input-corto" id="cc-e-vale" maxlength="20" placeholder="Folio" type="text"/></div>
+<div class="campo campo-corto"><label for="cc-e-litros">Litros</label><input class="input-estilizado input-corto" id="cc-e-litros" min="0" placeholder="0" step="0.01" type="number"/></div>
+<div class="campo campo-corto"><label for="cc-e-precio">Precio/Lt</label><input class="input-estilizado input-corto" id="cc-e-precio" min="0" placeholder="0.00" step="0.01" type="number"/></div>
+<div class="campo campo-corto"><label for="cc-e-ticket">No. Ticket</label><input class="input-estilizado input-corto" id="cc-e-ticket" maxlength="20" placeholder="####" type="text"/></div>
+<div class="campo">
+<label for="cc-e-combustible">Combustible</label>
+<select class="select-estilizado" id="cc-e-combustible">
+<option value="">— Seleccione —</option>
+<option>Gasolina Magna</option>
+<option>Gasolina Premium</option>
+<option>Diesel</option>
+</select>
+</div>
+<div class="campo campo-doble">
+<label>Total (calculado)</label>
+<div class="caja-total" id="cc-e-total">$0.00</div>
+</div>
+</div>
+<h4 class="seccion-titulo">Datos de la Comisión</h4>
+<div class="form-grid form-grid-3">
+<div class="campo campo-medio"><label for="cc-e-oficio">Oficio</label><input class="input-estilizado input-medio" id="cc-e-oficio" maxlength="30" placeholder="Clave oficio" type="text"/></div>
+<div class="campo"><label for="cc-e-resp">Responsable</label><input class="input-estilizado" id="cc-e-resp" placeholder="Nombre completo" type="text"/></div>
+<div class="campo campo-medio"><label for="cc-e-estcom">Estado comisión</label><input class="input-estilizado input-medio" id="cc-e-estcom" readonly="" type="text" value="Pendiente"/></div>
+<div class="campo"><label for="cc-e-estado-dst">Estado (destino)</label><select class="select-estilizado" id="cc-e-estado-dst"><option value="">Seleccionar</option></select></div>
+<div class="campo"><label for="cc-e-municipio">Municipio</label><select class="select-estilizado" id="cc-e-municipio"><option value="">Seleccionar</option></select></div>
+<div class="campo"><label for="cc-e-localidad">Localidad</label><select class="select-estilizado" id="cc-e-localidad"><option value="">Seleccionar</option></select></div>
+<div class="campo campo-medio"><label for="cc-e-inicio">Inicio comisión</label><input class="input-estilizado input-medio" id="cc-e-inicio" type="date"/></div>
+<div class="campo campo-medio"><label for="cc-e-fin">Término comisión</label><input class="input-estilizado input-medio" id="cc-e-fin" type="date"/></div>
+<div class="campo"><label for="cc-e-vehiculo">Vehículo</label><select class="select-estilizado" id="cc-e-vehiculo"></select></div>
+<div class="campo campo-triple"><label for="cc-e-desc">Descripción de la comisión</label><input class="input-estilizado" id="cc-e-desc" placeholder="Motivo de la comisión" type="text"/></div>
+<div class="campo campo-triple"><label for="cc-e-obs">Observaciones</label><textarea class="input-estilizado" id="cc-e-obs" placeholder="Notas adicionales..." rows="2"></textarea></div>
+</div>
+<h4 class="seccion-titulo">Comprobante (ticket)</h4>
+<div class="archivo-row">
+<input accept=".jpg,.jpeg,.png,.pdf" hidden="" id="cc-e-file" type="file"/>
+<button class="btn-secundario btn-mini" id="cc-btn-elegir-archivo"><i class="fas fa-paperclip"></i> Elegir archivo</button>
+<span class="archivo-nombre" id="cc-archivo-nombre">No se eligió ningún archivo</span>
+</div>
+<p class="ayuda-campo">Formatos: JPG, PNG, PDF · máx. 5 MB</p>
+<h4 class="seccion-titulo">Kilometraje</h4>
+<div class="form-grid form-grid-3">
+<div class="campo campo-corto"><label for="cc-e-kmi">Inicial</label><input class="input-estilizado input-corto" id="cc-e-kmi" min="0" placeholder="0" type="number"/></div>
+<div class="campo campo-corto"><label for="cc-e-kmf">Final</label><input class="input-estilizado input-corto" id="cc-e-kmf" min="0" placeholder="0" type="number"/></div>
+<div class="campo campo-corto"><label>Recorridos</label><div class="caja-km" id="cc-e-kmrec">0 km</div></div>
+</div>
+<button class="btn-primario btn-bloque" id="cc-btn-guardar-comision">
+<i class="fas fa-save"></i> Guardar cambios
+        </button>
+</div>
+</div>
+<!-- Modal: Finalizar comisión (ADMIN) — FIX req 2 + req 3 -->
+<!-- El nivel final se captura SIEMPRE con Gasolina.py (botón "Verificar"). -->
+<div class="modal" id="cc-modal-finalizar" style="display: none;">
+<div class="modal-contenido" style="max-width: 540px;">
+<div class="modal-header">
+<i class="fas fa-flag-checkered modal-icono"></i>
+<h3>Finalizar comisión</h3>
+<button aria-label="Cerrar" class="btn-secundario btn-mini" id="cc-fin-cerrar" style="margin-left:auto;" title="Cerrar"><i class="fas fa-times"></i></button>
+</div>
+<p id="cc-fin-comision-info" style="color:#4a5568; font-size:0.9rem; margin-bottom:0.8rem;">Comisión #</p>
+<div class="form-grid">
+<div class="campo campo-medio">
+<label for="cc-fin-km">Kilometraje final</label>
+<input class="input-estilizado input-medio" id="cc-fin-km" min="0" placeholder="Odómetro al cierre" type="number"/>
+</div>
+<div class="campo campo-doble">
+<label>Nivel de combustible final</label>
+<input id="cc-fin-nivel-valor" type="hidden"/>
+<div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+<button class="btn-secundario btn-medir" id="cc-fin-btn-medir" type="button">
+<i class="fas fa-gas-pump"></i> Registrar con Gasolina.py
+                    </button>
+<span id="cc-fin-nivel-actual" style="font-size:0.9rem; color:#2d3748;">— (sin capturar)</span>
+</div>
+<small class="ayuda-campo">El nivel se captura desde el medidor (Gasolina.py).</small>
+</div>
+<div class="campo campo-doble">
+<label for="cc-fin-obs">Observaciones</label>
+<textarea class="input-estilizado" id="cc-fin-obs" maxlength="500" placeholder="Notas del cierre (opcional)" rows="3"></textarea>
+</div>
+</div>
+<div class="modal-botones" style="margin-top:1rem;">
+<button class="btn-secundario" id="cc-fin-cancelar">Cancelar</button>
+<button class="btn-primario" id="cc-fin-aceptar"><i class="fas fa-check"></i> Finalizar</button>
+</div>
+</div>
+</div>
+<!-- Modal genérico de confirmación (usado por ambos módulos) -->
+<div class="modal" id="modal-confirmar" style="display: none;">
+<div class="modal-contenido">
+<div class="modal-header">
+<i class="fas fa-trash modal-icono modal-icono-rojo"></i>
+<h3 id="modal-confirmar-titulo">¿Confirmar?</h3>
+</div>
+<p id="modal-confirmar-mensaje">Esta acción no se puede deshacer.</p>
+<div class="modal-botones">
+<button class="btn-secundario" id="modal-confirmar-cancelar">Cancelar</button>
+<button class="btn-peligro" id="modal-confirmar-aceptar">Eliminar</button>
+</div>
+</div>
+</div>
+<!-- Toast (notificaciones) -->
+<div aria-live="polite" class="toast" id="toast"></div>
+<!-- BARRA INFERIOR -->
+<footer class="barra-inferior">
+<div class="barra-inferior-contenido">
+<p>Tecnológico Nacional de México campus Zacatecas Norte</p>
+</div>
+</footer>
+</div>
+<!-- Modal del medidor de combustible (iframe a Gasolina.py) -->
+<div class="modal" id="modal-medidor" style="display: none;">
+<div class="modal-contenido" style="max-width: 580px; padding: 0; overflow: hidden;">
+<iframe id="iframe-medidor" src="" style="width: 100%; height: 760px; border: none; display: block;"></iframe>
+</div>
+</div>
+<!-- Modal de aviso personalizado -->
+<div class="modal" id="modal-aviso" style="display: none;">
+<div class="modal-contenido">
+<div class="modal-header">
+<i class="fas fa-exclamation-triangle modal-icono"></i>
+<h3 id="modal-titulo">Aviso</h3>
+</div>
+<p id="modal-mensaje"></p>
+<div class="modal-botones">
+<button class="btn-primario" id="modal-btn-aceptar">Aceptar</button>
+</div>
+</div>
+</div>
+<!-- ─── Modal visor de QR (lightbox) ─── -->
+<div aria-label="Visor de código QR" aria-modal="true" class="qr-lightbox" id="qr-lightbox" role="dialog" style="display:none;">
+<div class="qr-lightbox-backdrop" data-qr-cerrar=""></div>
+<div class="qr-lightbox-contenido">
+<button aria-label="Cerrar" class="qr-lightbox-cerrar" data-qr-cerrar="" title="Cerrar (Esc)">
+<i class="fas fa-times"></i>
+</button>
+<div class="qr-lightbox-cabecera">
+<h3 id="qr-lightbox-titulo">Código QR</h3>
+<p id="qr-lightbox-subtitulo">Transparencia ciudadana</p>
+</div>
+<div class="qr-lightbox-marco">
+<img alt="Código QR" id="qr-lightbox-img" src=""/>
+</div>
+<div class="qr-lightbox-acciones">
+<a class="btn-primario" download="" id="qr-lightbox-descargar">
+<i class="fas fa-download"></i> Descargar PNG
+                </a>
+<a class="btn-secundario" id="qr-lightbox-publico" rel="noopener" target="_blank">
+<i class="fas fa-external-link-alt"></i> Vista pública
+                </a>
+<button class="btn-secundario" id="qr-lightbox-imprimir" type="button">
+<i class="fas fa-print"></i> Imprimir
+                </button>
+</div>
+<p class="qr-lightbox-pie">Escanee con cualquier lector de QR para consultar el historial público del vehículo.</p>
+</div>
+</div>
+<script src="Config.js"></script>
+<script src="auth-guard.js"></script><script src="Script.js"></script>
+<script src="navbar.js"></script>
+<script src="catalogo-destino.js"></script>
+<script src="vales-combo.js"></script>
+<script src="modulos-router.js"></script><script src="pagina-modulo.js"></script><script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Consulta Ciudadana — SIGEPAV</title>
+  <link rel="stylesheet" href="ciudadano.css?v=4" />
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="header-logo-wrap">
+        <img src="Logo.jpeg" alt="SIGEPAV" class="header-logo" onerror="this.style.display='none'" />
+      </div>
+      <div>
+        <div class="header-title">Transparencia Vehicular</div>
+        <div class="header-sub">SIGEPAV</div>
+      </div>
+    </div>
+    <div class="header-badge">
+      <span class="badge-icon">🔍</span>
+      <span>Acceso Público</span>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== MAIN ===================== -->
+<main class="main-container">
+
+  <!-- Legal notice -->
+  <div class="legal-banner">
+    <span class="legal-icon">⚖️</span>
+    <p>La información aquí presentada se publica en cumplimiento de la
+       <strong>Ley General de Transparencia y Acceso a la Información Pública</strong> y la
+       <strong>Ley General de Protección de Datos Personales en Poseción de Sujetos
+Obligados</strong>.
+       Solo se muestran datos autorizados. Los datos sensibles están protegidos.</p>
+  </div>
+
+  <!-- Error state -->
+  <div id="errorState" class="state-card error-card hidden">
+    <div class="state-icon">⚠️</div>
+    <h2>No fue posible mostrar la información</h2>
+    <p>El código QR escaneado no corresponde a un vehículo registrado en el sistema,
+       o el vínculo ha caducado. Verifica que el QR esté en buen estado.</p>
+  </div>
+
+  <!-- Loading state -->
+  <div id="loadingState" class="state-card loading-card">
+    <div class="spinner"></div>
+    <p id="loadingText">Consultando información…</p>
+  </div>
+
+  <!-- ============= DIRECTORIO PÚBLICO (sin token) ============= -->
+  <div id="directorioSection" class="hidden">
+    <div class="legal-banner" style="background:#eff6ff;border-left-color:#1d4ed8;">
+      <span class="legal-icon">📋</span>
+      <p><strong>Directorio público de comisiones.</strong>
+         Aquí puedes consultar todas las comisiones vehiculares institucionales.
+         Para ver la información de un vehículo específico, escanea su código QR.</p>
+    </div>
+    <div id="directorioResumen" class="directorio-resumen"></div>
+    <div id="dirActivasSection" class="hidden">
+      <h2 class="section-title yellow-title">
+        <span>🟡</span> Comisiones en curso (<span id="dirActivasCount">0</span>)
+      </h2>
+      <div id="dirActivasList"></div>
+    </div>
+    <div id="dirFinalizadasSection" class="hidden">
+      <h2 class="section-title green-title">
+        <span>🟢</span> Comisiones finalizadas (<span id="dirFinalizadasCount">0</span>)
+      </h2>
+      <div id="dirFinalizadasList"></div>
+    </div>
+    <div id="dirVacioSection" class="hidden">
+      <div class="state-card info-card-neutral">
+        <div class="state-icon">📋</div>
+        <h3>Sin comisiones registradas</h3>
+        <p>Actualmente no hay comisiones públicas en el sistema.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============= VEHICLE CARD ============= -->
+  <div id="vehicleSection" class="hidden">
+    <div class="vehicle-card" id="vehicleCard">
+      <div class="vehicle-status-ring" id="statusRing">
+        <span class="vehicle-icon">🚗</span>
+      </div>
+      <div class="vehicle-info">
+        <div class="vehicle-name" id="vehicleName">—</div>
+        <div class="vehicle-plates" id="vehiclePlates">—</div>
+        <div class="vehicle-meta" id="vehicleMeta">—</div>
+      </div>
+      <div class="status-pill" id="statusPill">Sin comisión activa</div>
+    </div>
+
+    <!-- Active trip -->
+    <div id="activeTripSection" class="hidden">
+      <h2 class="section-title yellow-title">
+        <span>🟡</span> Comisión en curso
+      </h2>
+      <div class="info-card yellow-card" id="activeTripCard">
+        <!-- filled by JS -->
+      </div>
+      <!-- Citizen interest / notification form (active commission) -->
+      <div class="interest-card" id="interestCard">
+        <div class="interest-header">
+          <span class="interest-icon">✉️</span>
+          <div>
+            <h3>Quiero saber cuando finalice</h3>
+            <p>Deja tu correo y, cuando la comisión termine, recibirás un enlace para consultar la información pública autorizada.</p>
+          </div>
+        </div>
+        <div class="interest-grid">
+          <div class="form-group">
+            <label>Nombre (opcional)</label>
+            <input type="text" id="iNombre" placeholder="Tu nombre" maxlength="120" />
+          </div>
+          <div class="form-group">
+            <label>Correo electrónico <span class="req">*</span></label>
+            <input type="email" id="iCorreo" placeholder="tu@correo.com" maxlength="150" />
+          </div>
+        </div>
+        <div id="interestError" class="alert-error hidden"></div>
+        <div id="interestSuccess" class="alert-success hidden"></div>
+        <button class="btn-interest" id="btnSubmitInterest" onclick="submitInterest()">
+          Avísenme al finalizar
+        </button>
+      </div>
+
+      <!-- Report button (active) -->
+      <button class="btn-report" id="btnReportActive" onclick="openReport('active')">
+        🚨 Denunciar esta comisión
+      </button>
+    </div>
+
+    <!-- Finished trips -->
+    <div id="finishedTripsSection" class="hidden">
+      <h2 class="section-title green-title">
+        <span>🟢</span> Comisiones finalizadas
+      </h2>
+      <div id="finishedTripsList"><!-- filled by JS --></div>
+    </div>
+
+    <!-- No trips at all -->
+    <div id="noTripsSection" class="hidden">
+      <div class="state-card info-card-neutral">
+        <div class="state-icon">📋</div>
+        <h3>Sin comisiones registradas</h3>
+        <p>Este vehículo no tiene comisiones públicas disponibles en este momento.</p>
+      </div>
+    </div>
+
+    <!-- QR Section -->
+    <div class="qr-section">
+      <div class="qr-label">
+        <span>📱</span>
+        <div>
+          <strong>QR de transparencia activo</strong><br>
+          <small>Quien escanee este código verá la información pública del vehículo</small>
+        </div>
+      </div>
+      <div id="qrImageWrap" class="qr-image-wrap">
+        <img id="qrImage" src="" alt="Código QR" class="qr-img" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ============= REPORT FORM ============= -->
+  <div id="reportSection" class="hidden">
+    <h2 class="section-title red-title"><span>🚨</span> Reporte Ciudadano</h2>
+    <div class="form-card">
+      <p class="form-intro">
+        Tu reporte será revisado por el área administrativa del Instituto.
+        El correo electrónico es requerido para notificarte el resultado.
+      </p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre (opcional)</label>
+          <input type="text" id="fNombre" placeholder="Tu nombre" maxlength="120" />
+        </div>
+        <div class="form-group">
+          <label>Correo electrónico <span class="req">*</span></label>
+          <input type="email" id="fCorreo" placeholder="tu@correo.com" maxlength="150" />
+        </div>
+        <div class="form-group full">
+          <label>Motivo de la denuncia <span class="req">*</span></label>
+          <select id="fMotivo">
+            <option value="">— Seleccione una opción —</option>
+            <option>Uso indebido del vehículo</option>
+            <option>Vehículo estacionado en lugar indebido</option>
+            <option>Uso fuera de horario autorizado</option>
+            <option>Conducción imprudente o peligrosa</option>
+            <option>Posible uso personal no autorizado</option>
+            <option>Desvío de ruta no autorizado</option>
+            <option>Exceso de tiempo en parada</option>
+            <option>Consumo inusual de combustible</option>
+            <option>Otro motivo</option>
+          </select>
+        </div>
+        <div class="form-group full evidence-group">
+          <label>Evidencia fotográfica tomada en el momento <span class="req">*</span></label>
+          <p class="camera-note">
+            Por seguridad, la evidencia sólo puede capturarse con la cámara en este instante.
+            No se permite subir imágenes desde archivos o galería.
+          </p>
+          <div class="camera-box" id="cameraBox">
+            <video id="cameraVideo" class="camera-video hidden" autoplay playsinline muted></video>
+            <canvas id="cameraCanvas" class="hidden"></canvas>
+            <img id="cameraPreview" class="camera-preview hidden" alt="Vista previa de la evidencia tomada" />
+            <div class="camera-placeholder" id="cameraPlaceholder">
+              <span class="upload-icon">📷</span>
+              <span id="uploadLabel">Toca “Abrir cámara” para tomar la evidencia ahora</span>
+            </div>
+          </div>
+          <div class="camera-actions">
+            <button type="button" class="btn-camera" id="btnOpenCamera" onclick="startCamera()">📷 Abrir cámara</button>
+            <button type="button" class="btn-camera btn-camera-capture hidden" id="btnCaptureCamera" onclick="captureEvidence()">✅ Tomar foto</button>
+            <button type="button" class="btn-camera btn-camera-reset hidden" id="btnRetakeCamera" onclick="resetCameraEvidence()">↻ Tomar otra</button>
+          </div>
+        </div>
+        <div class="form-group full description-group">
+          <label>Descripción detallada <span class="req">*</span></label>
+          <textarea id="fDescripcion" rows="4"
+            placeholder="Describe los hechos con la mayor precisión posible: fecha, hora, lugar, lo que observaste…"
+            maxlength="2000"></textarea>
+        </div>
+      </div>
+
+      <div id="reportError" class="alert-error hidden"></div>
+      <div id="reportSuccess" class="alert-success hidden"></div>
+
+      <div class="form-actions">
+        <button class="btn-secondary" onclick="closeReport()">Cancelar</button>
+        <button class="btn-danger" id="btnSubmitReport" onclick="submitReport()">
+          Enviar Reporte
+        </button>
+      </div>
+
+      <p class="privacy-note">
+        🔒 Tu información personal es tratada conforme a la Ley Federal de Protección de
+        Datos Personales. Solo será usada para atender este reporte y notificarte el resultado.
+      </p>
+    </div>
+  </div>
+
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="Logo.jpeg" alt="TecNM" class="footer-logo" onerror="this.style.display='none'" />
+      <span>TecNM campus Zacatecas Norte</span>
+    </div>
+    <div class="footer-links">
+      <span>Sistema SIGEPAV v2.0</span>
+      <span>·</span>
+      <span>Subdirección Administrativa</span>
+    </div>
+  </div>
+</footer>
+
+<script src="ciudadano.js?v=5"></script>
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración inicial · SIGEPAV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="primer-accesoStyles.css">
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+
+<div class="pa-card">
+
+    <div class="pa-logo">
+        <img src="Logo.jpeg" alt="SIGEPAV" onerror="this.style.display='none'">
+        <span class="pa-logo-txt">SIGEPAV</span>
+    </div>
+
+    <!-- Indicador de pasos -->
+    <div class="pa-steps">
+        <div class="pa-step activo" id="step1">
+            <i class="fas fa-envelope"></i>Correos
+        </div>
+        <div class="pa-step" id="step2">
+            <i class="fas fa-lock"></i>Contraseña
+        </div>
+        <div class="pa-step" id="step3">
+            <i class="fas fa-check"></i>Listo
+        </div>
+    </div>
+
+    <div class="pa-alerta error" id="pa-alerta"><i class="fas fa-exclamation-circle"></i> <span id="pa-alerta-txt"></span></div>
+
+    <!-- ── PANTALLA 1: Correos ── -->
+    <div class="pa-pantalla visible" id="pantalla-correos">
+        <div class="pa-titulo">¡Bienvenido al sistema!</div>
+        <p class="pa-subtitulo">Tu cuenta ha sido creada por el administrador. Antes de continuar, necesitas configurar tus correos y una contraseña propia.</p>
+
+        <div class="pa-info-usuario" id="pa-info-usuario">
+            <i class="fas fa-user-circle"></i>
+            <div class="pa-info-txt">
+                <strong id="pa-nombre-usuario">—</strong>
+                <span id="pa-username-usuario">—</span>
+            </div>
+        </div>
+
+        <div class="pa-campo">
+            <label><i class="fas fa-at"></i> Correo institucional *</label>
+            <input type="email" id="pa-correo-inst" placeholder="usuario@itszn.edu.mx" autocomplete="off">
+            <div class="pa-hint">Con este correo iniciarás sesión en el sistema.</div>
+        </div>
+
+        <div class="pa-campo">
+            <label><i class="fab fa-google"></i> Gmail de recuperación *</label>
+            <input type="email" id="pa-correo-gmail" placeholder="tucuenta@gmail.com" autocomplete="off">
+            <div class="pa-hint warn"><i class="fas fa-shield-alt"></i> Solo cuentas @gmail.com. Lo usaremos si olvidas tu contraseña.</div>
+        </div>
+
+        <button class="pa-btn pa-btn-primario" id="btn-siguiente-correos">
+            Siguiente <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
+
+    <!-- ── PANTALLA 2: Contraseña ── -->
+    <div class="pa-pantalla" id="pantalla-password">
+        <div class="pa-titulo">Crea tu contraseña</div>
+        <p class="pa-subtitulo">Elige una contraseña segura. Solo tú la conocerás.</p>
+
+        <div class="pa-campo">
+            <label>Nueva contraseña *</label>
+            <div class="pw-wrap">
+                <input type="password" id="pa-pass-nueva" placeholder="Mínimo 6 caracteres" autocomplete="new-password" maxlength="128">
+                <button type="button" class="pw-toggle" data-target="pa-pass-nueva"><i class="fas fa-eye"></i></button>
+            </div>
+            <div class="pa-check-req" id="pa-req-lista">
+                <div class="req" id="req-len"><i class="fas fa-circle"></i> Al menos 6 caracteres</div>
+                <div class="req" id="req-letra"><i class="fas fa-circle"></i> Al menos una letra</div>
+                <div class="req" id="req-num"><i class="fas fa-circle"></i> Al menos un número</div>
+            </div>
+        </div>
+
+        <div class="pa-campo">
+            <label>Confirmar contraseña *</label>
+            <div class="pw-wrap">
+                <input type="password" id="pa-pass-confirm" placeholder="Repite tu contraseña" autocomplete="new-password" maxlength="128">
+                <button type="button" class="pw-toggle" data-target="pa-pass-confirm"><i class="fas fa-eye"></i></button>
+            </div>
+        </div>
+
+        <button class="pa-btn pa-btn-primario" id="btn-guardar-todo">
+            <i class="fas fa-check-circle"></i> Finalizar configuración
+        </button>
+        <button class="pa-btn-link" id="btn-volver-correos">← Volver</button>
+    </div>
+
+    <!-- ── PANTALLA 3: Éxito ── -->
+    <div class="pa-pantalla pa-exito" id="pantalla-exito">
+        <div class="pa-exito-icono"><i class="fas fa-check"></i></div>
+        <h2>¡Listo, ya puedes entrar!</h2>
+        <p>Tu cuenta está configurada. Recuerda usar tu correo institucional para iniciar sesión.</p>
+        <button class="pa-btn pa-btn-primario" id="btn-ir-login">
+            <i class="fas fa-sign-in-alt"></i> Ir al inicio de sesión
+        </button>
+    </div>
+
+</div>
+
+<script src="Config.js"></script>
+<script src="primer-accesoScript.js"></script>
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

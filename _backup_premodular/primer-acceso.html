@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración inicial · SIGEPAV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #002b60 0%, #006dc8 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .pa-card {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+            padding: 2.5rem 2.2rem;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .pa-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .pa-logo img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .pa-logo-txt {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #002b60;
+            letter-spacing: -0.02em;
+        }
+
+        .pa-steps {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #d1dff0;
+        }
+
+        .pa-step {
+            flex: 1;
+            text-align: center;
+            padding: 0.6rem 0.4rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #6c86a3;
+            background: #f4f8ff;
+            border-right: 1px solid #d1dff0;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .pa-step:last-child { border-right: none; }
+
+        .pa-step.activo {
+            background: #006dc8;
+            color: #fff;
+        }
+
+        .pa-step.completado {
+            background: #e6f7ef;
+            color: #15803d;
+        }
+
+        .pa-step i { display: block; font-size: 1.1rem; margin-bottom: 0.2rem; }
+
+        .pa-titulo {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #002b60;
+            margin-bottom: 0.3rem;
+        }
+
+        .pa-subtitulo {
+            font-size: 0.84rem;
+            color: #6c86a3;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        /* Pantallas */
+        .pa-pantalla { display: none; }
+        .pa-pantalla.visible { display: block; }
+
+        .pa-campo {
+            margin-bottom: 1.1rem;
+        }
+
+        .pa-campo label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.4rem;
+        }
+
+        .pa-campo input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid #c8d9ee;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.92rem;
+            color: #002b60;
+            background: #f8fafd;
+            outline: none;
+            transition: border-color 0.18s, box-shadow 0.18s;
+        }
+
+        .pa-campo input:focus {
+            border-color: #006dc8;
+            box-shadow: 0 0 0 3px rgba(0,109,200,0.12);
+            background: #fff;
+        }
+
+        .pa-campo .pa-hint {
+            font-size: 0.74rem;
+            color: #94a3b8;
+            margin-top: 0.3rem;
+        }
+
+        .pa-campo .pa-hint.warn {
+            color: #d97706;
+        }
+
+        .pw-wrap {
+            position: relative;
+        }
+
+        .pw-wrap input {
+            padding-right: 2.8rem;
+        }
+
+        .pw-toggle {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c86a3;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .pa-alerta {
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            margin-bottom: 1.1rem;
+            display: none;
+            align-items: flex-start;
+            gap: 0.6rem;
+            line-height: 1.5;
+        }
+
+        .pa-alerta.show { display: flex; }
+        .pa-alerta.error { background: #fef2f2; border-left: 4px solid #ef4444; color: #991b1b; }
+        .pa-alerta.ok    { background: #f0fdf4; border-left: 4px solid #22c55e; color: #15803d; }
+
+        .pa-info-usuario {
+            background: #f0f7ff;
+            border: 1px solid #c2d9f0;
+            border-radius: 10px;
+            padding: 0.9rem 1rem;
+            margin-bottom: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .pa-info-usuario i {
+            font-size: 1.5rem;
+            color: #006dc8;
+        }
+
+        .pa-info-usuario .pa-info-txt strong {
+            display: block;
+            font-size: 0.92rem;
+            color: #002b60;
+            font-weight: 700;
+        }
+
+        .pa-info-usuario .pa-info-txt span {
+            font-size: 0.78rem;
+            color: #6c86a3;
+        }
+
+        .pa-btn {
+            width: 100%;
+            padding: 0.82rem;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: opacity 0.2s, transform 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .pa-btn-primario {
+            background: linear-gradient(135deg, #002b60, #006dc8);
+            color: #fff;
+        }
+
+        .pa-btn-primario:hover { opacity: 0.9; transform: translateY(-1px); }
+        .pa-btn-primario:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+        .pa-btn-link {
+            background: none;
+            color: #006dc8;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            margin-top: 0.8rem;
+            text-decoration: underline;
+        }
+
+        .pa-check-req {
+            font-size: 0.75rem;
+            margin-top: 0.4rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .pa-check-req .req {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+
+        .pa-check-req .req.ok { color: #15803d; }
+        .pa-check-req .req i { font-size: 0.75rem; }
+
+        /* Pantalla de éxito */
+        .pa-exito {
+            text-align: center;
+        }
+
+        .pa-exito-icono {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.2rem;
+            font-size: 2.2rem;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(34,197,94,0.35);
+        }
+
+        .pa-exito h2 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #002b60;
+            margin-bottom: 0.5rem;
+        }
+
+        .pa-exito p {
+            font-size: 0.88rem;
+            color: #6c86a3;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 520px) {
+            .pa-card { padding: 1.8rem 1.2rem; }
+        }
+    </style>
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+
+<div class="pa-card">
+
+    <div class="pa-logo">
+        <img src="Logo.jpeg" alt="SIGEPAV" onerror="this.style.display='none'">
+        <span class="pa-logo-txt">SIGEPAV</span>
+    </div>
+
+    <!-- Indicador de pasos -->
+    <div class="pa-steps">
+        <div class="pa-step activo" id="step1">
+            <i class="fas fa-envelope"></i>Correos
+        </div>
+        <div class="pa-step" id="step2">
+            <i class="fas fa-lock"></i>Contraseña
+        </div>
+        <div class="pa-step" id="step3">
+            <i class="fas fa-check"></i>Listo
+        </div>
+    </div>
+
+    <div class="pa-alerta error" id="pa-alerta"><i class="fas fa-exclamation-circle"></i> <span id="pa-alerta-txt"></span></div>
+
+    <!-- ── PANTALLA 1: Correos ── -->
+    <div class="pa-pantalla visible" id="pantalla-correos">
+        <div class="pa-titulo">¡Bienvenido al sistema!</div>
+        <p class="pa-subtitulo">Tu cuenta ha sido creada por el administrador. Antes de continuar, necesitas configurar tus correos y una contraseña propia.</p>
+
+        <div class="pa-info-usuario" id="pa-info-usuario">
+            <i class="fas fa-user-circle"></i>
+            <div class="pa-info-txt">
+                <strong id="pa-nombre-usuario">—</strong>
+                <span id="pa-username-usuario">—</span>
+            </div>
+        </div>
+
+        <div class="pa-campo">
+            <label><i class="fas fa-at"></i> Correo institucional *</label>
+            <input type="email" id="pa-correo-inst" placeholder="usuario@itszn.edu.mx" autocomplete="off">
+            <div class="pa-hint">Con este correo iniciarás sesión en el sistema.</div>
+        </div>
+
+        <div class="pa-campo">
+            <label><i class="fab fa-google"></i> Gmail de recuperación *</label>
+            <input type="email" id="pa-correo-gmail" placeholder="tucuenta@gmail.com" autocomplete="off">
+            <div class="pa-hint warn"><i class="fas fa-shield-alt"></i> Solo cuentas @gmail.com. Lo usaremos si olvidas tu contraseña.</div>
+        </div>
+
+        <button class="pa-btn pa-btn-primario" id="btn-siguiente-correos">
+            Siguiente <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
+
+    <!-- ── PANTALLA 2: Contraseña ── -->
+    <div class="pa-pantalla" id="pantalla-password">
+        <div class="pa-titulo">Crea tu contraseña</div>
+        <p class="pa-subtitulo">Elige una contraseña segura. Solo tú la conocerás.</p>
+
+        <div class="pa-campo">
+            <label>Nueva contraseña *</label>
+            <div class="pw-wrap">
+                <input type="password" id="pa-pass-nueva" placeholder="Mínimo 6 caracteres" autocomplete="new-password" maxlength="128">
+                <button type="button" class="pw-toggle" data-target="pa-pass-nueva"><i class="fas fa-eye"></i></button>
+            </div>
+            <div class="pa-check-req" id="pa-req-lista">
+                <div class="req" id="req-len"><i class="fas fa-circle"></i> Al menos 6 caracteres</div>
+                <div class="req" id="req-letra"><i class="fas fa-circle"></i> Al menos una letra</div>
+                <div class="req" id="req-num"><i class="fas fa-circle"></i> Al menos un número</div>
+            </div>
+        </div>
+
+        <div class="pa-campo">
+            <label>Confirmar contraseña *</label>
+            <div class="pw-wrap">
+                <input type="password" id="pa-pass-confirm" placeholder="Repite tu contraseña" autocomplete="new-password" maxlength="128">
+                <button type="button" class="pw-toggle" data-target="pa-pass-confirm"><i class="fas fa-eye"></i></button>
+            </div>
+        </div>
+
+        <button class="pa-btn pa-btn-primario" id="btn-guardar-todo">
+            <i class="fas fa-check-circle"></i> Finalizar configuración
+        </button>
+        <button class="pa-btn-link" id="btn-volver-correos">← Volver</button>
+    </div>
+
+    <!-- ── PANTALLA 3: Éxito ── -->
+    <div class="pa-pantalla pa-exito" id="pantalla-exito">
+        <div class="pa-exito-icono"><i class="fas fa-check"></i></div>
+        <h2>¡Listo, ya puedes entrar!</h2>
+        <p>Tu cuenta está configurada. Recuerda usar tu correo institucional para iniciar sesión.</p>
+        <button class="pa-btn pa-btn-primario" id="btn-ir-login">
+            <i class="fas fa-sign-in-alt"></i> Ir al inicio de sesión
+        </button>
+    </div>
+
+</div>
+
+<script src="Config.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var SESSION_KEY = 'sigepav_usuario';
+    var usuarioId = null;
+    var datosGuardados = {};
+
+    // Recuperar sesión temporal de primer_acceso guardada en sessionStorage
+    function leerSesionTemp() {
+        try {
+            var raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+            if (!raw || raw === 'null') return null;
+            return JSON.parse(raw);
+        } catch (e) { return null; }
+    }
+
+    function mostrarAlerta(msg) {
+        var el = document.getElementById('pa-alerta');
+        var txt = document.getElementById('pa-alerta-txt');
+        txt.textContent = msg;
+        el.className = 'pa-alerta error show';
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function ocultarAlerta() {
+        document.getElementById('pa-alerta').className = 'pa-alerta error';
+    }
+
+    function irPantalla(id) {
+        document.querySelectorAll('.pa-pantalla').forEach(function(p) {
+            p.classList.remove('visible');
+        });
+        document.getElementById(id).classList.add('visible');
+        ocultarAlerta();
+    }
+
+    function setStep(n) {
+        ['step1','step2','step3'].forEach(function(id, i) {
+            var el = document.getElementById(id);
+            el.className = 'pa-step';
+            if (i + 1 < n) el.classList.add('completado');
+            else if (i + 1 === n) el.classList.add('activo');
+        });
+    }
+
+    // Cargar datos del usuario desde sesión temporal
+    var sesionTemp = leerSesionTemp();
+    if (!sesionTemp) {
+        // Si no hay sesión, redirigir al login
+        window.location.replace('index.html');
+    } else if (!sesionTemp.primer_acceso) {
+        // Ya completó el primer acceso
+        window.location.replace(sesionTemp.rol_id === 1 ? 'menu.html' : 'Usuario.html');
+    } else {
+        usuarioId = sesionTemp.id;
+        var nombreCompleto = [sesionTemp.nombre, sesionTemp.apellidos].filter(Boolean).join(' ');
+        document.getElementById('pa-nombre-usuario').textContent = nombreCompleto || 'Usuario';
+        document.getElementById('pa-username-usuario').textContent = sesionTemp.email || '';
+        // Pre-llenar correo institucional si ya tiene uno asignado
+        if (sesionTemp.email) {
+            document.getElementById('pa-correo-inst').value = sesionTemp.email;
+        }
+    }
+
+    // ── Toggle contraseña ──
+    document.querySelectorAll('.pw-toggle').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var input = document.getElementById(btn.getAttribute('data-target'));
+            var icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        });
+    });
+
+    // ── Validación en tiempo real de contraseña ──
+    document.getElementById('pa-pass-nueva').addEventListener('input', function() {
+        var val = this.value;
+        function setReq(id, ok) {
+            var el = document.getElementById(id);
+            el.className = 'req' + (ok ? ' ok' : '');
+            el.querySelector('i').className = ok ? 'fas fa-check-circle' : 'fas fa-circle';
+        }
+        setReq('req-len',   val.length >= 6);
+        setReq('req-letra', /[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]/.test(val));
+        setReq('req-num',   /\d/.test(val));
+    });
+
+    // ── Siguiente: validar correos ──
+    document.getElementById('btn-siguiente-correos').addEventListener('click', function() {
+        var inst  = document.getElementById('pa-correo-inst').value.trim();
+        var gmail = document.getElementById('pa-correo-gmail').value.trim();
+
+        if (!inst || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inst)) {
+            mostrarAlerta('Ingresa un correo institucional válido.'); return;
+        }
+        if (!gmail || !gmail.toLowerCase().includes('@gmail.com')) {
+            mostrarAlerta('El correo de recuperación debe ser una cuenta @gmail.com.'); return;
+        }
+
+        datosGuardados.correo_inst  = inst;
+        datosGuardados.correo_gmail = gmail;
+
+        setStep(2);
+        irPantalla('pantalla-password');
+        document.getElementById('pa-pass-nueva').focus();
+    });
+
+    // ── Volver a correos ──
+    document.getElementById('btn-volver-correos').addEventListener('click', function() {
+        setStep(1);
+        irPantalla('pantalla-correos');
+    });
+
+    // ── Guardar todo ──
+    document.getElementById('btn-guardar-todo').addEventListener('click', async function() {
+        var pass    = document.getElementById('pa-pass-nueva').value;
+        var confirm = document.getElementById('pa-pass-confirm').value;
+
+        if (!pass || pass.length < 6) {
+            mostrarAlerta('La contraseña debe tener al menos 6 caracteres.'); return;
+        }
+        if (!/[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]/.test(pass)) {
+            mostrarAlerta('La contraseña debe contener al menos una letra.'); return;
+        }
+        if (!/\d/.test(pass)) {
+            mostrarAlerta('La contraseña debe contener al menos un número.'); return;
+        }
+        if (pass !== confirm) {
+            mostrarAlerta('Las contraseñas no coinciden.'); return;
+        }
+
+        var btn = document.getElementById('btn-guardar-todo');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+        try {
+            var API_BASE = (typeof window !== 'undefined' && window.API_BASE) ? window.API_BASE : window.location.origin;
+            var resp = await fetch(API_BASE + '/api/usuarios/' + encodeURIComponent(usuarioId) + '/primer-acceso', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    correo_institucional: datosGuardados.correo_inst,
+                    correo_gmail: datosGuardados.correo_gmail,
+                    password: pass
+                })
+            });
+            var data = await resp.json();
+            if (!resp.ok || !data.ok) throw new Error(data.error || 'No se pudo completar la configuración.');
+
+            // Limpiar sesión temporal (forzar re-login con la nueva contraseña)
+            try { sessionStorage.removeItem('sigepav_usuario'); } catch(e){}
+            try { localStorage.removeItem('sigepav_usuario'); } catch(e){}
+
+            setStep(3);
+            irPantalla('pantalla-exito');
+        } catch (err) {
+            mostrarAlerta(err.message || 'Error al guardar. Intenta de nuevo.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar configuración';
+        }
+    });
+
+    // ── Ir al login ──
+    document.getElementById('btn-ir-login').addEventListener('click', function() {
+        window.location.replace('index.html');
+    });
+
+    // Enter en campos de correo
+    ['pa-correo-inst','pa-correo-gmail'].forEach(function(id) {
+        document.getElementById(id).addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') document.getElementById('btn-siguiente-correos').click();
+        });
+    });
+    ['pa-pass-nueva','pa-pass-confirm'].forEach(function(id) {
+        document.getElementById(id).addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') document.getElementById('btn-guardar-todo').click();
+        });
+    });
+
+})();
+</script>
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

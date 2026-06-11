@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuario · SIGEPAV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Styles.css">
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+
+    <!-- Overlay para modales -->
+    <div class="modal-overlay" id="modal-overlay" style="display: none;"></div>
+
+    <div id="app-container" style="display: flex;">
+
+        <!-- BARRA SUPERIOR / navbar de usuario -->
+        <header class="barra-superior">
+            <div class="barra-superior-contenido">
+                <div class="barra-izquierda">
+                    <div class="dropdown-modulos" id="dropdown-modulos-principal" data-menu-tipo="usuario">
+                        <button class="btn-dropdown" id="btnDropdownGlobal">
+                            <i class="fas fa-bars"></i> Opciones <i class="fas fa-angle-down"></i>
+                        </button>
+                        <div class="dropdown-contenido" id="dropdownMenuGlobal">
+                            <div class="dropdown-seccion">
+                                <div class="dropdown-titulo-seccion"><i class="fas fa-route"></i> Mis comisiones</div>
+                                <div class="modulo-dropdown" data-opcion="iniciar-viaje"><i class="fas fa-play-circle"></i> Iniciar nueva comisión</div>
+                                <div class="modulo-dropdown" data-opcion="historial"><i class="fas fa-history"></i> Mi historial de comisiones</div>
+                            </div>
+                            <div class="dropdown-seccion">
+                                <div class="dropdown-titulo-seccion"><i class="fas fa-robot"></i> Asistente</div>
+                                <div class="modulo-dropdown" data-opcion="ia"><i class="fas fa-microchip"></i> IA</div>
+                            </div>
+                            <div class="dropdown-seccion">
+                                <div class="dropdown-titulo-seccion"><i class="fas fa-life-ring"></i> Soporte</div>
+                                <div class="modulo-dropdown" data-opcion="ayuda"><i class="fas fa-question-circle"></i> Ayuda</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <img src="Logo.jpeg" alt="Logo" class="logo-barra">
+                    <div class="titulo-sistema">
+                        <h1><a href="Usuario.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1>
+                    </div>
+                </div>
+
+                <div class="barra-derecha">
+                    <!-- Campana de notificaciones -->
+                    <div class="dropdown-cuenta" id="usr-dropdown-notif" style="position: relative;">
+                        <button class="btn-notificaciones" id="btnNotificaciones" title="Notificaciones" style="position: relative;">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge-notificacion" id="badgeNotif" style="display:none;">0</span>
+                        </button>
+                        <div class="cuenta-panel" id="usr-panelNotif" style="display:none; right:0; min-width: 320px; max-height: 420px; overflow-y: auto; position:absolute; top:100%;">
+                            <div class="cuenta-cabecera">
+                                <div>
+                                    <h4>Notificaciones</h4>
+                                    <p id="usr-notif-count">0 sin leer</p>
+                                </div>
+                            </div>
+                            <div id="usr-notif-lista" style="padding: 0.4rem;">
+                                <p style="text-align:center; padding: 1rem; color:#666;">No hay notificaciones.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chip del usuario (clickeable) -->
+                    <div class="dropdown-cuenta" id="dropdown-cuenta">
+                        <button class="info-usuario info-usuario-btn" id="btnCuenta">
+                            <span class="icono-usuario"><i class="fas fa-user-circle"></i></span>
+                            <span class="correo-usuario">Usuario</span>
+                            <i class="fas fa-angle-down" style="font-size: 0.85rem; opacity: 0.85;"></i>
+                        </button>
+
+                        <div class="cuenta-panel" id="cuentaPanel">
+                            <div class="cuenta-cabecera">
+                                <div class="cuenta-avatar"><img src="Logo.jpeg" alt="Logo"></div>
+                                <div>
+                                    <h4>Usuario</h4>
+                                    <p>Usuario operativo</p>
+                                </div>
+                            </div>
+                            <div class="cuenta-datos">
+                                <div class="cuenta-fila">
+                                    <i class="fas fa-id-badge"></i>
+                                    <div>
+                                        <span class="cuenta-label">Usuario</span>
+                                        <span class="cuenta-valor">Usuario</span>
+                                    </div>
+                                </div>
+                                <div class="cuenta-fila">
+                                    <i class="fas fa-envelope"></i>
+                                    <div>
+                                        <span class="cuenta-label">Correo institucional</span>
+                                        <span class="cuenta-valor">diego@itszn.edu.mx</span>
+                                    </div>
+                                </div>
+                                <div class="cuenta-fila">
+                                    <i class="fas fa-building"></i>
+                                    <div>
+                                        <span class="cuenta-label">Departamento</span>
+                                        <span class="cuenta-valor">Subdirección Administrativa</span>
+                                    </div>
+                                </div>
+                                <div class="cuenta-fila">
+                                    <i class="fas fa-user-tag"></i>
+                                    <div>
+                                        <span class="cuenta-label">Rol</span>
+                                        <span class="cuenta-valor">Usuario</span>
+                                    </div>
+                                </div>
+                                <div class="cuenta-fila">
+                                    <i class="fas fa-clock"></i>
+                                    <div>
+                                        <span class="cuenta-label">Último acceso</span>
+                                        <span class="cuenta-valor" id="ultimoAcceso">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-cerrar-sesion" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ============== PANEL DE USUARIO ============== -->
+        <main id="panel-usuario" class="contenedor-principal">
+            <!-- ====== Estado: SIN comisión activa ====== -->
+            <section class="viaje-destacado" id="estado-sin-comision">
+                <div class="viaje-mensaje">
+                    <i class="fas fa-route viaje-icono"></i>
+                    <div>
+                        <h2>Iniciar comisión</h2>
+                        <p>Cuando estés listo, registra el inicio de tu comisión para activar el seguimiento del vehículo oficial.</p>
+                    </div>
+                </div>
+                <button id="btn-iniciar-viaje" class="btn-viaje">
+                    <i class="fas fa-play-circle"></i> Iniciar comisión
+                </button>
+            </section>
+
+            <!-- ====== Estado: CON comisión activa ====== -->
+            <section class="viaje-destacado viaje-destacado-activa" id="estado-con-comision" style="display:none;">
+                <div class="viaje-mensaje">
+                    <i class="fas fa-circle-check viaje-icono"></i>
+                    <div>
+                        <h2>Comisión en curso</h2>
+                        <p id="info-comision-activa">Tienes una comisión activa. Cuando termines, finalízala desde aquí.</p>
+                    </div>
+                </div>
+                <button id="btn-finalizar-viaje" class="btn-viaje btn-viaje-finalizar">
+                    <i class="fas fa-flag-checkered"></i> Finalizar comisión
+                </button>
+            </section>
+
+        </main>
+
+        <!-- ============== FORMULARIO DE INICIO DE COMISIÓN (OCULTO) ============== -->
+        <main id="formulario-viaje" class="contenedor-principal" style="display: none;">
+            <div class="subtitulo-seccion">
+                <div class="encabezado-formulario">
+                    <h2>Datos de la comisión</h2>
+                    <p class="subtitulo-secundario">Información general de la comisión</p>
+                </div>
+            </div>
+
+            <section class="formulario-viaje-contenido">
+                <div class="form-grid">
+                    <div class="campo">
+                        <label for="fecha-viaje">Fecha de inicio</label>
+                        <input type="date" id="fecha-viaje" class="input-estilizado">
+                    </div>
+                    <div class="campo">
+                        <label for="no-viaje">Número de vale</label>
+                        <select id="no-viaje" class="input-estilizado">
+                            <option value="">(S/V) — Sin vale</option>
+                        </select>
+                    </div>
+                    <!-- Datos del vale seleccionado (autorellenados, solo lectura) -->
+                    <div class="campo vale-info" id="vale-info-box" style="display:none">
+                        <label>Datos del vale</label>
+                        <div class="vale-info-grid">
+                            <span>Folio:    <strong id="vale-folio">—</strong></span>
+                            <span>Litros:   <strong id="vale-litros">—</strong></span>
+                            <span>$/L:      <strong id="vale-precio">—</strong></span>
+                            <span>Total:    <strong id="vale-cantidad">—</strong></span>
+                        </div>
+                    </div>
+                    <div class="campo">
+                        <label for="oficio-no">
+                            Oficio No.
+                            <span class="campo-auto-tag"><i class="fas fa-wand-magic-sparkles"></i> automático</span>
+                        </label>
+                        <input type="text" id="oficio-no" class="input-estilizado input-readonly"
+                               value="Se asignará al guardar (formato CM-DD-MM-AA-NN)"
+                               readonly tabindex="-1" aria-readonly="true">
+                    </div>
+                    <div class="campo">
+                        <label for="destino-estado">Estado (destino)</label>
+                        <select id="destino-estado" class="input-estilizado">
+                            <option value="">Seleccione un estado</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="destino-municipio">Municipio (destino)</label>
+                        <select id="destino-municipio" class="input-estilizado" disabled>
+                            <option value="">Primero elija un estado</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="destino-localidad">Localidad (opcional)</label>
+                        <select id="destino-localidad" class="input-estilizado" disabled>
+                            <option value="">Primero elija un municipio</option>
+                        </select>
+                    </div>
+                    <input type="hidden" id="lugar-destino" value="">
+                    <input type="hidden" id="dest-estado-nombre" value="">
+                    <input type="hidden" id="dest-municipio-nombre" value="">
+                    <input type="hidden" id="dest-localidad-nombre" value="">
+                        <div class="campo campo-doble">
+                            <label for="vehiculo-select">Vehículo oficial</label>
+                            <select id="vehiculo-select" class="select-estilizado">
+                                <option value="">-- Cargando vehículos... --</option>
+                            </select>
+                        </div>  
+                    <div class="campo campo-doble">
+                        <label for="responsable">Usuario responsable</label>
+                        <input type="text" id="responsable" class="input-estilizado"
+                               readonly
+                               title="Se toma automáticamente de tu sesión"
+                               style="background:#f1f5f9;color:#475569;cursor:not-allowed;">
+                        <small style="display:block;margin-top:4px;font-size:.75rem;color:#64748b;">
+                            <i class="fas fa-info-circle"></i> Se asigna automáticamente con tu cuenta.
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Lecturas iniciales con medidor -->
+                <div class="lecturas-iniciales">
+                    <h3><i class="fas fa-tachometer-alt"></i> Lecturas iniciales</h3>
+                    <p class="instruccion-lectura">Verifique el nivel de combustible y capture el kilometraje al iniciar.</p>
+                    <div class="lectura-container">
+                        <div class="nivel-combustible">
+                            <label>Nivel de combustible inicial</label>
+                            <div class="gauge-container">
+                                <div class="gauge" id="gauge">
+                                    <div class="gauge-fill" id="gauge-fill" style="transform: rotate(-90deg);"></div>
+                                    <div class="gauge-cover">
+                                        <span class="gauge-value" id="gauge-value">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="btn-verificar-combustible" class="btn-secundario btn-medir">
+                                <i class="fas fa-gas-pump"></i> Verificar nivel de combustible
+                            </button>
+                            <p class="etiqueta-tanque" id="etiqueta-tanque"></p>
+                        </div>
+                        <div class="kilometraje-inicial">
+                            <label for="kilometraje">Kilometraje actual</label>
+                            <input type="number" id="kilometraje" class="input-estilizado" placeholder="Lectura del odómetro" min="0">
+                            <small class="ayuda-campo">Indique la lectura del odómetro al iniciar</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="campo campo-doble">
+                    <label for="motivo-viaje">Motivo de la comisión (opcional)</label>
+                    <textarea id="motivo-viaje" rows="2" class="input-estilizado" placeholder="Describa brevemente el propósito de la comisión"></textarea>
+                </div>
+
+                <div class="botones-viaje">
+                    <button id="btn-cancelar-viaje" class="btn-secundario">Cancelar</button>
+                    <button id="btn-iniciar-viaje-confirm" class="btn-primario">Iniciar comisión</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- ============== HISTORIAL DE COMISIONES (USUARIO) ============== -->
+        <main id="historial-comisiones" class="contenedor-principal" style="display: none;">
+            <div class="subtitulo-seccion">
+                <div class="encabezado-formulario">
+                    <h2>Mi historial de comisiones</h2>
+                    <p class="subtitulo-secundario">Aquí puedes ver tus comisiones y solicitar finalizarlas.</p>
+                </div>
+            </div>
+
+            <section class="panel-tabla">
+                <div class="panel-tabla-cabecera">
+                    <div>
+                        <span><i class="fas fa-list"></i> Mis comisiones</span>
+                        <span class="resultados-count" id="hc-res-count">0 registros</span>
+                    </div>
+                </div>
+                <div class="tabla-contenedor">
+                    <table class="tabla-sigepav">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Destino</th>
+                                <th>Motivo</th>
+                                <th>Vehículo</th>
+                                <th>Km inicial</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hc-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- ============== FORMULARIO DE SOLICITUD DE FINALIZACIÓN (USUARIO) ============== -->
+        <main id="form-finalizar-comision" class="contenedor-principal" style="display: none;">
+            <div class="subtitulo-seccion">
+                <div class="encabezado-formulario">
+                    <h2>Solicitar finalización de comisión</h2>
+                    <p class="subtitulo-secundario">Captura los datos de cierre. La solicitud quedará en revisión por el administrador.</p>
+                </div>
+            </div>
+
+            <section class="formulario-viaje-contenido">
+                <input type="hidden" id="ff-viaje-id">
+                <div class="form-grid">
+                    <div class="campo">
+                        <label>Comisión</label>
+                        <input type="text" id="ff-comision-info" class="input-estilizado" readonly>
+                    </div>
+                    <div class="campo">
+                        <label for="ff-km-final">Kilometraje final</label>
+                        <input type="number" id="ff-km-final" class="input-estilizado input-medio" placeholder="Lectura del odómetro al cierre" min="0">
+                    </div>
+                    <div class="campo">
+                        <!-- FIX req 3: nivel final SIEMPRE se captura con Gasolina.py -->
+                        <label>Nivel de combustible final</label>
+                        <input type="hidden" id="ff-nivel-comb">
+                        <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+                            <button id="ff-btn-medir" class="btn-secundario btn-medir" type="button">
+                                <i class="fas fa-gas-pump"></i> Registrar nivel de combustible
+                            </button>
+                            <span id="ff-nivel-actual" style="font-size:0.9rem; color:#2d3748;">— (sin capturar)</span>
+                        </div>
+                        <small class="ayuda-campo">El nivel se captura desde el medidor (Gasolina.py).</small>
+                    </div>
+                    <div class="campo">
+                        <label for="ff-motivo">Motivo / Resumen</label>
+                        <input type="text" id="ff-motivo" class="input-estilizado" placeholder="Ej. Comisión cumplida, sin incidentes.">
+                    </div>
+                    <div class="campo campo-doble">
+                        <label for="ff-actividades">Actividades realizadas</label>
+                        <textarea id="ff-actividades" rows="5" class="input-estilizado"
+                                  placeholder="Escribe una actividad por línea, por ejemplo:&#10;Reunión con autoridades municipales&#10;Entrega de documentación&#10;Inspección de obra en instalaciones"></textarea>
+                        <small class="ayuda-campo">Una línea = una actividad. Estas se mostrarán al ciudadano en su reporte y en el reporte público.</small>
+                    </div>
+                    <div class="campo campo-doble">
+                        <label for="ff-obs">Observaciones</label>
+                        <textarea id="ff-obs" rows="3" class="input-estilizado" placeholder="Detalle cualquier incidente, falla, retraso, etc."></textarea>
+                    </div>
+                </div>
+                <div class="botones-viaje">
+                    <button id="ff-btn-cancelar" class="btn-secundario">Cancelar</button>
+                    <button id="ff-btn-enviar" class="btn-primario"><i class="fas fa-paper-plane"></i> Enviar solicitud</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- BARRA INFERIOR -->
+        <footer class="barra-inferior">
+            <div class="barra-inferior-contenido">
+                <p>Tecnológico Nacional de México campus Zacatecas Norte</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal del medidor de combustible (iframe a Gasolina.py) -->
+    <div class="modal" id="modal-medidor" style="display: none;">
+        <div class="modal-contenido" style="max-width: 580px; padding: 0; overflow: hidden;">
+            <iframe id="iframe-medidor" src="" style="width: 100%; height: 760px; border: none; display: block;"></iframe>
+        </div>
+    </div>
+
+    <!-- Modal de aviso personalizado -->
+    <div class="modal" id="modal-aviso" style="display: none;">
+        <div class="modal-contenido">
+            <div class="modal-header">
+                <i class="fas fa-exclamation-triangle modal-icono"></i>
+                <h3 id="modal-titulo">Aviso</h3>
+            </div>
+            <p id="modal-mensaje"></p>
+            <div class="modal-botones">
+                <button class="btn-primario" id="modal-btn-aceptar">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+<script src="Config.js"></script>
+<script src="auth-guard.js"></script>
+<script src="UsuarioScript.js"></script>
+<script src="catalogo-destino.js"></script>
+<script src="vales-combo.js"></script>
+<script src="manual-descarga.js"></script>
+<script src="navbar.js"></script>
+<script src="modulos-router.js"></script>
+
+<!-- Loading overlay global -->
+<div id="sigepav-loading-overlay" role="status" aria-live="polite" aria-label="Cargando">
+  <div class="sigepav-loading-card">
+    <div class="sigepav-loading-spinner"></div>
+    <p class="sigepav-loading-msg" id="sigepav-loading-msg">Procesando...</p>
+  </div>
+</div>
+
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

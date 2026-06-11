@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SIGEPAV — Mi perfil</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
+<link href="Styles.css" rel="stylesheet"/>
+<link rel="stylesheet" href="perfilStyles.css">
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+<div id="app-container" style="display:none;">
+
+<!-- BARRA SUPERIOR -->
+<header class="barra-superior">
+<div class="barra-superior-contenido">
+    <div class="barra-izquierda">
+        <div class="dropdown-modulos" id="dropdown-modulos-principal"></div>
+        <img src="Logo.jpeg" alt="Logo" class="logo-barra">
+        <div class="titulo-sistema">
+            <h1><a href="menu.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1>
+        </div>
+    </div>
+    <div class="info-usuario">
+        <!-- auth-guard.js inyecta el chip de cuenta aquí -->
+    </div>
+</div>
+</header>
+
+<!-- CONTENIDO -->
+<main style="flex:1; overflow-y:auto;">
+
+    <div class="perfil-header">
+        <h2><i class="fas fa-user-circle" style="color:var(--color-degradado-fin)"></i> Mi perfil</h2>
+        <p>Consulta y actualiza tu información personal.</p>
+    </div>
+
+    <div class="perfil-contenedor">
+
+        <!-- ── Izquierda: foto ── -->
+        <div class="perfil-foto-col">
+            <div class="perfil-avatar-wrap" id="perfilAvatarWrap" title="Haz clic para cambiar tu foto">
+                <img id="perfilFotoImg" class="perfil-avatar-img js-foto-perfil-img" src="Logo.jpeg" alt="Foto de perfil" onerror="this.src='Logo.jpeg'"/>
+                <div class="perfil-avatar-overlay" id="perfilAvatarOverlay">
+                    <i class="fas fa-camera"></i>
+                </div>
+            </div>
+
+            <input type="file" id="perfil-foto-input" accept="image/jpeg,image/png,image/webp"/>
+
+            <div id="perfilNombreLateral" class="perfil-nombre-lateral">—</div>
+            <div id="perfilEmailLateral" class="perfil-email-lateral">—</div>
+            <div id="perfilRolBadge" class="perfil-rol-badge"><i class="fas fa-shield-alt"></i> —</div>
+
+            <button class="btn-foto-perfil" id="btnCambiarFoto" type="button">
+                <i class="fas fa-camera"></i> Actualizar foto
+            </button>
+            <div class="perfil-foto-status" id="perfilFotoStatus"></div>
+        </div>
+
+        <!-- ── Derecha: datos ── -->
+        <div class="perfil-datos-col">
+
+            <!-- Datos personales -->
+            <div class="perfil-card">
+                <div class="perfil-card-titulo">
+                    <i class="fas fa-id-card"></i> Información personal
+                </div>
+                <div class="perfil-form-grid" id="formDatosPersonales">
+                    <div class="perfil-campo">
+                        <label>Nombre(s)</label>
+                        <input type="text" id="perfil-nombre" maxlength="80" placeholder="Tu nombre"/>
+                    </div>
+                    <div class="perfil-campo">
+                        <label>Apellidos</label>
+                        <input type="text" id="perfil-apellidos" maxlength="80" placeholder="Tus apellidos"/>
+                    </div>
+                    <div class="perfil-campo span2">
+                        <label>Correo electrónico</label>
+                        <input type="email" id="perfil-email" maxlength="150" placeholder="tu@correo.com"/>
+                    </div>
+                    <div class="perfil-campo">
+                        <label>Departamento</label>
+                        <input type="text" id="perfil-departamento" maxlength="100" readonly/>
+                        <span class="campo-hint">Editable solo por administrador.</span>
+                    </div>
+                    <div class="perfil-campo">
+                        <label>Cargo</label>
+                        <input type="text" id="perfil-cargo" maxlength="100" readonly/>
+                        <span class="campo-hint">Editable solo por administrador.</span>
+                    </div>
+                </div>
+
+                <div class="perfil-status-datos" id="statusDatos"></div>
+
+                <div class="perfil-actions">
+                    <button class="btn-cancelar-perfil" type="button" id="btnCancelarDatos">
+                        <i class="fas fa-undo"></i> Descartar
+                    </button>
+                    <button class="btn-guardar-perfil" type="button" id="btnGuardarDatos">
+                        <i class="fas fa-save"></i> Guardar cambios
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contraseña -->
+            <div class="perfil-card">
+                <div class="perfil-card-titulo">
+                    <i class="fas fa-lock"></i> Cambiar contraseña
+                </div>
+                <div class="perfil-form-grid">
+                    <div class="perfil-campo span2">
+                        <label>Contraseña actual</label>
+                        <input type="password" id="perfil-pwd-actual" autocomplete="current-password" maxlength="128" placeholder="••••••••"/>
+                    </div>
+                    <div class="perfil-campo">
+                        <label>Nueva contraseña</label>
+                        <input type="password" id="perfil-pwd-nueva" autocomplete="new-password" maxlength="128" placeholder="••••••••"/>
+                        <div class="perfil-pwd-req">Mínimo 6 caracteres.</div>
+                    </div>
+                    <div class="perfil-campo">
+                        <label>Confirmar nueva contraseña</label>
+                        <input type="password" id="perfil-pwd-confirmar" autocomplete="new-password" maxlength="128" placeholder="••••••••"/>
+                    </div>
+                </div>
+
+                <div class="perfil-status-datos" id="statusPwd"></div>
+
+                <div class="perfil-actions">
+                    <button class="btn-guardar-perfil" type="button" id="btnGuardarPwd">
+                        <i class="fas fa-key"></i> Cambiar contraseña
+                    </button>
+                </div>
+            </div>
+
+        </div><!-- /datos col -->
+    </div><!-- /grid -->
+</main>
+
+</div><!-- /app-container -->
+
+<script src="auth-guard.js"></script>
+<script src="navbar.js"></script>
+<script src="perfilScript.js"></script>
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de vales · SIGEPAV</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="Styles.css">
+<link rel="stylesheet" href="valesStyles.css">
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+<div id="app-container" style="display:flex;">
+  <header class="barra-superior">
+    <div class="barra-superior-contenido">
+      <div class="barra-izquierda">
+        <div class="dropdown-modulos" id="dropdown-modulos-principal" data-navbar></div>
+        <img src="Logo.jpeg" alt="Logo" class="logo-barra" onerror="this.style.display='none'">
+        <div class="titulo-sistema"><h1><a href="menu.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1></div>
+      </div>
+      <div class="info-usuario">
+        <span class="icono-usuario"><i class="fas fa-user-circle"></i></span>
+        <span class="correo-usuario" id="user-email-display">Usuario</span>
+        <button class="btn-logout-header" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i> Salir
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="contenedor-principal">
+    <div class="subtitulo-seccion">
+        <h2><i class="fas fa-ticket-alt" style="margin-right:8px"></i>Registro de vales de combustible</h2>
+        <p class="subtitulo-secundario">Captura los vales físicos y publícalos para que estén disponibles al iniciar una comisión.</p>
+    </div>
+
+    <!-- FORMULARIO -->
+    <section style="background:#fff;border:1px solid var(--color-borde);border-radius:12px;padding:18px 22px;margin-bottom:22px">
+        <h3 style="margin:0 0 14px;font-size:14px">Nuevo vale</h3>
+        <div class="vales-form">
+            <div class="campo">
+                <label for="v-no">No. de vale</label>
+                <input type="text" id="v-no" class="input-estilizado input-no-vale" maxlength="20" placeholder="Ej. V-001">
+            </div>
+            <div class="campo">
+                <label for="v-folio">Folio</label>
+                <input type="text" id="v-folio" class="input-estilizado input-folio" maxlength="20" placeholder="Ej. 12345">
+            </div>
+            <div class="campo">
+                <label for="v-cantidad">Cantidad ($)</label>
+                <input type="number" step="0.01" id="v-cantidad" class="input-estilizado input-numeric" placeholder="500.00">
+            </div>
+            <div class="campo">
+                <label for="v-precio">Precio / litro</label>
+                <input type="number" step="0.01" id="v-precio" class="input-estilizado input-numeric" placeholder="24.50">
+            </div>
+            <div class="campo">
+                <label for="v-litros">Litros</label>
+                <input type="number" step="0.01" id="v-litros" class="input-estilizado input-numeric" placeholder="20.40">
+            </div>
+            <div class="acciones-form">
+                <button type="button" id="btn-guardar-borrador" class="btn-secundario">
+                    <i class="fas fa-save"></i> Guardar como borrador
+                </button>
+                <button type="button" id="btn-publicar-vale" class="btn-primario">
+                    <i class="fas fa-paper-plane"></i> Publicar vale
+                </button>
+            </div>
+        </div>
+        <p style="font-size:12px;color:var(--color-texto-claro);margin:4px 0 0">
+            Borrador = solo lo ves tú. Publicado = aparece en el combo al iniciar comisión.
+        </p>
+    </section>
+
+    <!-- TABLA -->
+    <section style="background:#fff;border:1px solid var(--color-borde);border-radius:12px;padding:18px 22px">
+        <div class="tabs-vales">
+            <div class="tab-vale activo" data-tab="disponible">📋 Disponibles</div>
+            <div class="tab-vale" data-tab="borrador">📝 Borradores</div>
+            <div class="tab-vale" data-tab="usado">📦 Historial (usados)</div>
+            <div class="tab-vale" data-tab="todos">Todos</div>
+        </div>
+        <div class="tabla-contenedor">
+            <table class="tabla-sigepav tabla-vales">
+                <thead>
+                    <tr>
+                        <th class="col-num">No. vale</th>
+                        <th class="col-num">Folio</th>
+                        <th class="col-mini">Cantidad</th>
+                        <th class="col-mini">Precio/L</th>
+                        <th class="col-mini">Litros</th>
+                        <th>Estado</th>
+                        <th>Comisión asignada</th>
+                        <th>Creado</th>
+                        <th class="col-mini">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-vales">
+                    <tr><td colspan="9" style="text-align:center;padding:20px;color:var(--color-texto-claro)">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+  </main>
+</div>
+
+<footer class="barra-inferior">
+    <span>Tecnológico Nacional de México campus Zacatecas Norte</span>
+</footer>
+
+<script src="Config.js"></script>
+<script src="auth-guard.js"></script>
+<script src="Script.js"></script>
+<script src="navbar.js"></script>
+<script src="modulos-router.js"></script>
+<script src="valesScript.js"></script>
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

@@ -1,0 +1,300 @@
+/* ========== HISTORIAL DE CAMBIOS — estilos específicos ========== */
+
+/* Filtros */
+.hist-filtros {
+    display: flex;
+    gap: .85rem;
+    background: white;
+    padding: 1.1rem 1.4rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,43,96,0.08);
+    border: 1px solid #d9e5f2;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    flex: 1;
+    min-width: 150px;
+}
+
+.filtro-grupo--sm {
+    flex: 0 0 140px;
+    min-width: 120px;
+}
+
+.filtro-grupo label {
+    font-size: .78rem;
+    font-weight: 600;
+    color: #4a627a;
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+.filtro-grupo select,
+.filtro-grupo input {
+    padding: .52rem .8rem;
+    border: 1.5px solid #d9e5f2;
+    border-radius: 8px;
+    font-size: .88rem;
+    color: #2d3748;
+    background: #f7fafd;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+    height: 38px;
+}
+
+.filtro-grupo select:focus,
+.filtro-grupo input:focus {
+    border-color: #006dc8;
+    box-shadow: 0 0 0 3px rgba(0,109,200,.1);
+    background: white;
+}
+
+/* Bloque de botones de acción alineados al final */
+.hist-acciones {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-shrink: 0;
+    padding-top: 1.35rem;   /* empuja al mismo nivel que los inputs */
+}
+
+.hist-divisor {
+    width: 1px;
+    height: 28px;
+    background: #d9e5f2;
+    margin: 0 .15rem;
+}
+
+/* Base de todos los botones de la toolbar */
+.hist-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: 0 1rem;
+    height: 38px;
+    border-radius: 8px;
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: background .18s, border-color .18s, box-shadow .18s, transform .1s;
+    white-space: nowrap;
+}
+
+.hist-btn:hover  { transform: translateY(-1px); }
+.hist-btn:active { transform: translateY(0); }
+
+/* Filtrar — azul primario */
+.hist-btn--primary {
+    background: #006dc8;
+    color: #fff;
+    border-color: #006dc8;
+}
+.hist-btn--primary:hover {
+    background: #0058a3;
+    border-color: #0058a3;
+    box-shadow: 0 3px 10px rgba(0,109,200,.25);
+}
+
+/* Limpiar — ghost */
+.hist-btn--ghost {
+    background: #f0f4f8;
+    color: #4a627a;
+    border-color: #d9e5f2;
+}
+.hist-btn--ghost:hover {
+    background: #dce5ef;
+    border-color: #b8ccde;
+}
+
+/* PDF — rojo sobrio */
+.hist-btn--pdf {
+    background: #fff0f0;
+    color: #c0392b;
+    border-color: #f5b8b3;
+}
+.hist-btn--pdf:hover {
+    background: #c0392b;
+    color: #fff;
+    border-color: #c0392b;
+    box-shadow: 0 3px 10px rgba(192,57,43,.22);
+}
+
+/* Excel — verde sobrio */
+.hist-btn--excel {
+    background: #f0faf3;
+    color: #1a7a3f;
+    border-color: #a8d5b5;
+}
+.hist-btn--excel:hover {
+    background: #1a7a3f;
+    color: #fff;
+    border-color: #1a7a3f;
+    box-shadow: 0 3px 10px rgba(26,122,63,.22);
+}
+
+
+/* Contenedor timeline */
+.hist-contenedor {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,43,96,0.08);
+    border: 1px solid #d9e5f2;
+}
+
+/* Estado (cargando / vacío) */
+.hist-estado {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: #4a627a;
+    font-size: .95rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
+}
+
+/* Timeline items */
+.timeline-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f0f4f8;
+    align-items: flex-start;
+    animation: fadeInUp .25s ease both;
+}
+
+.timeline-item:last-child { border-bottom: none; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.timeline-icono {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: .1rem;
+}
+
+.timeline-cuerpo {
+    flex: 1;
+}
+
+.timeline-cabecera {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    flex-wrap: wrap;
+    margin-bottom: .2rem;
+}
+
+.timeline-accion {
+    font-weight: 700;
+    font-size: .82rem;
+    padding: .22rem .65rem;
+    border-radius: 20px;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+}
+
+.timeline-modulo {
+    font-size: .78rem;
+    color: #7a8fa6;
+    background: #f0f4f8;
+    padding: .2rem .6rem;
+    border-radius: 20px;
+}
+
+.timeline-fecha {
+    font-size: .78rem;
+    color: #aab5c3;
+    margin-left: auto;
+}
+
+.timeline-descripcion {
+    font-size: .9rem;
+    color: #2d3748;
+    font-weight: 500;
+}
+
+.timeline-usuario {
+    font-size: .8rem;
+    color: #6a8096;
+    margin-top: .15rem;
+}
+
+/* Badge colores por acción */
+.badge-crear    { background: #eaf6f0; color: #1f9d67; }
+.icono-crear    { background: #eaf6f0; color: #1f9d67; }
+
+.badge-editar   { background: #fff8e6; color: #c98a00; }
+.icono-editar   { background: #fff8e6; color: #c98a00; }
+
+.badge-eliminar { background: #fdecea; color: #c62828; }
+.icono-eliminar { background: #fdecea; color: #c62828; }
+
+.badge-login    { background: #e6f0fa; color: #006dc8; }
+.icono-login    { background: #e6f0fa; color: #006dc8; }
+
+.badge-otro     { background: #f0f4f8; color: #546e7a; }
+.icono-otro     { background: #f0f4f8; color: #546e7a; }
+
+/* Paginación */
+.hist-paginacion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f4f8;
+}
+
+.btn-pag {
+    background: #e6f0fa;
+    color: #002b60;
+    border: none;
+    padding: .5rem 1rem;
+    border-radius: 8px;
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+.btn-pag:hover:not(:disabled) { background: #cde0f5; }
+.btn-pag:disabled { opacity: .4; cursor: not-allowed; }
+
+#pag-info {
+    font-size: .88rem;
+    color: #4a627a;
+    font-weight: 600;
+}
+
+/* Botones secundarios */
+.btn-secundario {
+    background: #f0f4f8 !important;
+    color: #4a627a !important;
+}
+.btn-secundario:hover {
+    background: #dce5ef !important;
+}

@@ -1,0 +1,226 @@
+[
+  {
+    "cve": "01",
+    "nombre": "Aguascalientes",
+    "abr": "Ags.",
+    "lat": 22.005541,
+    "lng": -102.31344
+  },
+  {
+    "cve": "02",
+    "nombre": "Baja California",
+    "abr": "BC",
+    "lat": 31.884302,
+    "lng": -115.949577
+  },
+  {
+    "cve": "03",
+    "nombre": "Baja California Sur",
+    "abr": "BCS",
+    "lat": 24.846241,
+    "lng": -111.07885
+  },
+  {
+    "cve": "04",
+    "nombre": "Campeche",
+    "abr": "Camp.",
+    "lat": 18.764382,
+    "lng": -90.80106
+  },
+  {
+    "cve": "05",
+    "nombre": "Coahuila de Zaragoza",
+    "abr": "Coah.",
+    "lat": 26.987505,
+    "lng": -101.5335
+  },
+  {
+    "cve": "06",
+    "nombre": "Colima",
+    "abr": "Col.",
+    "lat": 19.146567,
+    "lng": -103.859486
+  },
+  {
+    "cve": "07",
+    "nombre": "Chiapas",
+    "abr": "Chis.",
+    "lat": 16.356139,
+    "lng": -92.779565
+  },
+  {
+    "cve": "08",
+    "nombre": "Chihuahua",
+    "abr": "Chih.",
+    "lat": 28.157459,
+    "lng": -106.796531
+  },
+  {
+    "cve": "09",
+    "nombre": "Ciudad de México",
+    "abr": "CDMX",
+    "lat": 19.21936,
+    "lng": -99.121825
+  },
+  {
+    "cve": "10",
+    "nombre": "Durango",
+    "abr": "Dgo.",
+    "lat": 24.626354,
+    "lng": -104.996644
+  },
+  {
+    "cve": "11",
+    "nombre": "Guanajuato",
+    "abr": "Gto.",
+    "lat": 20.816607,
+    "lng": -101.113465
+  },
+  {
+    "cve": "12",
+    "nombre": "Guerrero",
+    "abr": "Gro.",
+    "lat": 17.635505,
+    "lng": -99.866458
+  },
+  {
+    "cve": "13",
+    "nombre": "Hidalgo",
+    "abr": "Hgo.",
+    "lat": 20.483407,
+    "lng": -98.798923
+  },
+  {
+    "cve": "14",
+    "nombre": "Jalisco",
+    "abr": "Jal.",
+    "lat": 20.630064,
+    "lng": -103.43485
+  },
+  {
+    "cve": "15",
+    "nombre": "México",
+    "abr": "Mex.",
+    "lat": 19.329189,
+    "lng": -99.63477
+  },
+  {
+    "cve": "16",
+    "nombre": "Michoacán de Ocampo",
+    "abr": "Mich.",
+    "lat": 19.215304,
+    "lng": -101.803467
+  },
+  {
+    "cve": "17",
+    "nombre": "Morelos",
+    "abr": "Mor.",
+    "lat": 18.776633,
+    "lng": -99.064091
+  },
+  {
+    "cve": "18",
+    "nombre": "Nayarit",
+    "abr": "Nay.",
+    "lat": 21.662816,
+    "lng": -104.808734
+  },
+  {
+    "cve": "19",
+    "nombre": "Nuevo León",
+    "abr": "NL",
+    "lat": 25.659359,
+    "lng": -99.859607
+  },
+  {
+    "cve": "20",
+    "nombre": "Oaxaca",
+    "abr": "Oax.",
+    "lat": 16.997903,
+    "lng": -96.600453
+  },
+  {
+    "cve": "21",
+    "nombre": "Puebla",
+    "abr": "Pue.",
+    "lat": 19.246749,
+    "lng": -97.841858
+  },
+  {
+    "cve": "22",
+    "nombre": "Querétaro",
+    "abr": "Qro.",
+    "lat": 20.742533,
+    "lng": -99.973142
+  },
+  {
+    "cve": "23",
+    "nombre": "Quintana Roo",
+    "abr": "Q. Roo",
+    "lat": 19.843072,
+    "lng": -87.793303
+  },
+  {
+    "cve": "24",
+    "nombre": "San Luis Potosí",
+    "abr": "SLP",
+    "lat": 22.146618,
+    "lng": -99.882246
+  },
+  {
+    "cve": "25",
+    "nombre": "Sinaloa",
+    "abr": "Sin.",
+    "lat": 24.912344,
+    "lng": -107.512424
+  },
+  {
+    "cve": "26",
+    "nombre": "Sonora",
+    "abr": "Son.",
+    "lat": 29.176328,
+    "lng": -110.486052
+  },
+  {
+    "cve": "27",
+    "nombre": "Tabasco",
+    "abr": "Tab.",
+    "lat": 17.94066,
+    "lng": -92.592256
+  },
+  {
+    "cve": "28",
+    "nombre": "Tamaulipas",
+    "abr": "Tamps.",
+    "lat": 24.448659,
+    "lng": -98.536342
+  },
+  {
+    "cve": "29",
+    "nombre": "Tlaxcala",
+    "abr": "Tlax.",
+    "lat": 19.444266,
+    "lng": -98.206727
+  },
+  {
+    "cve": "30",
+    "nombre": "Veracruz de Ignacio de la Llave",
+    "abr": "Ver.",
+    "lat": 19.564575,
+    "lng": -96.585572
+  },
+  {
+    "cve": "31",
+    "nombre": "Yucatán",
+    "abr": "Yuc.",
+    "lat": 20.908096,
+    "lng": -88.834274
+  },
+  {
+    "cve": "32",
+    "nombre": "Zacatecas",
+    "abr": "Zac.",
+    "lat": 22.773408,
+    "lng": -102.784888
+  }
+]

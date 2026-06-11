@@ -1,0 +1,44 @@
+SIGEPAV con ngrok fijo
+======================
+
+URL pública configurada:
+https://oda-peachier-terrie.ngrok-free.dev
+
+Arquitectura:
+- Node/Express corre en la VM: http://127.0.0.1:3000
+- MySQL corre local en la VM: 127.0.0.1:3306
+- Flask/Gasolina.py corre local en la VM: 127.0.0.1:5000
+- ngrok expone solamente Node: https://oda-peachier-terrie.ngrok-free.dev
+- El medidor Flask se usa desde cualquier dispositivo mediante proxy de Node:
+  https://oda-peachier-terrie.ngrok-free.dev/gasolina/
+
+Comandos recomendados en PowerShell:
+
+1) Confirmar que el authtoken de ngrok esté instalado:
+   C:\ngrok\ngrok.exe config check
+
+2) Iniciar todo:
+   cd "C:\SIGEPAV\Gesti-n-Vehicular-main"
+   Set-ExecutionPolicy -Scope Process Bypass -Force
+   .\iniciar-sigepav-ngrok.ps1
+
+3) Revisar estado:
+   netstat -ano | findstr :3000
+   netstat -ano | findstr :5000
+   Invoke-RestMethod http://127.0.0.1:4040/api/tunnels
+
+4) Revisar logs:
+   Get-Content "C:\SIGEPAV\node.log" -Tail 80
+   Get-Content "C:\SIGEPAV\flask.log" -Tail 80
+
+5) Entrar desde cualquier dispositivo:
+   https://oda-peachier-terrie.ngrok-free.dev
+
+6) Detener todo:
+   .\detener-todo-ngrok.ps1
+
+Notas:
+- Los QR se generan con BASE_URL=https://oda-peachier-terrie.ngrok-free.dev.
+- Si cambias de dominio ngrok, ejecuta:
+  .\actualizar-baseurl-ngrok.ps1 -Url "https://TU-NUEVA-URL.ngrok-free.dev"
+- No necesitas abrir el puerto 5000 al público porque Flask queda detrás de Node.

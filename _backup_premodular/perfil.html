@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SIGEPAV — Mi perfil</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
+<link href="Styles.css" rel="stylesheet"/>
+<style>
+/* ── Perfil layout ── */
+.perfil-contenedor {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1.25rem 3rem;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 1.75rem;
+    align-items: start;
+}
+
+/* ── Columna izquierda: foto ── */
+.perfil-foto-col {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: var(--sombra-tarjeta);
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.1rem;
+    position: sticky;
+    top: 80px;
+}
+
+.perfil-avatar-wrap {
+    position: relative;
+    width: 130px;
+    height: 130px;
+}
+
+.perfil-avatar-img {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: #fff;
+    padding: 6px;
+    border: 4px solid #e2eaf6;
+    box-shadow: 0 4px 18px rgba(0,43,96,0.13);
+    display: block;
+}
+
+.perfil-avatar-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(0,43,96,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.22s;
+    cursor: pointer;
+}
+
+.perfil-avatar-wrap:hover .perfil-avatar-overlay { opacity: 1; }
+
+.perfil-avatar-overlay i {
+    color: #fff;
+    font-size: 1.4rem;
+}
+
+#perfil-foto-input { display: none; }
+
+.perfil-nombre-lateral {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-degradado-inicio);
+    text-align: center;
+    line-height: 1.3;
+}
+
+.perfil-email-lateral {
+    font-size: 0.82rem;
+    color: var(--color-texto-claro);
+    text-align: center;
+    word-break: break-all;
+}
+
+.perfil-rol-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #e8f0fb;
+    color: var(--color-degradado-fin);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.32rem 0.85rem;
+    border-radius: 20px;
+}
+
+.btn-foto-perfil {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.68rem 1rem;
+    background: linear-gradient(135deg, var(--color-degradado-inicio), var(--color-degradado-fin));
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.btn-foto-perfil:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-foto-perfil:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+.perfil-foto-status {
+    font-size: 0.78rem;
+    text-align: center;
+    min-height: 1.1em;
+    transition: color 0.2s;
+}
+.perfil-foto-status.ok  { color: #15803d; }
+.perfil-foto-status.err { color: #dc2626; }
+
+/* ── Columna derecha: datos ── */
+.perfil-datos-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.perfil-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: var(--sombra-tarjeta);
+    padding: 1.6rem 1.8rem;
+}
+
+.perfil-card-titulo {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--color-degradado-inicio);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.perfil-card-titulo i {
+    color: var(--color-degradado-fin);
+    font-size: 1rem;
+}
+
+.perfil-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 1.25rem;
+}
+
+.perfil-form-grid .span2 { grid-column: 1 / -1; }
+
+.perfil-campo label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-texto-claro);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.38rem;
+}
+
+.perfil-campo input,
+.perfil-campo select {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1.5px solid var(--color-borde);
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: var(--color-texto);
+    background: #f8fafd;
+    transition: border-color 0.18s, box-shadow 0.18s;
+    outline: none;
+}
+
+.perfil-campo input:focus,
+.perfil-campo select:focus {
+    border-color: var(--color-degradado-fin);
+    box-shadow: 0 0 0 3px rgba(0,109,200,0.1);
+    background: #fff;
+}
+
+.perfil-campo input[readonly] {
+    background: #f1f5fb;
+    color: #6b7a93;
+    cursor: not-allowed;
+    border-color: #e2e8f0;
+}
+
+.perfil-campo .campo-hint {
+    font-size: 0.74rem;
+    color: #94a3b8;
+    margin-top: 0.28rem;
+}
+
+.perfil-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-borde);
+}
+
+.btn-guardar-perfil {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.6rem;
+    background: linear-gradient(135deg, var(--color-degradado-inicio), var(--color-degradado-fin));
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.btn-guardar-perfil:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-guardar-perfil:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+.btn-cancelar-perfil {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.3rem;
+    background: #f1f5fb;
+    color: var(--color-texto-claro);
+    border: 1.5px solid var(--color-borde);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-cancelar-perfil:hover { background: #e2e8f0; }
+
+.perfil-status-datos {
+    font-size: 0.82rem;
+    padding: 0.65rem 1rem;
+    border-radius: 9px;
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.perfil-status-datos.ok  { display: flex; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.perfil-status-datos.err { display: flex; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+/* Sección contraseña */
+.perfil-campo input[type="password"] { letter-spacing: 0.1em; }
+
+.perfil-pwd-req {
+    font-size: 0.74rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+    .perfil-contenedor {
+        grid-template-columns: 1fr;
+    }
+    .perfil-foto-col { position: static; }
+    .perfil-form-grid { grid-template-columns: 1fr; }
+    .perfil-form-grid .span2 { grid-column: 1; }
+}
+
+/* Título de sección */
+.perfil-header {
+    max-width: 900px;
+    margin: 1.75rem auto 0;
+    padding: 0 1.25rem;
+}
+
+.perfil-header h2 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--color-degradado-inicio);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.perfil-header p {
+    color: var(--color-texto-claro);
+    font-size: 0.88rem;
+    margin-top: 0.25rem;
+}
+</style>
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+<div id="app-container" style="display:none;">
+
+<!-- BARRA SUPERIOR -->
+<header class="barra-superior">
+<div class="barra-superior-contenido">
+    <div class="barra-izquierda">
+        <div class="dropdown-modulos" id="dropdown-modulos-principal"></div>
+        <img src="Logo.jpeg" alt="Logo" class="logo-barra">
+        <div class="titulo-sistema">
+            <h1><a href="menu.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1>
+        </div>
+    </div>
+    <div class="info-usuario">
+        <!-- auth-guard.js inyecta el chip de cuenta aquí -->
+    </div>
+</div>
+</header>
+
+<!-- CONTENIDO -->
+<main style="flex:1; overflow-y:auto;">
+
+    <div class="perfil-header">
+        <h2><i class="fas fa-user-circle" style="color:var(--color-degradado-fin)"></i> Mi perfil</h2>
+        <p>Consulta y actualiza tu información personal.</p>
+    </div>
+
+    <div class="perfil-contenedor">
+
+        <!-- ── Izquierda: foto ── -->
+        <div class="perfil-foto-col">
+            <div class="perfil-avatar-wrap" id="perfilAvatarWrap" title="Haz clic para cambiar tu foto">
+                <img id="perfilFotoImg" class="perfil-avatar-img js-foto-perfil-img" src="Logo.jpeg" alt="Foto de perfil" onerror="this.src='Logo.jpeg'"/>
+                <div class="perfil-avatar-overlay" id="perfilAvatarOverlay">
+                    <i class="fas fa-camera"></i>
+                </div>
+            </div>
+
+            <input type="file" id="perfil-foto-input" accept="image/jpeg,image/png,image/webp"/>
+
+            <div id="perfilNombreLateral" class="perfil-nombre-lateral">—</div>
+            <div id="perfilEmailLateral" class="perfil-email-lateral">—</div>
+            <div id="perfilRolBadge" class="perfil-rol-badge"><i class="fas fa-shield-alt"></i> —</div>
+
+            <button class="btn-foto-perfil" id="btnCambiarFoto" type="button">
+                <i class="fas fa-camera"></i> Actualizar foto
+            </button>
+            <div class="perfil-foto-status" id="perfilFotoStatus"></div>
+        </div>
+
+        <!-- ── Derecha: datos ── -->
+        <div class="perfil-datos-col">
+
+            <!-- Datos personales -->
+            <div class="perfil-card">
+                <div class="perfil-card-titulo">
+                    <i class="fas fa-id-card"></i> Información personal
+                </div>
+                <div class="perfil-form-grid" id="formDatosPersonales">
+                    <div class="perfil-campo">
+                        <label>Nombre(s)</label>
+                        <input type="text" id="perfil-nombre" maxlength="80" placeholder="Tu nombre"/>
+                    </div>
+                    <div class="perfil-campo">
+                        <label>Apellidos</label>
+                        <input type="text" id="perfil-apellidos" maxlength="80" placeholder="Tus apellidos"/>
+                    </div>
+                    <div class="perfil-campo span2">
+                        <label>Correo electrónico</label>
+                        <input type="email" id="perfil-email" maxlength="150" placeholder="tu@correo.com"/>
+                    </div>
+                    <div class="perfil-campo">
+                        <label>Departamento</label>
+                        <input type="text" id="perfil-departamento" maxlength="100" readonly/>
+                        <span class="campo-hint">Editable solo por administrador.</span>
+                    </div>
+                    <div class="perfil-campo">
+                        <label>Cargo</label>
+                        <input type="text" id="perfil-cargo" maxlength="100" readonly/>
+                        <span class="campo-hint">Editable solo por administrador.</span>
+                    </div>
+                </div>
+
+                <div class="perfil-status-datos" id="statusDatos"></div>
+
+                <div class="perfil-actions">
+                    <button class="btn-cancelar-perfil" type="button" id="btnCancelarDatos">
+                        <i class="fas fa-undo"></i> Descartar
+                    </button>
+                    <button class="btn-guardar-perfil" type="button" id="btnGuardarDatos">
+                        <i class="fas fa-save"></i> Guardar cambios
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contraseña -->
+            <div class="perfil-card">
+                <div class="perfil-card-titulo">
+                    <i class="fas fa-lock"></i> Cambiar contraseña
+                </div>
+                <div class="perfil-form-grid">
+                    <div class="perfil-campo span2">
+                        <label>Contraseña actual</label>
+                        <input type="password" id="perfil-pwd-actual" autocomplete="current-password" maxlength="128" placeholder="••••••••"/>
+                    </div>
+                    <div class="perfil-campo">
+                        <label>Nueva contraseña</label>
+                        <input type="password" id="perfil-pwd-nueva" autocomplete="new-password" maxlength="128" placeholder="••••••••"/>
+                        <div class="perfil-pwd-req">Mínimo 6 caracteres.</div>
+                    </div>
+                    <div class="perfil-campo">
+                        <label>Confirmar nueva contraseña</label>
+                        <input type="password" id="perfil-pwd-confirmar" autocomplete="new-password" maxlength="128" placeholder="••••••••"/>
+                    </div>
+                </div>
+
+                <div class="perfil-status-datos" id="statusPwd"></div>
+
+                <div class="perfil-actions">
+                    <button class="btn-guardar-perfil" type="button" id="btnGuardarPwd">
+                        <i class="fas fa-key"></i> Cambiar contraseña
+                    </button>
+                </div>
+            </div>
+
+        </div><!-- /datos col -->
+    </div><!-- /grid -->
+</main>
+
+</div><!-- /app-container -->
+
+<script src="auth-guard.js"></script>
+<script src="navbar.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var datosOriginales = {};
+
+    function leerSesion() {
+        if (typeof window.__sigepav_leer_sesion === 'function') return window.__sigepav_leer_sesion();
+        var raw = null;
+        try { raw = sessionStorage.getItem('sigepav_usuario'); } catch(e){}
+        if (!raw) { try { raw = localStorage.getItem('sigepav_usuario'); } catch(e){} }
+        if (!raw || raw === 'null') return null;
+        try { return JSON.parse(raw); } catch(e){ return null; }
+    }
+
+    function guardarSesion(s) {
+        if (typeof window.__sigepav_guardar_sesion === 'function') { window.__sigepav_guardar_sesion(s); return; }
+        var raw = JSON.stringify(s);
+        try { sessionStorage.setItem('sigepav_usuario', raw); } catch(e){}
+        try { localStorage.setItem('sigepav_usuario', raw); } catch(e){}
+    }
+
+    function normalizarFoto(sesion) {
+        var f = sesion && (sesion.foto_perfil || sesion.fotoPerfil || '');
+        f = String(f || '').trim();
+        if (!f) return 'Logo.jpeg';
+        if (/^https?:\/\//i.test(f) || f.startsWith('data:')) return f;
+        return f.replace(/^\/+/, '');
+    }
+
+    function rolLegible(s) {
+        if (!s) return '—';
+        var rid = Number(s.rol_id || s.rolId || 0);
+        if (rid === 1) return 'Administrador';
+        return s.rol || 'Usuario operativo';
+    }
+
+    function setStatus(elId, msg, tipo) {
+        var el = document.getElementById(elId);
+        if (!el) return;
+        el.className = 'perfil-status-datos ' + (tipo || '');
+        el.innerHTML = (tipo === 'ok' ? '<i class="fas fa-check-circle"></i> ' : '<i class="fas fa-exclamation-circle"></i> ') + msg;
+        if (tipo) {
+            clearTimeout(el._timer);
+            el._timer = setTimeout(function () { el.className = 'perfil-status-datos'; }, 4000);
+        }
+    }
+
+    function setFotoStatus(msg, tipo) {
+        var el = document.getElementById('perfilFotoStatus');
+        if (!el) return;
+        el.textContent = msg;
+        el.className = 'perfil-foto-status ' + (tipo || '');
+        clearTimeout(el._timer);
+        el._timer = setTimeout(function () { el.textContent = ''; el.className = 'perfil-foto-status'; }, 4000);
+    }
+
+    function cargarDatos() {
+        var s = leerSesion();
+        if (!s) return;
+
+        var nombreCompleto = [s.nombre, s.apellidos].filter(Boolean).join(' ');
+
+        // Foto
+        var fotoSrc = normalizarFoto(s);
+        document.getElementById('perfilFotoImg').src = fotoSrc;
+
+        // Sidebar
+        document.getElementById('perfilNombreLateral').textContent = nombreCompleto || s.email || '—';
+        document.getElementById('perfilEmailLateral').textContent  = s.email || '—';
+        document.getElementById('perfilRolBadge').innerHTML = '<i class="fas fa-shield-alt"></i> ' + rolLegible(s);
+
+        // Campos
+        document.getElementById('perfil-nombre').value      = s.nombre      || '';
+        document.getElementById('perfil-apellidos').value   = s.apellidos   || '';
+        document.getElementById('perfil-email').value       = s.email       || '';
+        document.getElementById('perfil-departamento').value = s.departamento || '';
+        document.getElementById('perfil-cargo').value       = s.cargo       || '';
+
+        // Guardar snapshot para "Descartar"
+        datosOriginales = {
+            nombre:    s.nombre    || '',
+            apellidos: s.apellidos || '',
+            email:     s.email     || ''
+        };
+    }
+
+    function actualizarSidebar() {
+        var nombre    = document.getElementById('perfil-nombre').value.trim();
+        var apellidos = document.getElementById('perfil-apellidos').value.trim();
+        var email     = document.getElementById('perfil-email').value.trim();
+        document.getElementById('perfilNombreLateral').textContent = [nombre, apellidos].filter(Boolean).join(' ') || email || '—';
+        document.getElementById('perfilEmailLateral').textContent  = email || '—';
+
+        // También actualizar el chip de la barra superior
+        document.querySelectorAll('.correo-usuario, #user-email-display').forEach(function(el) {
+            if (!el.closest('.cuenta-panel')) el.textContent = email || 'Usuario';
+        });
+    }
+
+    // ── Guardar datos personales ──
+    document.getElementById('btnGuardarDatos').addEventListener('click', async function () {
+        var s = leerSesion();
+        if (!s || !s.id) { setStatus('statusDatos', 'Sesión no encontrada.', 'err'); return; }
+
+        var nombre    = document.getElementById('perfil-nombre').value.trim();
+        var apellidos = document.getElementById('perfil-apellidos').value.trim();
+        var email     = document.getElementById('perfil-email').value.trim();
+
+        if (!nombre)  { setStatus('statusDatos', 'El nombre es obligatorio.', 'err'); return; }
+        if (!email)   { setStatus('statusDatos', 'El correo es obligatorio.', 'err'); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setStatus('statusDatos', 'Correo no válido.', 'err'); return; }
+
+        var btn = document.getElementById('btnGuardarDatos');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando…';
+
+        try {
+            var resp = await fetch('/api/usuarios/' + s.id + '/perfil', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
+                body: JSON.stringify({ nombre: nombre, apellidos: apellidos, email: email })
+            });
+            var data = await resp.json();
+            if (!resp.ok || !data.ok) throw new Error(data.error || 'No se pudo guardar.');
+
+            // Actualizar sesión
+            s.nombre    = nombre;
+            s.apellidos = apellidos;
+            s.email     = email;
+            guardarSesion(s);
+
+            datosOriginales = { nombre: nombre, apellidos: apellidos, email: email };
+            actualizarSidebar();
+
+            // Actualizar fotos/nombre en chip si auth-guard.js está disponible
+            if (typeof window.__sigepav_render_cuenta === 'function') {
+                window.__sigepav_render_cuenta(s);
+            }
+
+            setStatus('statusDatos', 'Perfil actualizado correctamente.', 'ok');
+        } catch (err) {
+            setStatus('statusDatos', err.message || 'Error al guardar.', 'err');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Guardar cambios';
+        }
+    });
+
+    // ── Descartar cambios ──
+    document.getElementById('btnCancelarDatos').addEventListener('click', function () {
+        document.getElementById('perfil-nombre').value    = datosOriginales.nombre;
+        document.getElementById('perfil-apellidos').value = datosOriginales.apellidos;
+        document.getElementById('perfil-email').value     = datosOriginales.email;
+        document.getElementById('statusDatos').className  = 'perfil-status-datos';
+    });
+
+    // ── Cambiar foto ──
+    var inputFoto = document.getElementById('perfil-foto-input');
+
+    function triggerFoto() { inputFoto.click(); }
+    document.getElementById('btnCambiarFoto').addEventListener('click', triggerFoto);
+    document.getElementById('perfilAvatarOverlay').addEventListener('click', triggerFoto);
+
+    inputFoto.addEventListener('change', async function () {
+        var archivo = inputFoto.files && inputFoto.files[0];
+        if (!archivo) return;
+
+        if (!/^image\/(jpeg|png|webp)$/i.test(archivo.type)) {
+            setFotoStatus('Solo JPG, PNG o WEBP.', 'err'); inputFoto.value = ''; return;
+        }
+        if (archivo.size > 3 * 1024 * 1024) {
+            setFotoStatus('La imagen no debe superar 3 MB.', 'err'); inputFoto.value = ''; return;
+        }
+
+        var s = leerSesion();
+        if (!s || !s.id) { setFotoStatus('Sesión no encontrada.', 'err'); inputFoto.value = ''; return; }
+
+        var btn = document.getElementById('btnCambiarFoto');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo…';
+
+        try {
+            var form = new FormData();
+            form.append('foto_perfil', archivo);
+            form.append('usuario_id', s.id);
+
+            var resp = await fetch('/api/usuarios/' + s.id + '/foto', {
+                method: 'PUT',
+                headers: { 'ngrok-skip-browser-warning': '1' },
+                body: form
+            });
+            var data = await resp.json();
+            if (!resp.ok || !data.ok) throw new Error(data.error || 'No se pudo subir la foto.');
+
+            s.foto_perfil = data.foto_perfil;
+            guardarSesion(s);
+
+            var src = data.foto_perfil.replace(/^\/+/, '') + '?v=' + Date.now();
+            document.querySelectorAll('.js-foto-perfil-img, .perfil-avatar-img, .avatar-usuario img').forEach(function(img){
+                img.src = src;
+            });
+
+            setFotoStatus('Foto actualizada.', 'ok');
+        } catch (err) {
+            setFotoStatus(err.message || 'Error al subir la foto.', 'err');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-camera"></i> Actualizar foto';
+            inputFoto.value = '';
+        }
+    });
+
+    // ── Cambiar contraseña ──
+    document.getElementById('btnGuardarPwd').addEventListener('click', async function () {
+        var s = leerSesion();
+        if (!s || !s.id) { setStatus('statusPwd', 'Sesión no encontrada.', 'err'); return; }
+
+        var actual    = document.getElementById('perfil-pwd-actual').value;
+        var nueva     = document.getElementById('perfil-pwd-nueva').value;
+        var confirmar = document.getElementById('perfil-pwd-confirmar').value;
+
+        if (!actual)   { setStatus('statusPwd', 'Ingresa tu contraseña actual.', 'err'); return; }
+        if (!nueva)    { setStatus('statusPwd', 'Ingresa la nueva contraseña.', 'err'); return; }
+        if (nueva.length < 6) { setStatus('statusPwd', 'La nueva contraseña debe tener al menos 6 caracteres.', 'err'); return; }
+        if (nueva !== confirmar) { setStatus('statusPwd', 'Las contraseñas no coinciden.', 'err'); return; }
+
+        var btn = document.getElementById('btnGuardarPwd');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cambiando…';
+
+        try {
+            var resp = await fetch('/api/usuarios/' + s.id + '/password', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
+                body: JSON.stringify({ password_actual: actual, password_nuevo: nueva })
+            });
+            var data = await resp.json();
+            if (!resp.ok || !data.ok) throw new Error(data.error || 'No se pudo cambiar la contraseña.');
+
+            document.getElementById('perfil-pwd-actual').value    = '';
+            document.getElementById('perfil-pwd-nueva').value     = '';
+            document.getElementById('perfil-pwd-confirmar').value = '';
+            setStatus('statusPwd', 'Contraseña cambiada correctamente.', 'ok');
+        } catch (err) {
+            setStatus('statusPwd', err.message || 'Error al cambiar la contraseña.', 'err');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-key"></i> Cambiar contraseña';
+        }
+    });
+
+    // Cargar al inicio (después de que auth-guard.js termine)
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() { setTimeout(cargarDatos, 50); });
+    } else {
+        setTimeout(cargarDatos, 50);
+    }
+
+})();
+</script>
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

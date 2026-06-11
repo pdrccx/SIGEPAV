@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Vehículos · SIGEPAV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Styles.css">
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+
+    <!-- Overlay para modales -->
+    <div class="modal-overlay" id="modal-overlay" style="display: none;"></div>
+
+    <!-- ==================== APLICACIÓN ==================== -->
+    <div id="app-container" style="display: flex;">
+
+        <!-- BARRA SUPERIOR (la del sistema principal) -->
+        <header class="barra-superior">
+            <div class="barra-superior-contenido">
+                <div class="barra-izquierda">
+                    <!-- Plantilla del menú: la rellena initNavbar() -->
+                    <div class="dropdown-modulos" id="dropdown-modulos-principal" data-navbar></div>
+
+                    <img src="Logo.jpeg" alt="Logo" class="logo-barra">
+                    <div class="titulo-sistema">
+                        <h1><a href="menu.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1>
+                    </div>
+                </div>
+
+                <div class="info-usuario">
+                    <span class="icono-usuario"><i class="fas fa-user-circle"></i></span>
+                    <span class="correo-usuario" id="user-email-display">Usuario</span>
+                    <button id="logoutBtn" class="btn-logout-header"><i class="fas fa-sign-out-alt"></i> Salir</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ==================== VISTA: LISTA ==================== -->
+        <main id="vista-lista" class="contenedor-principal">
+
+            <div class="subtitulo-seccion">
+                <div class="encabezado-formulario">
+                    <h2>Registro de vehículos</h2>
+                    <p class="subtitulo-secundario">Alta, edición y consulta de la flota institucional</p>
+                </div>
+            </div>
+
+            <!-- Resumen -->
+            <section class="resumen-cards">
+                <div class="card-resumen">
+                    <div class="card-icono"><i class="fas fa-car"></i></div>
+                    <div class="card-info">
+                        <span class="card-numero" id="kpi-total" data-valor="0">0</span>
+                        <span class="card-etiqueta">Vehículos registrados</span>
+                    </div>
+                </div>
+                <div class="card-resumen">
+                    <div class="card-icono"><i class="fas fa-clipboard-list"></i></div>
+                    <div class="card-info">
+                        <span class="card-numero" id="kpi-obs" data-valor="0">0</span>
+                        <span class="card-etiqueta">Observaciones totales</span>
+                    </div>
+                </div>
+                <div class="card-resumen">
+                    <div class="card-icono"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="card-info">
+                        <span class="card-numero" id="kpi-pend" data-valor="0">0</span>
+                        <span class="card-etiqueta">Observaciones pendientes</span>
+                    </div>
+                </div>
+                <div class="card-resumen">
+                    <div class="card-icono"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="card-info">
+                        <span class="card-numero" id="kpi-costo" data-valor="0">$0</span>
+                        <span class="card-etiqueta">Costo acumulado</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Registrar / Editar -->
+            <section class="grid-doble">
+                <!-- REGISTRAR -->
+                <div class="panel-formulario">
+                    <div class="panel-formulario-cabecera">
+                        <span><i class="fas fa-plus-circle"></i> Registrar vehículo</span>
+                    </div>
+                    <div class="panel-formulario-cuerpo">
+                        <div class="form-grid">
+                            <div class="campo"><label for="r-marca">Marca</label><input type="text" id="r-marca" class="input-estilizado" placeholder="Marca"></div>
+                            <div class="campo"><label for="r-linea">Modelo</label><input type="text" id="r-linea" class="input-estilizado" placeholder="Modelo"></div>
+                            <div class="campo"><label for="r-modelo">Año</label><input type="number" id="r-modelo" class="input-estilizado" placeholder="Año"></div>
+                            <div class="campo"><label for="r-color">Color</label><input type="text" id="r-color" class="input-estilizado" placeholder="Color"></div>
+                            <div class="campo campo-doble"><label for="r-serie">No. de Serie</label><input type="text" id="r-serie" class="input-estilizado" placeholder="No. de Serie"></div>
+                            <div class="campo"><label for="r-placas">Placas</label><input type="text" id="r-placas" class="input-estilizado" placeholder="Placas"></div>
+                            <div class="campo"><label for="r-eco">No. Eco.</label><input type="text" id="r-eco" class="input-estilizado" placeholder="No. Económico"></div>
+                            <div class="campo">
+                                <label for="r-tipo">Tipo</label>
+                                <select id="r-tipo" class="select-estilizado">
+                                    <option value="">— Seleccionar —</option>
+                                    <option value="sedan">Sedan</option>
+                                    <option value="coupe">Coupé</option>
+                                    <option value="pickup">Pickup</option>
+                                    <option value="suv">SUV</option>
+                                    <option value="hatchback">Hatchback</option>
+                                    <option value="van">Van</option>
+                                    <option value="motocicleta">Motocicleta</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="campo"><label for="r-cap">Capacidad (personas)</label><input type="number" id="r-cap" class="input-estilizado" placeholder="Ej. 5" min="1" max="255"></div>
+                            <div class="campo">
+                                <label for="r-comb">Combustible <span class="campo-requerido">*</span></label>
+                                <select id="r-comb" class="select-estilizado" required>
+                                    <option value="">— Seleccione tipo de combustible —</option>
+                                    <option value="Gasolina Magna">⛽ Gasolina Magna</option>
+                                    <option value="Gasolina Premium">⛽ Gasolina Premium</option>
+                                    <option value="Diesel">🛢️ Diesel</option>
+                                </select>
+                            </div>
+                            <div class="campo"><label for="r-km">Km. Actual</label><input type="number" id="r-km" class="input-estilizado" placeholder="0" min="0"></div>
+                        </div>
+                        <button class="btn-primario btn-bloque" id="btn-registrar">
+                            <i class="fas fa-save"></i> Registrar vehículo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- EDITAR -->
+                <div class="panel-formulario panel-edicion" id="panel-edicion">
+                    <div class="panel-formulario-cabecera">
+                        <span><i class="fas fa-pen"></i> Editar vehículo</span>
+                        <div class="acciones-cabecera">
+                            <button class="btn-cabecera" id="btn-nuevo"><i class="fas fa-plus"></i> Nuevo</button>
+                            <button class="btn-secundario btn-mini" id="btn-cerrar-edicion" title="Cerrar" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                    <div class="panel-formulario-cuerpo">
+                        <input type="hidden" id="e-id">
+                        <div class="form-grid">
+                            <div class="campo"><label for="e-marca">Marca</label><input type="text" id="e-marca" class="input-estilizado"></div>
+                            <div class="campo"><label for="e-linea">Modelo</label><input type="text" id="e-linea" class="input-estilizado"></div>
+                            <div class="campo"><label for="e-modelo">Año</label><input type="number" id="e-modelo" class="input-estilizado" placeholder="Año"></div>
+                            <div class="campo"><label for="e-color">Color</label><input type="text" id="e-color" class="input-estilizado"></div>
+                            <div class="campo campo-doble"><label for="e-serie">No. de Serie</label><input type="text" id="e-serie" class="input-estilizado"></div>
+                            <div class="campo"><label for="e-placas">Placas</label><input type="text" id="e-placas" class="input-estilizado"></div>
+                            <div class="campo"><label for="e-eco">No. Eco.</label><input type="text" id="e-eco" class="input-estilizado"></div>
+                            <div class="campo">
+                                <label for="e-tipo">Tipo</label>
+                                <select id="e-tipo" class="select-estilizado">
+                                    <option value="">— Seleccionar —</option>
+                                    <option value="sedan">Sedan</option>
+                                    <option value="coupe">Coupé</option>
+                                    <option value="pickup">Pickup</option>
+                                    <option value="suv">SUV</option>
+                                    <option value="hatchback">Hatchback</option>
+                                    <option value="van">Van</option>
+                                    <option value="motocicleta">Motocicleta</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="campo"><label for="e-cap">Capacidad (personas)</label><input type="number" id="e-cap" class="input-estilizado" min="1" max="255"></div>
+                            <div class="campo">
+                                <label for="e-comb">Combustible <span class="campo-requerido">*</span></label>
+                                <select id="e-comb" class="select-estilizado" required>
+                                    <option value="">— Seleccione tipo de combustible —</option>
+                                    <option value="Gasolina Magna">⛽ Gasolina Magna</option>
+                                    <option value="Gasolina Premium">⛽ Gasolina Premium</option>
+                                    <option value="Diesel">🛢️ Diesel</option>
+                                </select>
+                            </div>
+                            <div class="campo"><label for="e-km">Km. Actual</label><input type="number" id="e-km" class="input-estilizado"></div>
+
+                        </div>
+                        <button class="btn-primario btn-bloque" id="btn-guardar-edicion">
+                            <i class="fas fa-save"></i> Guardar cambios
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tabla -->
+            <section class="panel-tabla">
+                <div class="panel-tabla-cabecera">
+                    <span><i class="fas fa-list"></i> Lista de vehículos registrados</span>
+                </div>
+                <div class="tabla-contenedor">
+                    <table class="tabla-sigepav">
+                        <thead>
+                            <tr>
+                                <th>No. Eco</th><th>Marca</th><th>Modelo</th><th>Año</th>
+                                <th>Color</th><th>No. Serie</th><th>Placas</th><th>Opciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-vehiculos"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- ==================== VISTA: DETALLE ==================== -->
+        <main id="vista-detalle" class="contenedor-principal" style="display: none;">
+
+            <div class="subtitulo-seccion">
+                <div class="encabezado-formulario">
+                    <button class="btn-volver" id="btn-volver-lista"><i class="fas fa-arrow-left"></i> Volver a la lista</button>
+                    <h2>Detalle del vehículo</h2>
+                </div>
+            </div>
+
+            <!-- Hero -->
+            <section class="vehiculo-hero" id="veh-hero"></section>
+
+            <!-- KPIs del vehículo -->
+            <section class="resumen-mantenimiento" id="veh-stats"></section>
+
+            <!-- Nueva observación + historial -->
+            <section class="grid-doble">
+
+                <div class="nueva-observacion">
+                    <h3><i class="fas fa-plus-circle"></i> Agregar nueva observación</h3>
+                    <div class="form-grid">
+                        <div class="campo">
+                            <label for="obs-tipo">Parte que falla / componente</label>
+                            <select id="obs-tipo" class="select-estilizado">
+<option value="">-- Seleccione la parte que falla --</option>
+<optgroup label="Motor y tren motriz">
+<option value="Motor general">Motor general</option>
+<option value="Aceite / lubricación">Aceite / lubricación</option>
+<option value="Filtro de aceite">Filtro de aceite</option>
+<option value="Banda de distribución">Banda de distribución</option>
+<option value="Banda serpentina / accesorios">Banda serpentina / accesorios</option>
+<option value="Bujías">Bujías</option>
+<option value="Bobinas de encendido">Bobinas de encendido</option>
+<option value="Inyectores">Inyectores</option>
+<option value="Soportes de motor">Soportes de motor</option>
+<option value="Fuga de aceite">Fuga de aceite</option>
+</optgroup>
+<optgroup label="Sistema de enfriamiento">
+<option value="Radiador">Radiador</option>
+<option value="Mangueras de radiador">Mangueras de radiador</option>
+<option value="Termostato">Termostato</option>
+<option value="Bomba de agua">Bomba de agua</option>
+<option value="Ventilador / electroventilador">Ventilador / electroventilador</option>
+<option value="Depósito de anticongelante">Depósito de anticongelante</option>
+<option value="Fuga de anticongelante">Fuga de anticongelante</option>
+</optgroup>
+<optgroup label="Combustible y escape">
+<option value="Bomba de combustible">Bomba de combustible</option>
+<option value="Filtro de combustible">Filtro de combustible</option>
+<option value="Tanque de combustible">Tanque de combustible</option>
+<option value="Tapón de combustible">Tapón de combustible</option>
+<option value="Línea de combustible">Línea de combustible</option>
+<option value="Catalizador">Catalizador</option>
+<option value="Mofle / silenciador">Mofle / silenciador</option>
+<option value="Tubo de escape">Tubo de escape</option>
+<option value="Sensor de oxígeno">Sensor de oxígeno</option>
+</optgroup>
+<optgroup label="Transmisión y embrague">
+<option value="Transmisión general">Transmisión general</option>
+<option value="Embrague / clutch">Embrague / clutch</option>
+<option value="Caja de cambios">Caja de cambios</option>
+<option value="Palanca de velocidades">Palanca de velocidades</option>
+<option value="Diferencial">Diferencial</option>
+<option value="Flechas / homocinéticas">Flechas / homocinéticas</option>
+<option value="Aceite de transmisión">Aceite de transmisión</option>
+</optgroup>
+<optgroup label="Frenos">
+<option value="Frenos general">Frenos general</option>
+<option value="Pastillas de freno">Pastillas de freno</option>
+<option value="Balatas">Balatas</option>
+<option value="Discos de freno">Discos de freno</option>
+<option value="Tambores de freno">Tambores de freno</option>
+<option value="Líquido de frenos">Líquido de frenos</option>
+<option value="Bomba de freno">Bomba de freno</option>
+<option value="Mangueras de freno">Mangueras de freno</option>
+<option value="Freno de mano">Freno de mano</option>
+<option value="ABS">ABS</option>
+</optgroup>
+<optgroup label="Dirección y suspensión">
+<option value="Dirección general">Dirección general</option>
+<option value="Volante / columna de dirección">Volante / columna de dirección</option>
+<option value="Bomba de dirección hidráulica">Bomba de dirección hidráulica</option>
+<option value="Cremallera de dirección">Cremallera de dirección</option>
+<option value="Terminales de dirección">Terminales de dirección</option>
+<option value="Rótulas">Rótulas</option>
+<option value="Amortiguadores">Amortiguadores</option>
+<option value="Resortes">Resortes</option>
+<option value="Bujes">Bujes</option>
+<option value="Horquillas">Horquillas</option>
+<option value="Barra estabilizadora">Barra estabilizadora</option>
+<option value="Alineación / balanceo">Alineación / balanceo</option>
+</optgroup>
+<optgroup label="Llantas y ruedas">
+<option value="Llantas delanteras">Llantas delanteras</option>
+<option value="Llantas traseras">Llantas traseras</option>
+<option value="Llanta de refacción">Llanta de refacción</option>
+<option value="Rin">Rin</option>
+<option value="Birlos / tuercas">Birlos / tuercas</option>
+<option value="Presión de llantas">Presión de llantas</option>
+<option value="Desgaste irregular">Desgaste irregular</option>
+</optgroup>
+<optgroup label="Sistema eléctrico y luces">
+<option value="Batería">Batería</option>
+<option value="Alternador">Alternador</option>
+<option value="Marcha / motor de arranque">Marcha / motor de arranque</option>
+<option value="Fusibles / relevadores">Fusibles / relevadores</option>
+<option value="Cableado eléctrico">Cableado eléctrico</option>
+<option value="Computadora / ECU">Computadora / ECU</option>
+<option value="Tablero / indicadores">Tablero / indicadores</option>
+<option value="Faros delanteros">Faros delanteros</option>
+<option value="Luces traseras">Luces traseras</option>
+<option value="Direccionales">Direccionales</option>
+<option value="Luces interiores">Luces interiores</option>
+<option value="Claxon">Claxon</option>
+</optgroup>
+<optgroup label="Carrocería, cristales e interior">
+<option value="Carrocería general">Carrocería general</option>
+<option value="Defensa delantera">Defensa delantera</option>
+<option value="Defensa trasera">Defensa trasera</option>
+<option value="Puerta delantera izquierda">Puerta delantera izquierda</option>
+<option value="Puerta delantera derecha">Puerta delantera derecha</option>
+<option value="Puerta trasera izquierda">Puerta trasera izquierda</option>
+<option value="Puerta trasera derecha">Puerta trasera derecha</option>
+<option value="Cofre">Cofre</option>
+<option value="Cajuela / compuerta">Cajuela / compuerta</option>
+<option value="Parabrisas">Parabrisas</option>
+<option value="Cristales laterales">Cristales laterales</option>
+<option value="Espejos laterales">Espejos laterales</option>
+<option value="Limpiaparabrisas">Limpiaparabrisas</option>
+<option value="Asientos">Asientos</option>
+<option value="Cinturones de seguridad">Cinturones de seguridad</option>
+<option value="Aire acondicionado / calefacción">Aire acondicionado / calefacción</option>
+<option value="Radio / sistema de audio">Radio / sistema de audio</option>
+</optgroup>
+<optgroup label="Seguridad, herramientas y documentación">
+<option value="Bolsas de aire">Bolsas de aire</option>
+<option value="Extintor">Extintor</option>
+<option value="Botiquín">Botiquín</option>
+<option value="Gato hidráulico / mecánico">Gato hidráulico / mecánico</option>
+<option value="Triángulos reflejantes">Triángulos reflejantes</option>
+<option value="Herramienta básica">Herramienta básica</option>
+<option value="Placas">Placas</option>
+<option value="Tarjeta de circulación">Tarjeta de circulación</option>
+<option value="Seguro vehicular">Seguro vehicular</option>
+<option value="Verificación / tenencia">Verificación / tenencia</option>
+</optgroup>
+<optgroup label="Otros">
+<option value="Limpieza / lavado">Limpieza / lavado</option>
+<option value="Servicio preventivo">Servicio preventivo</option>
+<option value="Ruido no identificado">Ruido no identificado</option>
+<option value="Vibración no identificada">Vibración no identificada</option>
+<option value="Otro">Otro</option>
+</optgroup>
+</select>
+                        </div>
+                        <div class="campo"><label for="obs-km">Km. al momento</label><input type="number" id="obs-km" class="input-estilizado" placeholder="0"></div>
+                        <div class="campo"><label for="obs-costo">Costo (si aplica)</label><input type="number" id="obs-costo" class="input-estilizado" placeholder="0.00" step="0.01"></div>
+                        <div class="campo">
+                            <label for="obs-estado">Estado</label>
+                            <select id="obs-estado" class="select-estilizado">
+                                <option>Pendiente</option>
+                                <option>En revisión</option>
+                                <option>Resuelto</option>
+                            </select>
+                        </div>
+                        <div class="campo campo-doble">
+                            <label>Severidad</label>
+                            <div class="severidad-botones">
+                                <input type="radio" name="obs-sev" id="obs-sev-baja" value="baja"><label for="obs-sev-baja" class="btn-severidad baja">Baja</label>
+                                <input type="radio" name="obs-sev" id="obs-sev-media" value="media" checked><label for="obs-sev-media" class="btn-severidad media">Media</label>
+                                <input type="radio" name="obs-sev" id="obs-sev-alta" value="alta"><label for="obs-sev-alta" class="btn-severidad alta">Alta</label>
+                                <input type="radio" name="obs-sev" id="obs-sev-critica" value="critica"><label for="obs-sev-critica" class="btn-severidad critica">Crítica</label>
+                            </div>
+                        </div>
+                        <div class="campo campo-doble">
+                            <label for="obs-desc">Descripción</label>
+                            <textarea id="obs-desc" rows="3" class="input-estilizado" placeholder="Describa síntomas, circunstancias..."></textarea>
+                        </div>
+                        <div class="campo campo-doble" id="obs-res-field" style="display:none;">
+                            <label for="obs-res">Resolución</label>
+                            <textarea id="obs-res" rows="3" class="input-estilizado" placeholder="¿Qué se hizo para resolverlo?"></textarea>
+                        </div>
+                    </div>
+                    <button class="btn-primario btn-bloque" id="btn-guardar-obs">
+                        <i class="fas fa-check"></i> Guardar observación
+                    </button>
+                </div>
+
+                <div class="historial-observaciones">
+                    <div class="historial-cabecera">
+                        <h3><i class="fas fa-history"></i> Historial</h3>
+                        <div class="filtros-tabs">
+                            <button class="filtro-tab activo" data-filtro="todas">Todas</button>
+                            <button class="filtro-tab" data-filtro="pendiente">Pendientes</button>
+                            <button class="filtro-tab" data-filtro="en revisión">En revisión</button>
+                            <button class="filtro-tab" data-filtro="resuelto">Resueltas</button>
+                        </div>
+                    </div>
+                    <div id="obs-list" class="lista-observaciones"></div>
+                </div>
+
+            </section>
+        </main>
+
+        <!-- BARRA INFERIOR -->
+        <footer class="barra-inferior">
+            <div class="barra-inferior-contenido">
+                <p>Tecnológico Nacional de México campus Zacatecas Norte</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal de confirmación de eliminación -->
+    <div class="modal" id="modal-confirmar" style="display: none;">
+        <div class="modal-contenido">
+            <div class="modal-header">
+                <i class="fas fa-trash modal-icono modal-icono-rojo"></i>
+                <h3 id="modal-confirmar-titulo">¿Eliminar vehículo?</h3>
+            </div>
+            <p id="modal-confirmar-mensaje">Esta acción no se puede deshacer.</p>
+            <div class="modal-botones">
+                <button class="btn-secundario" id="modal-confirmar-cancelar">Cancelar</button>
+                <button class="btn-peligro" id="modal-confirmar-aceptar">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de aviso (compartido) -->
+    <div class="modal" id="modal-aviso" style="display: none;">
+        <div class="modal-contenido">
+            <div class="modal-header">
+                <i class="fas fa-exclamation-triangle modal-icono"></i>
+                <h3 id="modal-titulo">Aviso</h3>
+            </div>
+            <p id="modal-mensaje"></p>
+            <div class="modal-botones">
+                <button class="btn-primario" id="modal-btn-aceptar">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast" aria-live="polite"></div>
+
+    <script src="Config.js"></script>
+<script src="auth-guard.js"></script>
+    <script src="Script.js"></script>
+    <script src="navbar.js"></script>
+<script src="modulos-router.js"></script>
+    <script src="vehiculosScript.js"></script>
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>

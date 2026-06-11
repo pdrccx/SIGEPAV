@@ -1,0 +1,48 @@
+SIGEPAV FINAL - Instrucciones para VM Azure
+
+1) Base de datos
+   La base de datos MySQL debe llamarse sigepav y existir antes de arrancar Server.js.
+   Server.js SÍ corre migraciones al arrancar, pero son migraciones complementarias.
+   No sustituye al script base sigepav_unificado.sql cuando la BD está vacía.
+
+2) Configuración usada en esta versión
+   BASE_URL=https://oda-peachier-terrie.ngrok-free.dev
+   DB_HOST=127.0.0.1
+   DB_USER=sigepav_user
+   DB_NAME=sigepav
+
+3) Arranque recomendado en la VM, en segundo plano
+   cd C:\SIGEPAV\Gesti-n-Vehicular-main
+   npm install
+   "C:\Program Files\Python312\python.exe" -m pip install -r requirements.txt
+   Set-ExecutionPolicy -Scope Process Bypass -Force
+   .\iniciar-en-segundo-plano.ps1
+
+4) Revisar logs
+   Get-Content "C:\SIGEPAV\node.log" -Tail 80
+   Get-Content "C:\SIGEPAV\flask.log" -Tail 80
+
+5) Detener SIGEPAV si necesitas reiniciar
+   Set-ExecutionPolicy -Scope Process Bypass -Force
+   .\detener-sigepav.ps1
+
+6) Puertos que deben estar abiertos en Windows Firewall y Azure NSG
+   3000 TCP para SIGEPAV
+   5000 TCP para el medidor Flask
+   3306 NO es necesario abrirlo públicamente si MySQL y la app viven en la misma VM.
+
+7) Abrir desde otros dispositivos
+   https://oda-peachier-terrie.ngrok-free.dev
+
+8) QR
+   Server.js regenera los QR con BASE_URL al arrancar si detecta cambio.
+   Los QR deben apuntar a https://oda-peachier-terrie.ngrok-free.dev/ciudadano.html?token=...
+
+9) Correcciones incluidas
+   - Contraseña inicial de usuarios creados por admin.
+   - Primer acceso con cambio obligatorio de contraseña.
+   - Responsable de comisión con nombre completo.
+   - Reportes ciudadanos para comisiones finalizadas o en curso.
+   - Endpoint /api/ia/mantenimiento.
+   - Tabla correcta mantenimiento_observaciones.
+   - Node en 0.0.0.0:3000 y Flask en 0.0.0.0:5000.

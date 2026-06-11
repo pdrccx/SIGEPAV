@@ -1,0 +1,685 @@
+/* ============================================================
+   EXPEDIENTE DIGITAL VEHICULAR · SIGEPAV
+   Hoja de estilos específica del módulo.
+   Se carga DESPUÉS de Styles.css para reutilizar variables,
+   navbar, footer, resumen-cards, etc.
+   ============================================================ */
+
+:root {
+    /* Acento morado/violeta para la tarjeta principal del expediente.
+       El sistema base es azul; este gradiente le da identidad al módulo. */
+    --exp-violeta-1: #3b2a8a;
+    --exp-violeta-2: #5b3aa3;
+    --exp-violeta-3: #7c4dd1;
+    --exp-violeta-acento: #b8a8ff;
+
+    /* Colores semánticos para estados de documentos */
+    --exp-rojo: #dc2626;
+    --exp-rojo-bg: #fee2e2;
+    --exp-ambar: #d97706;
+    --exp-ambar-bg: #fef3c7;
+    --exp-verde: #059669;
+    --exp-verde-bg: #d1fae5;
+    --exp-azul-info: #2563eb;
+    --exp-azul-info-bg: #dbeafe;
+}
+
+/* ============================================================
+   1. TARJETA HERO — VEHÍCULO SELECCIONADO
+   ============================================================ */
+.exp-hero {
+    background: linear-gradient(135deg,
+                var(--exp-violeta-1) 0%,
+                var(--exp-violeta-2) 45%,
+                var(--exp-violeta-3) 100%);
+    color: #fff;
+    border-radius: 18px;
+    padding: 1.8rem 2rem;
+    box-shadow: 0 12px 30px rgba(59, 42, 138, 0.25);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1.5rem;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Adorno decorativo en la esquina superior derecha de la hero */
+.exp-hero::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+}
+.exp-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -40px;
+    right: 80px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    pointer-events: none;
+}
+
+.exp-hero-icono {
+    width: 78px;
+    height: 78px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.1rem;
+    color: #fff;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.exp-hero-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    z-index: 1;
+}
+
+.exp-hero-info h2 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.2px;
+}
+
+.exp-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.2rem;
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.exp-hero-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.exp-hero-meta i {
+    color: var(--exp-violeta-acento);
+}
+
+.exp-hero-meta strong {
+    font-weight: 600;
+    color: #fff;
+    font-family: 'Consolas', 'Monaco', monospace;
+    letter-spacing: 0.3px;
+}
+
+.exp-hero-badge {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.4rem 0.9rem;
+    border-radius: 30px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 1;
+}
+
+/* ============================================================
+   2. SELECTOR DE VEHÍCULO
+   ============================================================ */
+.exp-selector {
+    background: #fff;
+    border-radius: var(--radio-borde);
+    box-shadow: var(--sombra-tarjeta);
+    border: 1px solid #d9e5f2;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.exp-selector label {
+    font-weight: 600;
+    color: var(--color-texto);
+    font-size: 0.92rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.exp-selector label i {
+    color: var(--color-degradado-fin);
+}
+
+.exp-selector select {
+    flex: 1;
+    min-width: 240px;
+    padding: 0.7rem 1rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-family: inherit;
+    background: #f8fafc;
+    color: var(--color-texto);
+    transition: var(--transicion);
+    cursor: pointer;
+}
+
+.exp-selector select:focus {
+    outline: none;
+    border-color: var(--color-degradado-fin);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(0, 109, 200, 0.12);
+}
+
+/* ============================================================
+   3. ÁREA DRAG & DROP
+   ============================================================ */
+.exp-dropzone {
+    background: #fff;
+    border: 2px dashed #b3cee5;
+    border-radius: var(--radio-borde);
+    padding: 2.2rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transicion);
+    position: relative;
+}
+
+.exp-dropzone:hover,
+.exp-dropzone.dragover {
+    border-color: var(--exp-violeta-3);
+    background: linear-gradient(135deg, rgba(124, 77, 209, 0.04), rgba(91, 58, 163, 0.06));
+    transform: translateY(-1px);
+}
+
+.exp-dropzone-icono {
+    font-size: 2.5rem;
+    color: var(--exp-violeta-3);
+    margin-bottom: 0.6rem;
+    transition: transform var(--transicion);
+}
+
+.exp-dropzone:hover .exp-dropzone-icono {
+    transform: scale(1.08);
+}
+
+.exp-dropzone h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-texto);
+    margin: 0 0 0.3rem;
+}
+
+.exp-dropzone p {
+    font-size: 0.85rem;
+    color: var(--color-texto-claro);
+    margin: 0;
+}
+
+/* Campo "Descripción del expediente" */
+.exp-descripcion {
+    background: #fff;
+    border-radius: var(--radio-borde);
+    box-shadow: var(--sombra-tarjeta);
+    border: 1px solid #d9e5f2;
+    padding: 1.1rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.exp-descripcion label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-texto);
+}
+
+.exp-descripcion input {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: var(--transicion);
+}
+
+.exp-descripcion input:focus {
+    outline: none;
+    border-color: var(--color-degradado-fin);
+    box-shadow: 0 0 0 3px rgba(0, 109, 200, 0.12);
+}
+
+/* ============================================================
+   4. LISTADO DE DOCUMENTOS (cards)
+   ============================================================ */
+.exp-docs-encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.exp-docs-encabezado h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #002b60;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.exp-docs-encabezado h3 i {
+    color: var(--color-degradado-fin);
+}
+
+.exp-docs-contador {
+    font-size: 0.85rem;
+    color: var(--color-texto-claro);
+    background: #e6f0fa;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.exp-docs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 1rem;
+}
+
+.exp-doc-card {
+    background: #fff;
+    border-radius: var(--radio-borde);
+    border: 1px solid #d9e5f2;
+    box-shadow: var(--sombra-tarjeta);
+    padding: 1.1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    transition: var(--transicion);
+    position: relative;
+}
+
+.exp-doc-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--sombra-hover);
+    border-color: #b3cee5;
+}
+
+.exp-doc-cabecera {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+}
+
+.exp-doc-icono {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+/* Colores por tipo de archivo */
+.exp-doc-icono.pdf  { background: #fee2e2; color: #dc2626; }
+.exp-doc-icono.img  { background: #dcfce7; color: #16a34a; }
+.exp-doc-icono.docx { background: #dbeafe; color: #2563eb; }
+.exp-doc-icono.otro { background: #f1f5f9; color: #64748b; }
+
+.exp-doc-titulo {
+    flex: 1;
+    min-width: 0;
+}
+
+.exp-doc-nombre {
+    font-weight: 600;
+    color: var(--color-texto);
+    font-size: 0.92rem;
+    margin: 0 0 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.exp-doc-meta {
+    font-size: 0.78rem;
+    color: var(--color-texto-claro);
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+}
+
+.exp-doc-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Indicador de vencimiento */
+.exp-doc-vencimiento {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 8px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    align-self: flex-start;
+}
+.exp-doc-vencimiento.vencido { background: var(--exp-rojo-bg);  color: var(--exp-rojo); }
+.exp-doc-vencimiento.proximo { background: var(--exp-ambar-bg); color: var(--exp-ambar); }
+.exp-doc-vencimiento.vigente { background: var(--exp-verde-bg); color: var(--exp-verde); }
+.exp-doc-vencimiento.sinfecha{ background: var(--exp-azul-info-bg); color: var(--exp-azul-info); }
+
+/* Botones de acción */
+.exp-doc-acciones {
+    display: flex;
+    gap: 0.4rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid #eef2f8;
+}
+
+.exp-doc-btn {
+    flex: 1;
+    padding: 0.45rem 0.6rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: var(--transicion);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+}
+
+.exp-doc-btn.ver       { background: #e6f0fa; color: #002b60; }
+.exp-doc-btn.ver:hover { background: #cce1f5; }
+
+.exp-doc-btn.descargar       { background: #dcfce7; color: #15803d; }
+.exp-doc-btn.descargar:hover { background: #bbf7d0; }
+
+.exp-doc-btn.eliminar       { background: #fee2e2; color: #b91c1c; }
+.exp-doc-btn.eliminar:hover { background: #fecaca; }
+
+/* Estado vacío del listado */
+.exp-vacio {
+    grid-column: 1 / -1;
+    background: #fff;
+    padding: 2.5rem 1rem;
+    border-radius: var(--radio-borde);
+    border: 2px dashed #b3cee5;
+    text-align: center;
+    color: var(--color-texto-claro);
+}
+
+.exp-vacio i {
+    font-size: 2.4rem;
+    color: var(--color-degradado-fin);
+    margin-bottom: 0.7rem;
+    display: block;
+}
+
+/* ============================================================
+   5. MODAL — FORMULARIO DE NUEVO DOCUMENTO
+   ============================================================ */
+.exp-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 20, 50, 0.55);
+    backdrop-filter: blur(3px);
+    z-index: 1500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: expFade 0.18s ease-out;
+}
+
+.exp-modal-overlay.activo {
+    display: flex;
+}
+
+@keyframes expFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.exp-modal {
+    background: #fff;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 540px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+    animation: expSlideUp 0.25s ease-out;
+}
+
+@keyframes expSlideUp {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.exp-modal-cabecera {
+    background: linear-gradient(135deg, var(--exp-violeta-1), var(--exp-violeta-3));
+    color: #fff;
+    padding: 1.3rem 1.6rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 18px 18px 0 0;
+}
+
+.exp-modal-cabecera h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.exp-modal-cerrar {
+    background: rgba(255, 255, 255, 0.18);
+    border: none;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: var(--transicion);
+}
+
+.exp-modal-cerrar:hover {
+    background: rgba(255, 255, 255, 0.32);
+    transform: rotate(90deg);
+}
+
+.exp-modal-cuerpo {
+    padding: 1.4rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.exp-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.exp-campo label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-texto);
+}
+
+.exp-campo label .req {
+    color: var(--exp-rojo);
+    margin-left: 2px;
+}
+
+.exp-campo input,
+.exp-campo select {
+    padding: 0.65rem 0.85rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: var(--transicion);
+    background: #fff;
+}
+
+.exp-campo input:focus,
+.exp-campo select:focus {
+    outline: none;
+    border-color: var(--exp-violeta-3);
+    box-shadow: 0 0 0 3px rgba(124, 77, 209, 0.15);
+}
+
+.exp-campo-doble {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+}
+
+/* Input file estilizado */
+.exp-file-zona {
+    border: 2px dashed #cbd5e0;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transicion);
+    background: #f8fafc;
+}
+
+.exp-file-zona:hover {
+    border-color: var(--exp-violeta-3);
+    background: #faf7ff;
+}
+
+.exp-file-zona i {
+    font-size: 1.4rem;
+    color: var(--exp-violeta-3);
+    margin-bottom: 0.4rem;
+    display: block;
+}
+
+.exp-file-zona p {
+    font-size: 0.85rem;
+    color: var(--color-texto-claro);
+    margin: 0;
+}
+
+.exp-file-zona.con-archivo {
+    border-style: solid;
+    border-color: var(--exp-verde);
+    background: var(--exp-verde-bg);
+}
+
+.exp-file-zona.con-archivo i { color: var(--exp-verde); }
+.exp-file-zona.con-archivo p { color: #065f46; font-weight: 600; }
+
+.exp-modal-pie {
+    padding: 1rem 1.6rem 1.4rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    border-top: 1px solid #eef2f8;
+}
+
+.exp-btn {
+    padding: 0.65rem 1.3rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: var(--transicion);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.exp-btn-cancelar {
+    background: #f1f5f9;
+    color: var(--color-texto);
+}
+.exp-btn-cancelar:hover { background: #e2e8f0; }
+
+.exp-btn-primario {
+    background: linear-gradient(135deg, var(--exp-violeta-1), var(--exp-violeta-3));
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(59, 42, 138, 0.25);
+}
+.exp-btn-primario:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(59, 42, 138, 0.35);
+}
+.exp-btn-primario:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ============================================================
+   6. ANIMACIONES DE ENTRADA SUTILES
+   ============================================================ */
+@keyframes expFadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.exp-doc-card { animation: expFadeUp 0.3s ease-out backwards; }
+.exp-doc-card:nth-child(1) { animation-delay: 0.05s; }
+.exp-doc-card:nth-child(2) { animation-delay: 0.10s; }
+.exp-doc-card:nth-child(3) { animation-delay: 0.15s; }
+.exp-doc-card:nth-child(4) { animation-delay: 0.20s; }
+.exp-doc-card:nth-child(5) { animation-delay: 0.25s; }
+.exp-doc-card:nth-child(6) { animation-delay: 0.30s; }
+
+/* ============================================================
+   7. RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+    .exp-hero {
+        grid-template-columns: auto 1fr;
+        padding: 1.4rem;
+    }
+    .exp-hero-badge {
+        grid-column: 1 / -1;
+        justify-self: start;
+    }
+    .exp-hero-info h2 { font-size: 1.3rem; }
+    .exp-hero-meta { font-size: 0.82rem; gap: 0.3rem 0.9rem; }
+    .exp-selector { flex-direction: column; align-items: stretch; }
+    .exp-docs-grid { grid-template-columns: 1fr; }
+    .exp-campo-doble { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+    .exp-hero { padding: 1.1rem; }
+    .exp-hero-icono { width: 60px; height: 60px; font-size: 1.6rem; }
+    .exp-doc-acciones { flex-direction: column; }
+}

@@ -1,0 +1,63 @@
+SIGEPAV — Laragon + ngrok
+=========================
+
+OBJETIVO
+- Laragon puede servir como entorno local/terminal para ejecutar Node/Python, pero SIGEPAV NO debe publicarse copiando solo los HTML a C:\laragon\www porque el sistema necesita Server.js, MySQL y Gasolina.py.
+- La forma correcta es ejecutar Node en el puerto 3000 y Flask/Gasolina.py en el puerto 5000, y exponer el puerto 3000 con ngrok.
+
+IMPORTANTE SOBRE MYSQL
+- Si MySQL ya está instalado como servicio MySQL80 en la VM, NO inicies MySQL de Laragon en el mismo puerto 3306, porque puede chocar.
+- Deja DB_HOST=127.0.0.1 en .env y env.env.
+
+PASO 1 — Instalar Laragon
+1. Descarga Laragon Full desde https://laragon.org/download
+2. Instala en C:\laragon.
+3. Si quieres usar sus comandos en cualquier terminal: Laragon > Tools > Path > Add Laragon to Path.
+4. No arranques MySQL de Laragon si ya está activo MySQL80.
+
+PASO 2 — Instalar ngrok
+1. Crea cuenta en https://ngrok.com
+2. Descarga ngrok para Windows.
+3. Extrae ngrok.exe en C:\ngrok\ngrok.exe
+4. En PowerShell:
+   C:\ngrok\ngrok.exe config add-authtoken TU_TOKEN_DE_NGROK
+
+PASO 3 — Arrancar SIGEPAV
+En PowerShell:
+   cd C:\SIGEPAV\Gesti-n-Vehicular-main
+   npm install
+   "C:\Program Files\Python312\python.exe" -m pip install -r requirements.txt
+   Set-ExecutionPolicy -Scope Process Bypass -Force
+   .\iniciar-en-segundo-plano.ps1
+
+PASO 4 — Exponer la app con ngrok
+En otra PowerShell:
+   C:\ngrok\ngrok.exe http 3000 --url=https://oda-peachier-terrie.ngrok-free.dev
+
+Copia la URL HTTPS que diga Forwarding, por ejemplo:
+   https://abc123.ngrok-free.app
+
+PASO 5 — Hacer que QR y enlaces usen ngrok
+Edita .env y env.env:
+   BASE_URL=https://abc123.ngrok-free.app
+
+Reinicia Node:
+   taskkill /F /IM node.exe
+   .\iniciar-en-segundo-plano.ps1
+
+Al reiniciar, SIGEPAV detecta el cambio de BASE_URL y regenera los QR.
+
+PASO 6 — Probar
+Abre en celular/laptop:
+   https://abc123.ngrok-free.app
+
+Si el medidor Gasolina.py no abre desde ngrok, expón también Flask:
+   C:\ngrok\ngrok.exe http 5000
+
+Luego en el navegador de la app puedes forzar temporalmente la URL del medidor con:
+   localStorage.setItem('sigepav_fuel_base', 'https://URL-DE-NGROK-5000')
+   location.reload()
+
+NOTA
+- En plan gratis, la URL de ngrok puede cambiar cada vez que lo reinicias.
+- Cada vez que cambie la URL de ngrok, actualiza BASE_URL y reinicia Node para regenerar QR.

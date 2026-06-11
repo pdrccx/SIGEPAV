@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar usuario · SIGEPAV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Styles.css">
+    <style>
+        /* Estilos específicos de Agregar.html */
+        .agregar-card {
+            background: white;
+            border-radius: var(--radio-borde, 12px);
+            padding: 2rem;
+            box-shadow: var(--sombra-tarjeta, 0 2px 12px rgba(0,43,96,0.08));
+            border-top: 4px solid #006dc8;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        .agregar-encabezado {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .agregar-icono {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #002b60, #006dc8);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 1.6rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(0, 43, 96, 0.25);
+        }
+        .agregar-encabezado h2 {
+            color: #002b60;
+            font-size: 1.3rem;
+            margin: 0;
+        }
+        .agregar-encabezado p {
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper .input-estilizado {
+            padding-right: 2.5rem;
+        }
+        .password-wrapper .toggle-pass {
+            position: absolute;
+            right: 0.6rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c86a3;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .ayuda {
+            font-size: 0.78rem;
+            color: #6c86a3;
+            margin-top: 0.3rem;
+        }
+        .alerta {
+            padding: 0.9rem 1.1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            display: none;
+            animation: aparecer 0.3s ease;
+        }
+        .alerta.show { display: block; }
+        .alerta.exito {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+        .alerta.error {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+        @keyframes aparecer {
+            from { opacity: 0; transform: translateY(-5px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .lista-usuarios {
+            background: #f8fafc;
+            border: 1px solid #d9e5f2;
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+        }
+        .lista-usuarios h3 {
+            font-size: 0.95rem;
+            color: #002b60;
+            margin-bottom: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .usuario-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.6rem 0.8rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .usuario-item:last-child { margin-bottom: 0; }
+        .usuario-info { display: flex; align-items: center; gap: 0.7rem; }
+        .usuario-info i {
+            color: #006dc8;
+            font-size: 1.1rem;
+            background: #e6f0fa;
+            padding: 0.45rem;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .usuario-nombre {
+            font-weight: 600;
+            color: #002b60;
+            font-size: 0.9rem;
+        }
+        .usuario-rol {
+            font-size: 0.72rem;
+            color: #6c86a3;
+            background: #eef4fc;
+            padding: 0.15rem 0.6rem;
+            border-radius: 12px;
+            margin-left: 0.4rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+        }
+        .usuario-rol.admin { background: #fef3c7; color: #92560a; }
+        .btn-eliminar {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            padding: 0.35rem 0.7rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .btn-eliminar:hover { background: #fee2e2; }
+        .usuario-acciones {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .btn-editar {
+            background: #eff6ff;
+            color: #0058a8;
+            border: 1px solid #bfdbfe;
+            padding: 0.35rem 0.7rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .btn-editar:hover { background: #dbeafe; }
+        .usuario-lock {
+            font-size: 0.7rem;
+            color: #6c86a3;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .modal-editar-usuario-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.48);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+            z-index: 2000;
+        }
+        .modal-editar-usuario-overlay.show { display: flex; }
+        .modal-editar-usuario {
+            width: min(760px, 100%);
+            max-height: 92vh;
+            overflow: auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+            animation: aparecer 0.22s ease;
+        }
+        .modal-editar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.2rem 1.4rem;
+            border-bottom: 1px solid #d9e5f2;
+            background: linear-gradient(135deg, #f8fbff, #eef6ff);
+        }
+        .modal-editar-header h3 {
+            margin: 0;
+            color: #002b60;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-size: 1.05rem;
+        }
+        .btn-cerrar-modal-editar {
+            width: 34px;
+            height: 34px;
+            border: none;
+            border-radius: 50%;
+            background: #e8f0fb;
+            color: #002b60;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .modal-editar-body { padding: 1.35rem 1.4rem 1.5rem; }
+        .preview-foto-editar {
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #e2eaf6;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.6rem;
+        }
+        .preview-foto-editar img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .modal-editar-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.8rem;
+            margin-top: 1.2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+        .vacio {
+            text-align: center;
+            color: #6c86a3;
+            font-size: 0.85rem;
+            padding: 0.8rem 0;
+            font-style: italic;
+        }
+        .botones-form {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+    </style>
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+</head>
+<body>
+
+    <div id="app-container" style="display: flex;">
+
+        <!-- BARRA SUPERIOR -->
+        <header class="barra-superior">
+            <div class="barra-superior-contenido">
+                <div class="barra-izquierda">
+                    <div class="dropdown-modulos" id="dropdown-modulos-principal" data-navbar></div>
+                    <img src="Logo.jpeg" alt="Logo" class="logo-barra">
+                    <div class="titulo-sistema">
+                        <h1><a href="menu.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1>
+                    </div>
+                </div>
+
+                <div class="info-usuario">
+                    <span class="icono-usuario"><i class="fas fa-user-circle"></i></span>
+                    <span class="correo-usuario" id="user-email-display">Usuario</span>
+                    <button id="logoutBtn" class="btn-logout-header">
+                        <i class="fas fa-sign-out-alt"></i> Salir
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENIDO -->
+        <main class="contenedor-principal">
+            <div class="agregar-card">
+                <div class="agregar-encabezado">
+                    <div class="agregar-icono"><i class="fas fa-user-plus"></i></div>
+                    <div>
+                        <h2>Agregar nuevo usuario</h2>
+                        <p>Cree una cuenta nueva para que pueda iniciar sesión en el sistema.</p>
+                    </div>
+                </div>
+
+                <!-- Alertas -->
+                <div class="alerta exito" id="alerta-exito"></div>
+                <div class="alerta error" id="alerta-error"></div>
+
+                <!-- Formulario -->
+                <div class="form-grid">
+                    <div class="campo">
+                        <label for="nuevo-usuario">Nombre de usuario *</label>
+                        <input type="text" id="nuevo-usuario" class="input-estilizado" placeholder="Ej. juan.perez" autocomplete="off">
+                        <span class="ayuda">Mínimo 3 caracteres. No puede repetirse.</span>
+                    </div>
+
+                    <div class="campo">
+                        <label for="nombre-completo">Nombre completo *</label>
+                        <input type="text" id="nombre-completo" class="input-estilizado" placeholder="Ej. Juan Pérez García" autocomplete="off">
+                    </div>
+
+                    <div class="campo">
+                        <label for="correo-usuario">Correo institucional</label>
+                        <input type="email" id="correo-usuario" class="input-estilizado" placeholder="usuario@itszn.edu.mx">
+                    </div>
+
+                    <div class="campo">
+                        <label for="password-inicial">Contraseña inicial *</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="password-inicial" class="input-estilizado" placeholder="Mínimo 6 caracteres" autocomplete="new-password" maxlength="128">
+                            <button type="button" class="toggle-pass" id="toggle-password-inicial" aria-label="Mostrar u ocultar contraseña"><i class="fas fa-eye"></i></button>
+                        </div>
+                        <span class="ayuda">El usuario la usará solo para entrar por primera vez y después deberá cambiarla.</span>
+                    </div>
+
+                    <div class="campo">
+                        <label for="foto-perfil">Foto de perfil (opcional)</label>
+                        <input type="file" id="foto-perfil" class="input-estilizado input-archivo-perfil" accept="image/png,image/jpeg,image/webp">
+                        <span class="ayuda">JPG, PNG o WEBP. Máximo 3 MB.</span>
+                    </div>
+
+                    <div class="campo">
+                        <label for="rol-usuario">Rol *</label>
+                        <select id="rol-usuario" class="select-estilizado">
+                            <option value="usuario">Usuario operativo</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label for="departamento-usuario">Departamento</label>
+                        <input type="text" id="departamento-usuario" class="input-estilizado" placeholder="Ej. Dirección de Transporte">
+                        <span class="ayuda">El usuario lo verá en su perfil (solo lectura).</span>
+                    </div>
+
+                    <div class="campo">
+                        <label for="cargo-usuario">Cargo</label>
+                        <input type="text" id="cargo-usuario" class="input-estilizado" placeholder="Ej. Jefe de Unidad">
+                        <span class="ayuda">El usuario lo verá en su perfil (solo lectura).</span>
+                    </div>
+
+                    <div class="campo" style="grid-column:1/-1; background:#fef9ec; border:1px solid #fcd34d; border-radius:10px; padding:0.9rem 1rem; display:flex; align-items:flex-start; gap:0.7rem;">
+                        <i class="fas fa-info-circle" style="color:#d97706; margin-top:0.15rem;"></i>
+                        <span style="font-size:0.85rem; color:#92400e;">La contraseña inicial permite el primer ingreso. En ese primer acceso, el usuario deberá configurar su Gmail de recuperación y cambiarla por una contraseña propia.</span>
+                    </div>
+                </div>
+
+                <div class="botones-form">
+                    <button class="btn-secundario" id="btn-limpiar">Limpiar</button>
+                    <button class="btn-primario" id="btn-guardar">
+                        <i class="fas fa-check"></i> Guardar usuario
+                    </button>
+                </div>
+
+                <!-- Lista de usuarios agregados -->
+                <div class="lista-usuarios">
+                    <h3><i class="fas fa-users"></i> Usuarios registrados</h3>
+                    <div id="contenedor-usuarios">
+                        <!-- llenado por JS -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- MODAL EDITAR USUARIO -->
+        <div class="modal-editar-usuario-overlay" id="modal-editar-usuario" aria-hidden="true">
+            <div class="modal-editar-usuario" role="dialog" aria-modal="true" aria-labelledby="modal-editar-titulo">
+                <div class="modal-editar-header">
+                    <h3 id="modal-editar-titulo"><i class="fas fa-user-pen"></i> Editar usuario</h3>
+                    <button class="btn-cerrar-modal-editar" id="btn-cerrar-modal-editar" type="button" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-editar-body">
+                    <input type="hidden" id="editar-usuario-id">
+                    <div class="preview-foto-editar">
+                        <img id="editar-foto-preview" src="Logo.jpeg" alt="Foto actual" onerror="this.src='Logo.jpeg'">
+                    </div>
+                    <div class="form-grid">
+                        <div class="campo">
+                            <label for="editar-nuevo-usuario">Nombre de usuario *</label>
+                            <input type="text" id="editar-nuevo-usuario" class="input-estilizado" autocomplete="off">
+                        </div>
+                        <div class="campo">
+                            <label for="editar-nombre-completo">Nombre completo *</label>
+                            <input type="text" id="editar-nombre-completo" class="input-estilizado" autocomplete="off">
+                        </div>
+                        <div class="campo">
+                            <label for="editar-correo-usuario">Correo institucional *</label>
+                            <input type="email" id="editar-correo-usuario" class="input-estilizado">
+                        </div>
+                        <div class="campo">
+                            <label for="editar-foto-perfil">Cambiar foto de perfil</label>
+                            <input type="file" id="editar-foto-perfil" class="input-estilizado input-archivo-perfil" accept="image/png,image/jpeg,image/webp">
+                            <span class="ayuda">Opcional. JPG, PNG o WEBP. Máximo 3 MB.</span>
+                        </div>
+                        <div class="campo">
+                            <label for="editar-rol-usuario">Rol *</label>
+                            <select id="editar-rol-usuario" class="select-estilizado">
+                                <option value="usuario">Usuario operativo</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="campo">
+                            <label for="editar-departamento-usuario">Departamento</label>
+                            <input type="text" id="editar-departamento-usuario" class="input-estilizado">
+                        </div>
+                        <div class="campo">
+                            <label for="editar-cargo-usuario">Cargo</label>
+                            <input type="text" id="editar-cargo-usuario" class="input-estilizado">
+                        </div>
+                    </div>
+                    <div class="modal-editar-actions">
+                        <button class="btn-secundario" id="btn-cancelar-edicion" type="button"><i class="fas fa-times"></i> Cancelar</button>
+                        <button class="btn-primario" id="btn-guardar-edicion" type="button"><i class="fas fa-save"></i> Guardar cambios</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BARRA INFERIOR -->
+        <footer class="barra-inferior">
+            <div class="barra-inferior-contenido">
+                <p>Tecnológico Nacional de México campus Zacatecas Norte</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="Config.js"></script>
+<script src="auth-guard.js"></script>
+    <script src="navbar.js"></script>
+<script src="modulos-router.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sesionHeader = (window.SIGEPAV && window.SIGEPAV.getSession && window.SIGEPAV.getSession()) || {};
+        const emailHeader = document.getElementById('user-email-display');
+        if (emailHeader) emailHeader.textContent = sesionHeader.email || sesionHeader.usuario || sesionHeader.nombre || 'Usuario';
+
+        const API_BASE = (typeof window !== 'undefined' && window.API_BASE) ? window.API_BASE : (window.location && window.location.origin ? window.location.origin : 'http://localhost:3000');
+
+        // ========== ELEMENTOS ==========
+        const inputUser    = document.getElementById('nuevo-usuario');
+        const inputNombre  = document.getElementById('nombre-completo');
+        const inputCorreo  = document.getElementById('correo-usuario');
+        const inputPasswordInicial = document.getElementById('password-inicial');
+        const btnTogglePasswordInicial = document.getElementById('toggle-password-inicial');
+        const inputFoto    = document.getElementById('foto-perfil');
+        const selectRol    = document.getElementById('rol-usuario');
+        const inputDepto   = document.getElementById('departamento-usuario');
+        const inputCargo   = document.getElementById('cargo-usuario');
+        const btnGuardar   = document.getElementById('btn-guardar');
+        const btnLimpiar   = document.getElementById('btn-limpiar');
+        // FIX (req 6): botón "Volver" eliminado. Navegación por SIGEPAV (handler abajo).
+        const contenedor   = document.getElementById('contenedor-usuarios');
+        const alertaExito  = document.getElementById('alerta-exito');
+        const alertaError  = document.getElementById('alerta-error');
+        const modalEditar  = document.getElementById('modal-editar-usuario');
+        const btnCerrarModalEditar = document.getElementById('btn-cerrar-modal-editar');
+        const btnCancelarEdicion = document.getElementById('btn-cancelar-edicion');
+        const btnGuardarEdicion = document.getElementById('btn-guardar-edicion');
+        const inputEditarFoto = document.getElementById('editar-foto-perfil');
+        let usuariosCache = [];
+
+        // ========== UTILIDADES ==========
+        function mostrarAlerta(tipo, mensaje) {
+            const el = tipo === 'exito' ? alertaExito : alertaError;
+            const otro = tipo === 'exito' ? alertaError : alertaExito;
+            otro.classList.remove('show');
+            el.innerHTML = (tipo === 'exito' ? '<i class="fas fa-check-circle"></i> ' : '<i class="fas fa-exclamation-circle"></i> ') + mensaje;
+            el.classList.add('show');
+            if (tipo === 'exito') {
+                setTimeout(() => el.classList.remove('show'), 4000);
+            }
+        }
+
+        function escHtml(valor) {
+            return String(valor || '').replace(/[&<>"']/g, c =>
+                ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])
+            );
+        }
+
+        function urlFotoPerfil(foto) {
+            foto = String(foto || '').trim();
+            if (!foto) return 'Logo.jpeg';
+            if (/^(https?:)?\/\//i.test(foto) || foto.startsWith('data:image/')) return foto;
+            return foto.replace(/^\/+/, '');
+        }
+
+        function valorRol(u) {
+            const rol = String((u && u.rol) || '').trim().toLowerCase();
+            return Number(u && u.rol_id) === 1 || rol === 'administrador' || rol === 'admin' ? 'admin' : 'usuario';
+        }
+
+        function leerSesionActual() {
+            if (window.__sigepav_leer_sesion) return window.__sigepav_leer_sesion() || {};
+            return sesionHeader || {};
+        }
+
+        function sincronizarSesionSiEsActual(usuarioActualizado) {
+            const sesion = leerSesionActual();
+            if (!sesion || String(sesion.id) !== String(usuarioActualizado.id)) return;
+            sesion.nombre = usuarioActualizado.nombre || '';
+            sesion.apellidos = usuarioActualizado.apellidos || '';
+            sesion.email = usuarioActualizado.email || '';
+            sesion.rol = usuarioActualizado.rol || (Number(usuarioActualizado.rol_id) === 1 ? 'Administrador' : 'Usuario');
+            sesion.rol_id = usuarioActualizado.rol_id;
+            sesion.departamento = usuarioActualizado.departamento || '';
+            sesion.cargo = usuarioActualizado.cargo || '';
+            sesion.foto_perfil = usuarioActualizado.foto_perfil || '';
+            if (window.__sigepav_guardar_sesion) window.__sigepav_guardar_sesion(sesion);
+            if (window.__sigepav_render_cuenta) window.__sigepav_render_cuenta(sesion);
+        }
+
+        function abrirModalEditar(usuario) {
+            if (!usuario || !modalEditar) return;
+            document.getElementById('editar-usuario-id').value = usuario.id;
+            document.getElementById('editar-nuevo-usuario').value = usuario.nombre || '';
+            document.getElementById('editar-nombre-completo').value = usuario.apellidos || '';
+            document.getElementById('editar-correo-usuario').value = usuario.email || '';
+            document.getElementById('editar-rol-usuario').value = valorRol(usuario);
+            document.getElementById('editar-departamento-usuario').value = usuario.departamento || '';
+            document.getElementById('editar-cargo-usuario').value = usuario.cargo || '';
+            document.getElementById('editar-foto-preview').src = urlFotoPerfil(usuario.foto_perfil);
+            if (inputEditarFoto) inputEditarFoto.value = '';
+            modalEditar.classList.add('show');
+            modalEditar.setAttribute('aria-hidden', 'false');
+            setTimeout(() => document.getElementById('editar-nuevo-usuario').focus(), 30);
+        }
+
+        function cerrarModalEditar() {
+            if (!modalEditar) return;
+            modalEditar.classList.remove('show');
+            modalEditar.setAttribute('aria-hidden', 'true');
+        }
+
+        function limpiarFormulario() {
+            inputUser.value = '';
+            inputNombre.value = '';
+            inputCorreo.value = '';
+            if (inputPasswordInicial) inputPasswordInicial.value = '';
+            if (inputFoto) inputFoto.value = '';
+            selectRol.value = 'usuario';
+            if (inputDepto) inputDepto.value = '';
+            if (inputCargo) inputCargo.value = '';
+            alertaError.classList.remove('show');
+            inputUser.focus();
+        }
+
+        // ========== LISTA DE USUARIOS (desde BD) ==========
+        async function renderizarLista() {
+            contenedor.innerHTML = '<p style="text-align:center; padding:1rem; color:#6c86a3;"><i class="fas fa-spinner fa-spin"></i> Cargando usuarios...</p>';
+            try {
+                const resp = await fetch(`${API_BASE}/api/usuarios`);
+                const data = await resp.json();
+                if (!data.ok) throw new Error(data.error || 'Error al cargar usuarios');
+
+                const todos = data.usuarios || [];
+                usuariosCache = todos;
+                contenedor.innerHTML = '';
+
+                if (todos.length === 0) {
+                    contenedor.innerHTML = '<p class="vacio">No hay usuarios registrados.</p>';
+                    return;
+                }
+
+                todos.forEach(u => {
+                    const item = document.createElement('div');
+                    item.className = 'usuario-item';
+
+                    const esSistema = (u.email === 'aldair@itszn.edu.mx' || u.email === 'diego@itszn.edu.mx');
+                    const rolClase  = (u.rol === 'Administrador' || u.rol === 'admin') ? 'admin' : '';
+                    const rolTexto  = (u.rol === 'Administrador' || u.rol === 'admin') ? 'Admin' : 'Usuario';
+                    const nombreCompleto = [u.nombre, u.apellidos].filter(Boolean).join(' ');
+
+                    item.innerHTML = `
+                        <div class="usuario-info">
+                            <span class="usuario-avatar-lista">
+                                <img src="${escHtml(urlFotoPerfil(u.foto_perfil))}" alt="Foto de perfil" onerror="this.src='Logo.jpeg'">
+                            </span>
+                            <div>
+                                <span class="usuario-nombre">${escHtml(u.email || '')}</span>
+                                <span class="usuario-rol ${rolClase}">${rolTexto}</span>
+                                ${nombreCompleto ? `<div style="font-size:0.75rem; color:#6c86a3; margin-top:0.1rem;">${escHtml(nombreCompleto)}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="usuario-acciones">
+                            <button class="btn-editar" data-id="${u.id}" type="button"><i class="fas fa-pen"></i> Editar</button>
+                            ${esSistema
+                                ? '<span class="usuario-lock"><i class="fas fa-lock"></i> No eliminable</span>'
+                                : `<button class="btn-eliminar" data-id="${u.id}" data-nombre="${escHtml(u.email || u.nombre || '')}" type="button"><i class="fas fa-trash"></i> Eliminar</button>`
+                            }
+                        </div>
+                    `;
+                    contenedor.appendChild(item);
+                });
+
+                // Listeners de edición
+                contenedor.querySelectorAll('.btn-editar').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const userId = btn.getAttribute('data-id');
+                        const usuario = usuariosCache.find(x => String(x.id) === String(userId));
+                        abrirModalEditar(usuario);
+                    });
+                });
+
+                // Listeners de eliminacion
+                contenedor.querySelectorAll('.btn-eliminar').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const userId = btn.getAttribute('data-id');
+                        const nombre = btn.getAttribute('data-nombre');
+                        if (!confirm(`\u00bfDesactivar al usuario "${nombre}"? Esta acci\u00f3n no se puede deshacer.`)) return;
+                        try {
+                            const r = await fetch(`${API_BASE}/api/usuarios/${userId}`, { method: 'DELETE' });
+                            const d = await r.json();
+                            if (!d.ok) throw new Error(d.error || 'Error al eliminar');
+                            mostrarAlerta('exito', `Usuario "${nombre}" desactivado correctamente.`);
+                            await renderizarLista();
+                        } catch (err) {
+                            mostrarAlerta('error', 'No se pudo eliminar: ' + err.message);
+                        }
+                    });
+                });
+
+            } catch (err) {
+                contenedor.innerHTML = `<p class="vacio" style="color:#c0392b;"><i class="fas fa-exclamation-triangle"></i> Error al cargar usuarios: ${err.message}</p>`;
+            }
+        }
+
+        // ========== MODAL DE EDICIÓN ==========
+        if (btnCerrarModalEditar) btnCerrarModalEditar.addEventListener('click', cerrarModalEditar);
+        if (btnCancelarEdicion) btnCancelarEdicion.addEventListener('click', cerrarModalEditar);
+        if (modalEditar) {
+            modalEditar.addEventListener('click', (e) => {
+                if (e.target === modalEditar) cerrarModalEditar();
+            });
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modalEditar && modalEditar.classList.contains('show')) cerrarModalEditar();
+        });
+        if (inputEditarFoto) {
+            inputEditarFoto.addEventListener('change', () => {
+                const foto = inputEditarFoto.files && inputEditarFoto.files[0];
+                if (!foto) return;
+                if (!['image/jpeg', 'image/png', 'image/webp'].includes(foto.type)) {
+                    mostrarAlerta('error', 'La foto debe ser JPG, PNG o WEBP.');
+                    inputEditarFoto.value = '';
+                    return;
+                }
+                if (foto.size > 3 * 1024 * 1024) {
+                    mostrarAlerta('error', 'La foto no debe superar los 3 MB.');
+                    inputEditarFoto.value = '';
+                    return;
+                }
+                document.getElementById('editar-foto-preview').src = URL.createObjectURL(foto);
+            });
+        }
+        if (btnGuardarEdicion) {
+            btnGuardarEdicion.addEventListener('click', async () => {
+                const id = document.getElementById('editar-usuario-id').value;
+                const user = document.getElementById('editar-nuevo-usuario').value.trim();
+                const nombre = document.getElementById('editar-nombre-completo').value.trim();
+                const correo = document.getElementById('editar-correo-usuario').value.trim();
+                const rol = document.getElementById('editar-rol-usuario').value;
+                const depto = document.getElementById('editar-departamento-usuario').value.trim();
+                const cargo = document.getElementById('editar-cargo-usuario').value.trim();
+                const foto = inputEditarFoto && inputEditarFoto.files ? inputEditarFoto.files[0] : null;
+
+                if (!id) return mostrarAlerta('error', 'No se encontró el usuario a editar.');
+                if (!user || user.length < 3) return mostrarAlerta('error', 'El nombre de usuario debe tener al menos 3 caracteres.');
+                if (!/^[a-zA-Z0-9._-]+$/.test(user)) return mostrarAlerta('error', 'El usuario solo puede contener letras, números, puntos, guiones o guion bajo.');
+                if (!nombre) return mostrarAlerta('error', 'Indique el nombre completo del usuario.');
+                if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return mostrarAlerta('error', 'Ingrese un correo electrónico válido.');
+
+                btnGuardarEdicion.disabled = true;
+                btnGuardarEdicion.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+                try {
+                    const formData = new FormData();
+                    formData.append('nombre', user);
+                    formData.append('apellidos', nombre);
+                    formData.append('email', correo);
+                    formData.append('rol', rol);
+                    formData.append('departamento', depto);
+                    formData.append('cargo', cargo);
+                    const sesion = leerSesionActual();
+                    if (sesion && sesion.id) formData.append('admin_id', sesion.id);
+                    if (foto) formData.append('foto_perfil', foto);
+
+                    const resp = await fetch(`${API_BASE}/api/usuarios/${id}/admin`, {
+                        method: 'PUT',
+                        body: formData
+                    });
+                    const data = await resp.json();
+                    if (!data.ok) throw new Error(data.error || 'Error al actualizar usuario');
+
+                    sincronizarSesionSiEsActual(data.usuario || { id, nombre: user, apellidos: nombre, email: correo, rol_id: rol === 'admin' ? 1 : 2, departamento: depto, cargo });
+                    cerrarModalEditar();
+                    mostrarAlerta('exito', `Usuario "${correo}" actualizado correctamente.`);
+                    await renderizarLista();
+                } catch (err) {
+                    mostrarAlerta('error', 'No se pudo actualizar el usuario: ' + err.message);
+                } finally {
+                    btnGuardarEdicion.disabled = false;
+                    btnGuardarEdicion.innerHTML = '<i class="fas fa-save"></i> Guardar cambios';
+                }
+            });
+        }
+
+        // ========== GUARDAR (en BD via API) ==========
+        btnGuardar.addEventListener('click', async () => {
+            const user    = inputUser.value.trim();
+            const nombre  = inputNombre.value.trim();
+            const correo  = inputCorreo.value.trim();
+            const passwordInicial = inputPasswordInicial ? inputPasswordInicial.value.trim() : '';
+            const rol     = selectRol.value;
+            const depto   = inputDepto ? inputDepto.value.trim() : '';
+            const cargo   = inputCargo ? inputCargo.value.trim() : '';
+
+            if (!user || user.length < 3) {
+                return mostrarAlerta('error', 'El nombre de usuario debe tener al menos 3 caracteres.');
+            }
+            if (!/^[a-zA-Z0-9._-]+$/.test(user)) {
+                return mostrarAlerta('error', 'El usuario solo puede contener letras, n\u00fameros, puntos, guiones o guion bajo.');
+            }
+            if (!nombre) {
+                return mostrarAlerta('error', 'Indique el nombre completo del usuario.');
+            }
+            if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+                return mostrarAlerta('error', 'Ingrese un correo electr\u00f3nico v\u00e1lido.');
+            }
+            if (!passwordInicial || passwordInicial.length < 6) {
+                return mostrarAlerta('error', 'La contraseña inicial debe tener al menos 6 caracteres.');
+            }
+            const foto = inputFoto && inputFoto.files ? inputFoto.files[0] : null;
+            if (foto) {
+                const tiposValidos = ['image/jpeg', 'image/png', 'image/webp'];
+                if (!tiposValidos.includes(foto.type)) {
+                    return mostrarAlerta('error', 'La foto debe ser JPG, PNG o WEBP.');
+                }
+                if (foto.size > 3 * 1024 * 1024) {
+                    return mostrarAlerta('error', 'La foto no debe superar los 3 MB.');
+                }
+            }
+
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+            try {
+                const formData = new FormData();
+                formData.append('nombre', user);
+                formData.append('apellidos', nombre);
+                formData.append('email', correo);
+                formData.append('password_inicial', passwordInicial);
+                formData.append('rol', rol);
+                if (depto) formData.append('departamento', depto);
+                if (cargo) formData.append('cargo', cargo);
+                if (foto) formData.append('foto_perfil', foto);
+
+                const resp = await fetch(`${API_BASE}/api/usuarios`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await resp.json();
+                if (!data.ok) throw new Error(data.error || 'Error al crear usuario');
+
+                mostrarAlerta('exito', `Usuario "${user}" creado. En su primer ingreso deberá usar la contraseña inicial y después cambiarla.`);
+                limpiarFormulario();
+                await renderizarLista();
+            } catch (err) {
+                mostrarAlerta('error', 'No se pudo crear el usuario: ' + err.message);
+            } finally {
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar usuario';
+            }
+        });
+
+        // ========== MOSTRAR / OCULTAR CONTRASEÑA INICIAL ==========
+        if (btnTogglePasswordInicial && inputPasswordInicial) {
+            btnTogglePasswordInicial.addEventListener('click', () => {
+                inputPasswordInicial.type = inputPasswordInicial.type === 'password' ? 'text' : 'password';
+                const icon = btnTogglePasswordInicial.querySelector('i');
+                if (icon) icon.className = inputPasswordInicial.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+            });
+        }
+
+        // ========== LIMPIAR ==========
+        btnLimpiar.addEventListener('click', limpiarFormulario);
+
+        // ========== VOLVER (FIX req 6: clic en SIGEPAV / logo) ==========
+        // Delegación de eventos en document para máxima robustez.
+        document.addEventListener('click', (e) => {
+            const t = e.target.closest('.titulo-sistema, .titulo-sistema h1, .logo-barra');
+            if (!t || !t.closest('.barra-superior')) return;
+            window.location.href = 'menu.html';
+        });
+        document.querySelectorAll('.barra-superior .titulo-sistema, .barra-superior .titulo-sistema h1, .barra-superior .logo-barra').forEach(el => {
+            el.style.cursor = 'pointer';
+            el.title = 'Volver al menú principal';
+        });
+
+        // ========== ENTER PARA GUARDAR ==========
+        [inputUser, inputNombre, inputCorreo, inputPasswordInicial].forEach(el => {
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') btnGuardar.click();
+            });
+        });
+
+        // Render inicial
+        renderizarLista();
+    });
+    </script>
+<script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script></body>
+</html>
