@@ -3,7 +3,7 @@ param(
   [string]$Url = "https://oda-peachier-terrie.ngrok-free.dev"
 )
 
-$Proyecto = "C:\SIGEPAV\Gesti-n-Vehicular-main"
+$Proyecto = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Set-Location $Proyecto
 $Url = $Url.Trim().TrimEnd('/')
 if ($Url -notmatch '^https?://') {
@@ -33,7 +33,7 @@ Write-Host "Reiniciando SIGEPAV para regenerar QR..." -ForegroundColor Cyan
 taskkill /F /IM node.exe 2>$null
 taskkill /F /IM python.exe 2>$null
 Set-ExecutionPolicy -Scope Process Bypass -Force
-.\iniciar-en-segundo-plano.ps1
+& (Join-Path $PSScriptRoot 'iniciar-en-segundo-plano.ps1')
 Start-Sleep -Seconds 6
 
 try {

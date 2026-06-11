@@ -3,7 +3,7 @@
 # - Flask/Gasolina.py en puerto 5000 interno
 # - ngrok apuntando al dominio fijo
 
-$Proyecto = "C:\SIGEPAV\Gesti-n-Vehicular-main"
+$Proyecto = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $Ngrok = "C:\ngrok\ngrok.exe"
 $Url = "https://oda-peachier-terrie.ngrok-free.dev"
 
@@ -34,7 +34,7 @@ taskkill /F /IM python.exe 2>$null
 taskkill /F /IM ngrok.exe 2>$null
 
 Write-Host "Iniciando Node y Flask..." -ForegroundColor Cyan
-.\iniciar-en-segundo-plano.ps1
+& (Join-Path $PSScriptRoot 'iniciar-en-segundo-plano.ps1')
 Start-Sleep -Seconds 6
 
 if (!(Test-Path $Ngrok)) {
@@ -58,6 +58,6 @@ Write-Host "SIGEPAV listo:" -ForegroundColor Green
 Write-Host "  App / QR: $Url" -ForegroundColor Green
 Write-Host "  Flask interno: http://127.0.0.1:5000, expuesto por proxy en $Url/gasolina/" -ForegroundColor Green
 Write-Host "Logs:" -ForegroundColor Yellow
-Write-Host "  C:\SIGEPAV\node.log"
-Write-Host "  C:\SIGEPAV\flask.log"
+Write-Host "  $(Join-Path $Proyecto 'node.log')"
+Write-Host "  $(Join-Path $Proyecto 'flask.log')"
 Write-Host "Ver túnel: Invoke-RestMethod http://127.0.0.1:4040/api/tunnels" -ForegroundColor Yellow

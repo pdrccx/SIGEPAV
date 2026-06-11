@@ -138,7 +138,7 @@ app.get(['/gasolina', '/gasolina/'], (req, res) => proxyFlask(req, res, '/'));
 app.get(['/gasolina/fuel', '/fuel'], (req, res) => proxyFlask(req, res, '/fuel'));
 app.post(['/gasolina/set_fuel', '/set_fuel'], (req, res) => proxyFlask(req, res, '/set_fuel', 'POST'));
 
-app.use(express.static(__dirname)); // sirve index.html, Styles.css, etc.
+app.use(express.static(path.join(__dirname, 'public'))); // sirve public/index.html, public/Styles.css, etc.
 
 
 // ── Multer — fotos de perfil de usuarios ─────────────────────────────
@@ -1706,7 +1706,7 @@ function generarRecomendacionLocal(vehiculos, personas, motivo) {
 function leerGeminiDesdeConfigJs() {
     const salida = { apiKey: '', modelos: [] };
     try {
-        const rutaConfig = path.join(__dirname, 'Config.js');
+        const rutaConfig = path.join(__dirname, 'public', 'Config.js');
         if (!fs.existsSync(rutaConfig)) return salida;
 
         const contenido = fs.readFileSync(rutaConfig, 'utf8');
@@ -3836,11 +3836,11 @@ const reportLimiter = rateLimit({
 
 // ── Serve public static HTML files ────────────────────────────────────
 app.get('/ciudadano.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'ciudadano.html'));
+    res.sendFile(path.join(__dirname, 'public', 'ciudadano.html'));
 });
 
 app.get('/seguimiento-publico/:token', (req, res) => {
-    res.sendFile(path.join(__dirname, 'seguimiento-publico.html'));
+    res.sendFile(path.join(__dirname, 'public', 'seguimiento-publico.html'));
 });
 
 // Serve uploaded files (evidences, QR images)
