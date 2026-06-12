@@ -32,7 +32,7 @@ SIGEPAV/
 │   └── requirements.txt
 │
 ├── database/              ← Scripts SQL (esquema y migraciones). Se ejecutan a mano.
-│   ├── sigepav_corregido.sql        (base de datos completa)
+│   ├── sigepav_BDD.sql              (base de datos completa)
 │   ├── ciudadano_migration.sql
 │   ├── notificaciones_navegacion_migration.sql
 │   └── reparar_no_economico_temporal.sql
@@ -61,7 +61,7 @@ SIGEPAV/
 
 ### Requisitos
 - Node.js 18+ y npm
-- MySQL en marcha con la base de datos importada desde `database/sigepav_corregido.sql`
+- MySQL en marcha con la base de datos importada desde `database/sigepav_BDD.sql`
 - (Opcional) Python 3.12 para el medidor de combustible
 
 ### Pasos

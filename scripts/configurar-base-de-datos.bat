@@ -24,7 +24,7 @@ pause
 echo.
 
 echo [1/2] Importando la base de datos (crea 'sigepav' con tablas y datos)...
-"%MYSQL%" -u root -p < "database\sigepav_corregido.sql"
+"%MYSQL%" -u root -p < "database\sigepav_BDD.sql"
 if errorlevel 1 goto error
 
 echo.

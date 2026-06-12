@@ -7,7 +7,7 @@
 --
 --  CÓMO USAR:
 --    Opción A — Base nueva (DROP + CREATE):
---      mysql -u root -p < sigepav_corregido.sql
+--      mysql -u root -p < sigepav_BDD.sql
 --
 --    Opción B — Migración sobre base existente:
 --      Ejecutar únicamente la sección "MIGRACIÓN" al final del archivo.
