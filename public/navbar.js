@@ -6,9 +6,9 @@
    y el menú se renderiza automáticamente, idéntico en cada vista.
 
    Módulos excluidos a petición:
-     - Alerta y vencimientos
      - Control de combustible
    "Reportes" se renombra a "Reportes ciudadanos".
+   Etapa Regional: se agregan "Vencimientos y alertas" y "Costos por vehículo".
    ===================================================================== */
 (function () {
     'use strict';
@@ -34,7 +34,8 @@
             icono: 'fas fa-car',
             items: [
                 { label: 'Altas, edición y consultas', icono: 'fas fa-car-side',    href: 'alta-edicion.html', modulo: 'alta-edicion' },
-                { label: 'Mantenimiento',              icono: 'fas fa-cogs',        href: 'mantenimiento.html',     modulo: 'mantenimiento' }
+                { label: 'Mantenimiento',              icono: 'fas fa-cogs',        href: 'mantenimiento.html',     modulo: 'mantenimiento' },
+                { label: 'Vencimientos y alertas',     icono: 'fas fa-calendar-alt', href: 'vencimientos.html',     modulo: 'alertas' }
             ]
         },
         {
@@ -42,6 +43,8 @@
             icono: 'fas fa-chart-line',
             items: [
                 { label: 'Dashboard',           icono: 'fas fa-chart-pie', href: 'dashboard.html', modulo: 'dashboard' },
+                { label: 'Costos por vehículo', icono: 'fas fa-dollar-sign', href: 'costos.html', modulo: 'costos' },
+                { label: 'Salud de la flota (IA)', icono: 'fas fa-heart-pulse', href: 'salud-flota.html', modulo: 'salud-flota' },
                 { label: 'Reportes ciudadanos', icono: 'fas fa-flag',      href: 'reportes.html',  modulo: 'reportes' },
                 { label: 'Bitácora / Auditorías', icono: 'fas fa-history', href: 'historial.html', modulo: 'bitacora' }
             ]
@@ -52,14 +55,15 @@
             items: [
                 { label: 'Agregar usuario',    icono: 'fas fa-user-plus',    href: 'Agregar.html',    modulo: 'agregar-usuario' },
                 { label: 'Expediente digital', icono: 'fas fa-folder-open',  href: 'expediente.html', modulo: 'expediente' },
-                { label: 'Respaldos',          icono: 'fas fa-database',     href: 'respaldos.html',  modulo: 'respaldos' }
+                { label: 'Respaldos',          icono: 'fas fa-database',     href: 'respaldos.html',  modulo: 'respaldos' },
+                { label: 'Configuración',      icono: 'fas fa-sliders',      href: 'configuracion.html', modulo: 'configuracion' }
             ]
         },
         {
             titulo: 'Soporte institucional',
             icono: 'fas fa-life-ring',
             items: [
-                { label: 'Manual de usuario', icono: 'fas fa-question-circle', href: 'Manual_SIGEPAV.pdf', modulo: 'manual-sigepav', download: true }
+                { label: 'Manual de usuario', icono: 'fas fa-question-circle', href: 'manual.html', modulo: 'manual-sigepav' }
             ]
         }
     ];
@@ -80,7 +84,12 @@
         'agregar.html':    'agregar-usuario',
         'expediente.html': 'expediente',
         'respaldos.html':  'respaldos',
-        'vales.html':      'vales'
+        'vales.html':      'vales',
+        'vencimientos.html': 'alertas',
+        'costos.html':     'costos',
+        'salud-flota.html': 'salud-flota',
+        'manual.html':     'manual-sigepav',
+        'configuracion.html': 'configuracion'
     };
     const moduloActivo = ACTIVO_POR_PAGINA[path] || null;
 
@@ -135,7 +144,7 @@
         // listeners ahí). Sólo quitamos los items excluidos y renombramos.
 
         // Items a excluir por data-modulo
-        const aExcluir = ['alertas', 'control-combustible'];
+        const aExcluir = ['control-combustible'];
         aExcluir.forEach(m => {
             cont.querySelectorAll(`.modulo-dropdown[data-modulo="${m}"]`).forEach(el => el.remove());
         });
@@ -182,6 +191,33 @@
         });
     }
 
+    // Módulo F: en modo privado se oculta el módulo ciudadano del menú
+    // (sin eliminarlo del código). Lee el modo de /api/configuracion,
+    // con cache en localStorage para evitar parpadeo entre páginas.
+    function aplicarModoOperacion(cont) {
+        function aplicar(modo) {
+            const esPrivado = modo === 'privado';
+            cont.querySelectorAll('.modulo-dropdown[data-modulo="reportes"]').forEach(function (el) {
+                el.style.display = esPrivado ? 'none' : '';
+            });
+            document.documentElement.setAttribute('data-modo-operacion', esPrivado ? 'privado' : 'publico');
+        }
+        var modoCache = 'publico';
+        try { modoCache = localStorage.getItem('sigepav_modo') || 'publico'; } catch (e) {}
+        aplicar(modoCache);
+        var base = (window.API_BASE || '');
+        fetch(base + '/api/configuracion')
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (d && d.ok && d.config) {
+                    var modo = d.config.MODO_OPERACION || 'publico';
+                    try { localStorage.setItem('sigepav_modo', modo); } catch (e) {}
+                    aplicar(modo);
+                }
+            })
+            .catch(function () {});
+    }
+
     function init() {
         const cont = document.getElementById('dropdown-modulos-principal');
         if (!cont) return;
@@ -214,11 +250,13 @@
         // contenedor para evitar renders dobles si navbar.js se carga otra vez.
         if (cont.dataset.sigepavNavbarReady === 'true') {
             activarToggle(cont);
+            aplicarModoOperacion(cont);
             return;
         }
         cont.innerHTML = construirHTML();
         cont.dataset.sigepavNavbarReady = 'true';
         activarToggle(cont);
+        aplicarModoOperacion(cont);
     }
 
     if (document.readyState === 'loading') {

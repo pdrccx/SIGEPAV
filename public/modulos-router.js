@@ -15,7 +15,12 @@
         'expediente': 'expediente.html',
         'respaldos': 'respaldos.html',
         'vales': 'vales.html',
-        'vales-historial': 'vales.html?tab=historial'
+        'vales-historial': 'vales.html?tab=historial',
+        'alertas': 'vencimientos.html',
+        'costos': 'costos.html',
+        'salud-flota': 'salud-flota.html',
+        'manual-sigepav': 'manual.html',
+        'configuracion': 'configuracion.html'
     };
 
     function moduloActual() {

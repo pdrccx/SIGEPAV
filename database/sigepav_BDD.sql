@@ -113,6 +113,7 @@ CREATE TABLE vehiculos (
     fecha_seguro        DATE            NULL DEFAULT NULL,
     activo              TINYINT(1)      NOT NULL DEFAULT 1,
     qr_token            VARCHAR(36)     NULL DEFAULT NULL,
+    qr_image_path       VARCHAR(300)    NULL DEFAULT NULL,    -- FIX: incluido en base (antes se agregaba por ALTER al final)
     created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uq_vehiculos_eco    (no_economico),
@@ -224,7 +225,7 @@ CREATE TABLE notificaciones (
     id          INT UNSIGNED    NOT NULL AUTO_INCREMENT,
     usuario_id  INT UNSIGNED    NOT NULL,
     titulo      VARCHAR(150)    NOT NULL DEFAULT 'Notificación',
-    cuerpo      TEXT            NOT NULL DEFAULT '',
+    cuerpo      TEXT            NOT NULL,                       -- FIX: TEXT no admite DEFAULT en MySQL 8.4 (sql_mode estricto)
     tipo        VARCHAR(50)     NOT NULL DEFAULT 'info',
     referencia_id INT UNSIGNED  NULL DEFAULT NULL,
     leida       TINYINT(1)      NOT NULL DEFAULT 0,
@@ -342,6 +343,26 @@ CREATE TABLE alertas (
         FOREIGN KEY (vehiculo_id) REFERENCES vehiculos (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
+-- -----------------------------------------------------------
+-- 11. mantenimiento_programado
+--  Intervalos de mantenimiento preventivo por vehículo.
+--  FIX (Módulo A): tabla nueva para el sistema de vencimientos.
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS mantenimiento_programado (
+    id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+    vehiculo_id     INT UNSIGNED    NOT NULL,
+    componente      VARCHAR(100)    NOT NULL,
+    intervalo_km    INT UNSIGNED    NULL DEFAULT NULL,
+    intervalo_meses TINYINT UNSIGNED NULL DEFAULT NULL,
+    ultimo_km       INT UNSIGNED    NULL DEFAULT NULL,
+    ultima_fecha    DATE            NULL DEFAULT NULL,
+    created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    INDEX idx_mp_vehiculo (vehiculo_id),
+    CONSTRAINT fk_mp_vehiculo
+        FOREIGN KEY (vehiculo_id) REFERENCES vehiculos (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================================
 --  FIN DE SECCIÓN 1 — Opción A (recreación completa)
@@ -501,6 +522,22 @@ ALTER TABLE alertas
     ADD COLUMN IF NOT EXISTS fecha_vencimiento DATE        NULL DEFAULT NULL,
     ADD COLUMN IF NOT EXISTS created_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
+-- 2.12  mantenimiento_programado — tabla nueva (Módulo A: Vencimientos)
+CREATE TABLE IF NOT EXISTS mantenimiento_programado (
+    id              INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+    vehiculo_id     INT UNSIGNED     NOT NULL,
+    componente      VARCHAR(100)     NOT NULL,
+    intervalo_km    INT UNSIGNED     NULL DEFAULT NULL,
+    intervalo_meses TINYINT UNSIGNED NULL DEFAULT NULL,
+    ultimo_km       INT UNSIGNED     NULL DEFAULT NULL,
+    ultima_fecha    DATE             NULL DEFAULT NULL,
+    created_at      DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    INDEX idx_mp_vehiculo (vehiculo_id),
+    CONSTRAINT fk_mp_vehiculo
+        FOREIGN KEY (vehiculo_id) REFERENCES vehiculos (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 */
 
 
@@ -546,8 +583,14 @@ CREATE TABLE IF NOT EXISTS reportes_ciudadanos (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- -----------------------------------------------------------
---  2. Agregar campos de evidencia/resolución si la tabla ya existía
+--  2 y 3. (NEUTRALIZADO para recreación en MySQL 8.4)
+--  Estos ALTER usaban "ADD COLUMN IF NOT EXISTS", sintaxis válida solo en
+--  MariaDB. En recreación completa son redundantes: reportes_ciudadanos ya
+--  se crea arriba con todas sus columnas, y qr_image_path ya está en la
+--  definición de la tabla vehiculos (Sección 1).
+--  Si necesitas migrar una base vieja en MariaDB, descomenta este bloque.
 -- -----------------------------------------------------------
+/*
 ALTER TABLE reportes_ciudadanos
     ADD COLUMN IF NOT EXISTS evidencia_origen VARCHAR(30) NULL DEFAULT NULL
         AFTER evidencia_url,
@@ -558,13 +601,10 @@ ALTER TABLE reportes_ciudadanos
     ADD COLUMN IF NOT EXISTS resuelto_at DATETIME NULL DEFAULT NULL
         AFTER comentario_admin;
 
--- -----------------------------------------------------------
---  3. Agregar qr_image_path a vehiculos si no existe
---  Guarda la ruta de la imagen PNG del QR generado.
--- -----------------------------------------------------------
 ALTER TABLE vehiculos
     ADD COLUMN IF NOT EXISTS qr_image_path VARCHAR(300) NULL DEFAULT NULL
         AFTER qr_token;
+*/
 
 --  4. Ciudadanos interesados en recibir liga al finalizar una comisión activa
 CREATE TABLE IF NOT EXISTS comision_interesados (

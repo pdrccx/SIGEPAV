@@ -28,18 +28,6 @@ const MODELOS_GEMINI = [
     "gemini-2.5-flash-preview-09-2025",
     "gemini-2.5-flash-lite-preview-09-2025",
 
-    // ===== Gemini 2.0 =====
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-001",
-    "gemini-2.0-flash-lite",
-    "gemini-2.0-flash-lite-001",
-    "gemini-2.0-flash-exp",
-    "gemini-2.0-pro-exp",
-    "gemini-2.0-pro-exp-02-05",
-    "gemini-2.0-flash-thinking-exp",
-    "gemini-2.0-flash-thinking-exp-01-21",
-    "gemini-2.0-flash-thinking-exp-1219",
-
     // ===== Gemini 1.5 (legacy, alta disponibilidad) =====
     "gemini-1.5-pro",
     "gemini-1.5-pro-latest",

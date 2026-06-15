@@ -500,11 +500,7 @@
                             window.location.href = 'Ia.html';
                             break;
                         case 'ayuda':
-                            if (typeof window.descargarManualSIGEPAV === 'function') {
-                                window.descargarManualSIGEPAV();
-                            } else {
-                                window.location.href = 'Manual_SIGEPAV.pdf';
-                            }
+                            window.location.href = 'manual.html';
                             break;
                     }
                     dropdownMenu.classList.remove('show');

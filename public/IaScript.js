@@ -51,11 +51,7 @@
                     if (opcion === 'iniciar-viaje' || opcion === 'historial') {
                         window.location.href = 'Usuario.html';
                     } else if (opcion === 'ayuda') {
-                        if (typeof window.descargarManualSIGEPAV === 'function') {
-                            window.descargarManualSIGEPAV();
-                        } else {
-                            window.location.href = 'Manual_SIGEPAV.pdf';
-                        }
+                        window.location.href = 'manual.html';
                     }
                     dropdownMenu.classList.remove('show');
                 });

@@ -55,10 +55,15 @@ const DB_CONFIG = {
     user:     process.env.DB_USER || 'sigepav_user',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'sigepav',
+    charset:  'utf8mb4_unicode_ci',   // evita "Illegal mix of collations" en MySQL 8.4 (default 0900_ai_ci)
     waitForConnections: true,
     connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '10', 10),
     queueLimit: 0,
     dateStrings: true,
+    // Fuerza la collation de la conexión a utf8mb4_unicode_ci (la misma con la que
+    // se crean las tablas). Evita el "Illegal mix of collations" en MySQL 8.4, cuya
+    // collation por defecto (utf8mb4_0900_ai_ci) no coincide con la de las columnas.
+    charset: 'utf8mb4_unicode_ci',
     ...(DB_SSL ? { ssl: { rejectUnauthorized: false } } : {})
 };
 
@@ -189,6 +194,8 @@ function subirFotoPerfil(req, res, next) {
         await asegurarTablaMantenimiento();
         await asegurarCatalogoINEGI();
         await asegurarModuloRespaldos();
+        await asegurarVencimientos();
+        await asegurarConfiguracion();
         await repararNumerosEconomicosTemporales();
         // Garantiza que cada vehículo activo tenga qr_token + qr_image_path.
         // Regenera el PNG si BASE_URL cambió desde el último arranque.
@@ -468,6 +475,33 @@ async function asegurarTablaMantenimiento() {
         console.log('✅ Tabla mantenimiento_observaciones lista.');
     } catch (err) {
         console.warn('⚠️  asegurarTablaMantenimiento:', err.message);
+    }
+}
+
+// =====================================================================
+//  Módulo A — Vencimientos: asegurar tabla mantenimiento_programado
+// =====================================================================
+async function asegurarVencimientos() {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS mantenimiento_programado (
+                id              INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+                vehiculo_id     INT UNSIGNED     NOT NULL,
+                componente      VARCHAR(100)     NOT NULL,
+                intervalo_km    INT UNSIGNED     NULL DEFAULT NULL,
+                intervalo_meses TINYINT UNSIGNED NULL DEFAULT NULL,
+                ultimo_km       INT UNSIGNED     NULL DEFAULT NULL,
+                ultima_fecha    DATE             NULL DEFAULT NULL,
+                created_at      DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                INDEX idx_mp_vehiculo (vehiculo_id),
+                CONSTRAINT fk_mp_vehiculo
+                    FOREIGN KEY (vehiculo_id) REFERENCES vehiculos(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        `);
+        console.log('✅ Tabla mantenimiento_programado lista.');
+    } catch (err) {
+        console.warn('⚠️  asegurarVencimientos:', err.message);
     }
 }
 
@@ -1734,7 +1768,7 @@ function modelosGeminiPreferidos() {
     }
 
     const desdeConfig = leerGeminiDesdeConfigJs().modelos;
-    const preferidosSeguros = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+    const preferidosSeguros = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-flash'];
     const combinados = [...preferidosSeguros, ...desdeConfig];
     return [...new Set(combinados.filter(Boolean))];
 }
@@ -2037,6 +2071,248 @@ app.post('/api/ia/mantenimiento', async (req, res) => {
         const status = err.statusCode || 500;
         console.error('Error POST /api/ia/mantenimiento:', err.message);
         res.status(status).json({ ok: false, error: status === 500 ? 'No fue posible generar el análisis de mantenimiento.' : err.message });
+    }
+});
+
+// =====================================================================
+//   MÓDULO D — IA PREDICTIVA DE FLOTA
+//   Analiza TODO el parque y rankea "quién va al taller primero".
+//   Doble capa: (1) motor de reglas local que siempre funciona, con un
+//   score de urgencia por vehículo; (2) Gemini redacta el análisis
+//   ejecutivo SOBRE ese ranking, anclado a los números económicos reales.
+// =====================================================================
+
+// Señales de falla detectables en las notas informales del comisionado.
+// Se evalúan sobre el texto normalizado (sin acentos, minúsculas).
+const IA_SENALES_FALLA = [
+    { cat: 'Transmisión',        kw: ['no metio', 'no entra', 'cuarta', 'tercera', 'quinta', 'segunda', 'la marcha', 'cambios', 'velocidad cuesta'] },
+    { cat: 'Embrague',           kw: ['clutch', 'embrague', 'patina'] },
+    { cat: 'Frenos',             kw: ['freno', 'chillido', 'balata', 'rechina'] },
+    { cat: 'Sobrecalentamiento', kw: ['temperatura', 'se calienta', 'calienta', 'no enfria', 'humo', 'quemado', 'hierve'] },
+    { cat: 'Fuga',               kw: ['fuga', 'gotea', 'goteo', 'mancha de aceite', 'tira aceite'] },
+    { cat: 'Ruido/Vibración',    kw: ['ruido', 'vibra', 'vibracion', 'desbalanceado', 'traqueteo', 'cascabeleo'] },
+    { cat: 'Falla general',      kw: ['falla', 'fallo', 'jalo feo', 'jala feo', 'se apago', 'no arranca', 'tiron', 'jalones'] },
+];
+
+function iaDetectarSenalesNota(texto) {
+    const norm = iaNormalizarTexto(texto || '');
+    if (!norm) return [];
+    const cats = [];
+    for (const s of IA_SENALES_FALLA) {
+        if (s.kw.some(k => norm.includes(iaNormalizarTexto(k)))) cats.push(s.cat);
+    }
+    return [...new Set(cats)];
+}
+
+// Junta, en pocas queries, todo lo que el score necesita por vehículo.
+async function obtenerDatosParquePredictivo() {
+    const [vehiculos] = await pool.query(
+        `SELECT id, no_economico, marca, linea, modelo, tipo, km_actual
+           FROM vehiculos WHERE activo = 1 ORDER BY no_economico`
+    );
+    const [programados] = await pool.query(`SELECT * FROM mantenimiento_programado`);
+    const [observaciones] = await pool.query(
+        `SELECT vehiculo_id, componente, severidad, estado, descripcion, created_at
+           FROM mantenimiento_observaciones ORDER BY created_at DESC`
+    );
+    const [viajes] = await pool.query(
+        `SELECT vehiculo_id, no_vale, lugar_destino, observaciones, fecha_inicio
+           FROM viajes
+          WHERE observaciones IS NOT NULL AND observaciones <> ''
+          ORDER BY COALESCE(fecha_fin, fecha_inicio, created_at) DESC`
+    );
+    // Costo acumulado por vehículo (combustible + mantenimiento), igual que Módulo B.
+    const [costos] = await pool.query(
+        `SELECT v.id,
+                COALESCE(c.comb,0) + COALESCE(m.mant,0) AS costo_total
+           FROM vehiculos v
+           LEFT JOIN (SELECT vehiculo_id, SUM(costo) comb FROM vales_combustible GROUP BY vehiculo_id) c ON c.vehiculo_id = v.id
+           LEFT JOIN (SELECT vehiculo_id, SUM(costo) mant FROM mantenimiento_observaciones GROUP BY vehiculo_id) m ON m.vehiculo_id = v.id
+          WHERE v.activo = 1`
+    );
+    return { vehiculos, programados, observaciones, viajes, costos };
+}
+
+// Calcula el ranking local de urgencia. SIEMPRE funciona, sin IA.
+function calcularRankingParque(datos) {
+    const anioActual = new Date().getFullYear();
+    const costoMap = {};
+    datos.costos.forEach(c => { costoMap[c.id] = Number(c.costo_total) || 0; });
+    const costoMax = Math.max(1, ...Object.values(costoMap));
+
+    const ranking = datos.vehiculos.map(v => {
+        const razones = [];
+        const notas = [];
+        let score = 0;
+
+        // (1) Km para el próximo servicio (de mantenimiento_programado).
+        const mps = datos.programados.filter(p => p.vehiculo_id === v.id);
+        let kmFaltante = null;
+        for (const mp of mps) {
+            if (mp.intervalo_km && mp.ultimo_km != null) {
+                const f = (Number(mp.ultimo_km) + Number(mp.intervalo_km)) - Number(v.km_actual);
+                if (kmFaltante === null || f < kmFaltante) kmFaltante = f;
+            }
+        }
+        if (kmFaltante !== null) {
+            if (kmFaltante <= 0)      { score += 40; razones.push(`Servicio VENCIDO por ${Math.abs(kmFaltante).toLocaleString('es-MX')} km`); }
+            else if (kmFaltante <= 1000) { score += 25; razones.push(`Servicio próximo: faltan ${kmFaltante.toLocaleString('es-MX')} km`); }
+            else if (kmFaltante <= 2000) { score += 10; razones.push(`Servicio se acerca (${kmFaltante.toLocaleString('es-MX')} km)`); }
+        }
+
+        // (2) Observaciones de taller pendientes/críticas.
+        const obs = datos.observaciones.filter(o => o.vehiculo_id === v.id);
+        const criticas = obs.filter(o => ['alta', 'critica'].includes(String(o.severidad || '').toLowerCase()) && ['pendiente', 'en_revision'].includes(String(o.estado || '').toLowerCase()));
+        const pendientes = obs.filter(o => ['pendiente', 'en_revision'].includes(String(o.estado || '').toLowerCase()));
+        if (criticas.length)   { score += criticas.length * 20; razones.push(`${criticas.length} observación(es) crítica(s) en taller: ${[...new Set(criticas.map(c => c.componente))].join(', ')}`); }
+        const pendNoCrit = pendientes.length - criticas.length;
+        if (pendNoCrit > 0)    { score += pendNoCrit * 8; razones.push(`${pendNoCrit} observación(es) pendiente(s)`); }
+
+        // (3) Notas de falla del comisionado (lenguaje informal).
+        for (const vj of datos.viajes.filter(t => t.vehiculo_id === v.id)) {
+            const cats = iaDetectarSenalesNota(vj.observaciones);
+            if (cats.length) {
+                score += 15;
+                notas.push({ nota: vj.observaciones, categorias: cats, destino: vj.lugar_destino, vale: vj.no_vale });
+            }
+        }
+        if (notas.length) {
+            const cats = [...new Set(notas.flatMap(n => n.categorias))];
+            razones.push(`Reportes del operador: ${cats.join(', ')}`);
+        }
+
+        // (4) Antigüedad de la unidad.
+        const edad = v.modelo ? anioActual - Number(v.modelo) : null;
+        if (edad !== null) {
+            if (edad >= 25)      { score += 12; razones.push(`Unidad muy antigua (${edad} años)`); }
+            else if (edad >= 15) { score += 8;  razones.push(`Unidad antigua (${edad} años)`); }
+            else if (edad >= 10) { score += 4; }
+        }
+
+        // (5) Alto costo de operación (relativo a la flota).
+        const costo = costoMap[v.id] || 0;
+        if (costo >= costoMax * 0.66 && costo > 0) { score += 10; razones.push(`Alto costo de operación acumulado ($${costo.toLocaleString('es-MX')})`); }
+
+        const nivel = score >= 50 ? 'critico' : score >= 25 ? 'medio' : 'bajo';
+        return {
+            vehiculo_id: v.id, no_economico: v.no_economico,
+            marca: v.marca, linea: v.linea, modelo: v.modelo,
+            km_actual: Number(v.km_actual) || 0,
+            score, nivel, razones, notas,
+            km_faltante: kmFaltante,
+        };
+    });
+
+    ranking.sort((a, b) => b.score - a.score);
+    return ranking;
+}
+
+// Texto ejecutivo local (sin IA) sobre el top del ranking.
+function generarAnalisisParqueLocal(ranking) {
+    const criticos = ranking.filter(r => r.nivel === 'critico');
+    const medios   = ranking.filter(r => r.nivel === 'medio');
+    const top = ranking.filter(r => r.score > 0).slice(0, 3);
+
+    if (!top.length) {
+        return 'El sistema no detecta unidades con urgencia de mantenimiento en este momento: la flota opera dentro de parámetros normales. Se recomienda conservar la bitácora preventiva después de cada comisión.';
+    }
+    const frases = top.map(r =>
+        `la unidad ${r.no_economico} (${r.marca} ${r.linea}) ${r.razones[0] ? '— ' + r.razones[0].toLowerCase() : ''}`
+    );
+    let txt = `El análisis de la flota prioriza ${criticos.length} unidad(es) en estado crítico y ${medios.length} en estado medio. `;
+    txt += `Atención prioritaria para ${frases.join('; ')}. `;
+    txt += `Se recomienda agendar estas unidades al taller antes de asignarles nuevas comisiones para evitar fallas en ruta.`;
+    return txt;
+}
+
+function construirPromptParqueIA(ranking) {
+    const top = ranking.filter(r => r.score > 0).slice(0, 5);
+    const lista = top.map(r => {
+        const notasTxt = r.notas.map(n => `"${n.nota}" (posible: ${n.categorias.join('/')})`).join('; ');
+        return `- Unidad ${r.no_economico} (${r.marca} ${r.linea} ${r.modelo}), score ${r.score}, nivel ${r.nivel}. Señales: ${r.razones.join('; ') || 'ninguna'}.${notasTxt ? ' Reportes del operador: ' + notasTxt : ''}`;
+    }).join('\n');
+
+    return `Eres un analista de mantenimiento de flotas vehiculares. El sistema SIGEPAV ya calculó un ranking de urgencia de mantenimiento; tu tarea es redactar un análisis ejecutivo en español, formal y accionable, en máximo 2 párrafos. NO inventes unidades ni datos: usa SOLO las unidades listadas, nombrándolas por su número económico.
+
+Ranking de urgencia (de mayor a menor), ya calculado por el sistema:
+${lista || 'Sin unidades con urgencia detectada.'}
+
+Instrucciones:
+1. Menciona por número económico las unidades más urgentes y por qué (km de servicio, observaciones de taller, reportes del operador, antigüedad o costo).
+2. Cuando un operador reportó algo en lenguaje informal (ej. "no metió la cuarta"), interprétalo técnicamente (ej. posible falla de transmisión/embrague).
+3. Cierra con una recomendación de acción para el administrador de la flota.
+4. No uses viñetas: prosa en máximo 2 párrafos.`;
+}
+
+async function consultarGeminiParque(ranking) {
+    const top = ranking.filter(r => r.score > 0).slice(0, 5);
+    if (!top.length) return null;
+
+    const configGemini = leerGeminiDesdeConfigJs();
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_AI_API_KEY || configGemini.apiKey;
+    if (!apiKey || typeof fetch !== 'function') return null;
+
+    const prompt = construirPromptParqueIA(ranking);
+    // Anclaje: la respuesta DEBE referirse al menos al top-3 por su núm. económico.
+    const requeridos = top.slice(0, 3).map(r => String(r.no_economico).trim()).filter(Boolean);
+
+    for (const modelo of modelosGeminiPreferidos()) {
+        try {
+            const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelo)}:generateContent`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.25, topP: 0.9, maxOutputTokens: 500 }
+                })
+            });
+            const data = await resp.json().catch(() => ({}));
+            if (!resp.ok) {
+                console.warn(`Gemini parque ${modelo} no respondió (${resp.status}):`, data?.error?.message || resp.statusText);
+                continue;
+            }
+            const texto = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('\n').trim();
+            if (!texto) continue;
+
+            // Validación de anclaje contra los números económicos reales.
+            const norm = iaNormalizarTexto(texto);
+            const mencionaTop = requeridos.every(eco => norm.includes(iaNormalizarTexto(eco)));
+            if (!mencionaTop) {
+                console.warn(`Gemini parque ${modelo} no referenció las unidades reales del ranking; se usa el análisis local.`);
+                continue;
+            }
+            return { texto, modelo };
+        } catch (err) {
+            console.warn(`Error consultando Gemini parque ${modelo}:`, err.message);
+        }
+    }
+    return null;
+}
+
+// GET /api/ia/parque/predictivo — ranking + análisis ejecutivo (IA o local).
+app.get('/api/ia/parque/predictivo', async (req, res) => {
+    try {
+        const datos = await obtenerDatosParquePredictivo();
+        const ranking = calcularRankingParque(datos);
+        const local = generarAnalisisParqueLocal(ranking);
+        const gemini = await consultarGeminiParque(ranking);
+        res.json({
+            ok: true,
+            generado: new Date().toISOString(),
+            fuente: gemini ? 'gemini' : 'local',
+            modelo: gemini?.modelo || 'Motor predictivo SIGEPAV local',
+            analisis: gemini?.texto || local,
+            resumen: {
+                total: ranking.length,
+                criticos: ranking.filter(r => r.nivel === 'critico').length,
+                medios:   ranking.filter(r => r.nivel === 'medio').length,
+                bajos:    ranking.filter(r => r.nivel === 'bajo').length,
+            },
+            ranking
+        });
+    } catch (err) {
+        console.error('Error GET /api/ia/parque/predictivo:', err);
+        res.status(500).json({ ok: false, error: 'No fue posible generar el análisis predictivo de la flota.' });
     }
 });
 
@@ -5168,12 +5444,19 @@ async function asegurarCatalogoINEGI() {
         // Seed de localidades (catálogo INEGI completo) — si la tabla está vacía
         const [[{ n: nLoc }]] = await pool.query(`SELECT COUNT(*) AS n FROM cat_localidades`);
         if (nLoc === 0) {
-            const fLoc = path.join(__dirname, 'seed', 'localidades.json');
-            if (fs.existsSync(fLoc)) {
+            // Acepta el archivo comprimido (.gz, ~6MB) o el .json plano (~36MB).
+            const fLocGz = path.join(__dirname, 'seed', 'localidades.json.gz');
+            const fLoc   = path.join(__dirname, 'seed', 'localidades.json');
+            const usarGz = fs.existsSync(fLocGz);
+            if (usarGz || fs.existsSync(fLoc)) {
                 console.log('📦 Sembrando catálogo de localidades INEGI (304k aprox)...');
                 console.log('   ⚠️  Esto puede tardar 30-90 segundos. Solo ocurre la primera vez.');
                 const t0 = Date.now();
-                const locs = JSON.parse(fs.readFileSync(fLoc, 'utf8'));
+                const zlib = require('zlib');
+                const crudoLoc = usarGz
+                    ? zlib.gunzipSync(fs.readFileSync(fLocGz)).toString('utf8')
+                    : fs.readFileSync(fLoc, 'utf8');
+                const locs = JSON.parse(crudoLoc);
 
                 // Mapa: cve_ent + cve_mun → municipio_id (toda la república)
                 const [filasMun] = await pool.query(`
@@ -5212,7 +5495,7 @@ async function asegurarCatalogoINEGI() {
                 const seg = ((Date.now() - t0) / 1000).toFixed(1);
                 console.log(`✅ ${metidas} localidades sembradas en ${seg}s${omitidas ? ` (${omitidas} omitidas por municipio no encontrado)` : ''}.`);
             } else {
-                console.warn('⚠️  /seed/localidades.json no existe — sin localidades.');
+                console.warn('⚠️  /seed/localidades.json(.gz) no existe — sin localidades.');
             }
         } else {
             console.log(`✅ Localidades ya cargadas (${nLoc}).`);
@@ -5526,6 +5809,388 @@ app.delete('/api/respaldos/:id', async (req, res) => {
     }
 });
 
+// =====================================================================
+//  MÓDULO A — Vencimientos y alertas inteligentes
+// =====================================================================
+
+// GET /api/vencimientos
+// Devuelve todos los vehículos activos con sus fechas y semáforo calculado.
+// semaforo: 'verde' (≥30 días), 'amarillo' (15–29 días), 'rojo' (<15 o vencido/null)
+app.get('/api/vencimientos', async (req, res) => {
+    try {
+        const hoy = new Date();
+        const [vehiculos] = await pool.query(
+            `SELECT id, no_economico, marca, linea, modelo, placas,
+                    fecha_tenencia, fecha_verificacion, fecha_seguro, km_actual
+               FROM vehiculos WHERE activo = 1 ORDER BY no_economico`
+        );
+
+        const [programados] = await pool.query(
+            `SELECT mp.*, v.km_actual
+               FROM mantenimiento_programado mp
+               JOIN vehiculos v ON v.id = mp.vehiculo_id
+              WHERE v.activo = 1`
+        );
+
+        function diasHasta(fecha) {
+            if (!fecha) return null;
+            const d = new Date(fecha);
+            return Math.floor((d - hoy) / 86400000);
+        }
+
+        function semaforo(dias) {
+            if (dias === null) return 'rojo';
+            if (dias < 15)  return 'rojo';
+            if (dias < 30)  return 'amarillo';
+            return 'verde';
+        }
+
+        const resultado = vehiculos.map(v => {
+            const ten = diasHasta(v.fecha_tenencia);
+            const ver = diasHasta(v.fecha_verificacion);
+            const seg = diasHasta(v.fecha_seguro);
+
+            const mantVehiculo = programados
+                .filter(mp => mp.vehiculo_id === v.id)
+                .map(mp => {
+                    let diasMant = null;
+                    if (mp.intervalo_meses && mp.ultima_fecha) {
+                        const proxFecha = new Date(mp.ultima_fecha);
+                        proxFecha.setMonth(proxFecha.getMonth() + mp.intervalo_meses);
+                        diasMant = Math.floor((proxFecha - hoy) / 86400000);
+                    }
+                    let kmRestantes = null;
+                    if (mp.intervalo_km && mp.ultimo_km != null) {
+                        kmRestantes = (mp.ultimo_km + mp.intervalo_km) - v.km_actual;
+                    }
+                    return {
+                        id: mp.id,
+                        componente: mp.componente,
+                        intervalo_km: mp.intervalo_km,
+                        intervalo_meses: mp.intervalo_meses,
+                        ultimo_km: mp.ultimo_km,
+                        ultima_fecha: mp.ultima_fecha,
+                        dias_para_mantenimiento: diasMant,
+                        km_restantes: kmRestantes,
+                        semaforo: semaforo(diasMant ?? (kmRestantes !== null ? (kmRestantes < 500 ? -1 : kmRestantes < 1000 ? 20 : 40) : null))
+                    };
+                });
+
+            const semaforoGeneral = [ten, ver, seg]
+                .reduce((peor, d) => {
+                    const s = semaforo(d);
+                    if (s === 'rojo') return 'rojo';
+                    if (s === 'amarillo' && peor !== 'rojo') return 'amarillo';
+                    return peor;
+                }, 'verde');
+
+            return {
+                id: v.id,
+                no_economico: v.no_economico,
+                marca: v.marca,
+                linea: v.linea,
+                modelo: v.modelo,
+                placas: v.placas,
+                km_actual: v.km_actual,
+                fecha_tenencia: v.fecha_tenencia,
+                dias_tenencia: ten,
+                semaforo_tenencia: semaforo(ten),
+                fecha_verificacion: v.fecha_verificacion,
+                dias_verificacion: ver,
+                semaforo_verificacion: semaforo(ver),
+                fecha_seguro: v.fecha_seguro,
+                dias_seguro: seg,
+                semaforo_seguro: semaforo(seg),
+                semaforo_general: semaforoGeneral,
+                mantenimiento: mantVehiculo
+            };
+        });
+
+        // Ordenar: rojos primero, luego amarillos, luego verdes
+        const orden = { rojo: 0, amarillo: 1, verde: 2 };
+        resultado.sort((a, b) => orden[a.semaforo_general] - orden[b.semaforo_general]);
+
+        res.json({ ok: true, datos: resultado });
+    } catch (err) {
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// GET /api/mantenimiento-programado?vehiculo_id=X
+app.get('/api/mantenimiento-programado', async (req, res) => {
+    try {
+        const { vehiculo_id } = req.query;
+        let sql = `SELECT mp.*, v.no_economico, v.marca, v.linea
+                     FROM mantenimiento_programado mp
+                     JOIN vehiculos v ON v.id = mp.vehiculo_id`;
+        const params = [];
+        if (vehiculo_id) { sql += ' WHERE mp.vehiculo_id = ?'; params.push(vehiculo_id); }
+        sql += ' ORDER BY mp.vehiculo_id, mp.componente';
+        const [rows] = await pool.query(sql, params);
+        res.json({ ok: true, datos: rows });
+    } catch (err) {
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// POST /api/mantenimiento-programado
+app.post('/api/mantenimiento-programado', async (req, res) => {
+    try {
+        const { vehiculo_id, componente, intervalo_km, intervalo_meses, ultimo_km, ultima_fecha } = req.body;
+        if (!vehiculo_id || !componente) return res.status(400).json({ ok: false, error: 'vehiculo_id y componente son requeridos.' });
+        const [r] = await pool.query(
+            `INSERT INTO mantenimiento_programado (vehiculo_id, componente, intervalo_km, intervalo_meses, ultimo_km, ultima_fecha)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [vehiculo_id, componente, intervalo_km || null, intervalo_meses || null, ultimo_km || null, ultima_fecha || null]
+        );
+        res.json({ ok: true, id: r.insertId });
+    } catch (err) {
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// PUT /api/mantenimiento-programado/:id
+app.put('/api/mantenimiento-programado/:id', async (req, res) => {
+    try {
+        const { componente, intervalo_km, intervalo_meses, ultimo_km, ultima_fecha } = req.body;
+        await pool.query(
+            `UPDATE mantenimiento_programado
+                SET componente = ?, intervalo_km = ?, intervalo_meses = ?, ultimo_km = ?, ultima_fecha = ?
+              WHERE id = ?`,
+            [componente, intervalo_km || null, intervalo_meses || null, ultimo_km || null, ultima_fecha || null, req.params.id]
+        );
+        res.json({ ok: true });
+    } catch (err) {
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// DELETE /api/mantenimiento-programado/:id
+app.delete('/api/mantenimiento-programado/:id', async (req, res) => {
+    try {
+        await pool.query(`DELETE FROM mantenimiento_programado WHERE id = ?`, [req.params.id]);
+        res.json({ ok: true });
+    } catch (err) {
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// POST /api/mantenimiento-programado/:id/registrar-servicio
+// El admin registra un servicio realizado: (1) reinicia el contador
+// (ultimo_km/ultima_fecha), (2) sube el km del vehículo si el odómetro es
+// mayor, (3) guarda el servicio como observación resuelta con su costo,
+// que se refleja automáticamente en el Módulo B (costos por vehículo).
+app.post('/api/mantenimiento-programado/:id/registrar-servicio', async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        const { km, fecha, costo, nota, usuario_id } = req.body || {};
+        if (km === undefined || km === null || km === '' || isNaN(Number(km))) {
+            return res.status(400).json({ ok: false, error: 'El kilometraje del odómetro es obligatorio.' });
+        }
+        const kmNum = Number(km);
+        const fechaServicio = fecha || new Date().toISOString().slice(0, 10);
+
+        const [[mp]] = await pool.query(
+            `SELECT vehiculo_id, componente FROM mantenimiento_programado WHERE id = ?`, [id]
+        );
+        if (!mp) return res.status(404).json({ ok: false, error: 'Intervalo de mantenimiento no encontrado.' });
+
+        // (1) Reinicia el contador del servicio.
+        await pool.query(
+            `UPDATE mantenimiento_programado SET ultimo_km = ?, ultima_fecha = ? WHERE id = ?`,
+            [kmNum, fechaServicio, id]
+        );
+        // (2) Sube el km del vehículo si el odómetro capturado es mayor.
+        await pool.query(
+            `UPDATE vehiculos SET km_actual = GREATEST(km_actual, ?) WHERE id = ?`,
+            [kmNum, mp.vehiculo_id]
+        );
+        // (3) Registra el servicio como observación resuelta (con costo → Módulo B).
+        let usuarioId = Number(usuario_id) || null;
+        if (!usuarioId) {
+            const [[adm]] = await pool.query(`SELECT id FROM usuarios WHERE rol_id = 1 AND activo = 1 ORDER BY id LIMIT 1`);
+            usuarioId = adm ? adm.id : null;
+        }
+        await pool.query(
+            `INSERT INTO mantenimiento_observaciones
+                (vehiculo_id, usuario_id, componente, km_reporte, severidad, descripcion, estado, costo, resolucion, fecha_resolucion)
+             VALUES (?, ?, ?, ?, 'baja', ?, 'resuelto', ?, ?, ?)`,
+            [mp.vehiculo_id, usuarioId, mp.componente, kmNum,
+             `Servicio preventivo realizado: ${mp.componente}`,
+             Number(costo) || 0, nota || 'Servicio preventivo registrado.', fechaServicio]
+        );
+
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('Error POST registrar-servicio:', err);
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// =====================================================================
+//   MÓDULO F — Configuración / modo de operación (público | privado)
+//   El mismo núcleo sirve para sector público (transparencia ciudadana)
+//   y privado (flotilla). En modo privado se oculta el módulo ciudadano.
+// =====================================================================
+async function asegurarConfiguracion() {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS configuracion (
+            clave VARCHAR(60) NOT NULL,
+            valor TEXT NULL,
+            PRIMARY KEY (clave)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+    await pool.query(
+        `INSERT INTO configuracion (clave, valor) VALUES ('MODO_OPERACION', 'publico')
+         ON DUPLICATE KEY UPDATE clave = clave`
+    );
+    console.log('✅ Tabla configuracion lista.');
+}
+
+const CONFIG_CLAVES_VALIDAS = ['MODO_OPERACION', 'NOMBRE_ORGANIZACION'];
+
+// GET /api/configuracion — devuelve toda la configuración como objeto.
+app.get('/api/configuracion', async (req, res) => {
+    try {
+        const [rows] = await pool.query(`SELECT clave, valor FROM configuracion`);
+        const config = {};
+        rows.forEach(r => { config[r.clave] = r.valor; });
+        if (!config.MODO_OPERACION) config.MODO_OPERACION = 'publico';
+        res.json({ ok: true, config });
+    } catch (err) {
+        console.error('Error GET /api/configuracion:', err);
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// PUT /api/configuracion — actualiza una o varias claves permitidas.
+app.put('/api/configuracion', async (req, res) => {
+    try {
+        const cambios = req.body || {};
+        for (const [clave, valor] of Object.entries(cambios)) {
+            if (!CONFIG_CLAVES_VALIDAS.includes(clave)) continue;
+            if (clave === 'MODO_OPERACION' && !['publico', 'privado'].includes(String(valor))) {
+                return res.status(400).json({ ok: false, error: 'MODO_OPERACION debe ser "publico" o "privado".' });
+            }
+            await pool.query(
+                `INSERT INTO configuracion (clave, valor) VALUES (?, ?)
+                 ON DUPLICATE KEY UPDATE valor = VALUES(valor)`,
+                [clave, valor == null ? null : String(valor)]
+            );
+        }
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('Error PUT /api/configuracion:', err);
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// =====================================================================
+//  MÓDULO B — Costos por vehículo
+// =====================================================================
+
+// GET /api/costos/vehiculos
+app.get('/api/costos/vehiculos', async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT
+                v.id,
+                v.no_economico,
+                v.marca,
+                v.linea,
+                v.modelo,
+                v.placas,
+                v.km_actual,
+                COALESCE(comb.total_costo_comb, 0)  AS costo_combustible,
+                COALESCE(comb.total_litros, 0)       AS litros_total,
+                COALESCE(mant.total_costo_mant, 0)   AS costo_mantenimiento,
+                COALESCE(km.km_recorridos, 0)        AS km_recorridos,
+                ROUND(
+                    (COALESCE(comb.total_costo_comb, 0) + COALESCE(mant.total_costo_mant, 0))
+                    / NULLIF(COALESCE(km.km_recorridos, 0), 0),
+                2)                                   AS costo_por_km
+            FROM vehiculos v
+            LEFT JOIN (
+                SELECT vehiculo_id,
+                       SUM(costo)  AS total_costo_comb,
+                       SUM(litros) AS total_litros
+                  FROM vales_combustible
+                 WHERE vehiculo_id IS NOT NULL
+                 GROUP BY vehiculo_id
+            ) comb ON comb.vehiculo_id = v.id
+            LEFT JOIN (
+                SELECT vehiculo_id,
+                       SUM(costo) AS total_costo_mant
+                  FROM mantenimiento_observaciones
+                 GROUP BY vehiculo_id
+            ) mant ON mant.vehiculo_id = v.id
+            LEFT JOIN (
+                SELECT vehiculo_id,
+                       SUM(km_final - km_inicial) AS km_recorridos
+                  FROM viajes
+                 WHERE estado = 'Finalizado'
+                   AND km_final IS NOT NULL
+                   AND km_final > km_inicial
+                 GROUP BY vehiculo_id
+            ) km ON km.vehiculo_id = v.id
+            WHERE v.activo = 1
+            ORDER BY (COALESCE(comb.total_costo_comb, 0) + COALESCE(mant.total_costo_mant, 0)) DESC
+        `);
+        res.json({ ok: true, datos: rows });
+    } catch (err) {
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// GET /api/costos/vehiculos/:id  — detalle de un vehículo
+app.get('/api/costos/vehiculos/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const [[vehiculo]] = await pool.query(
+            `SELECT id, no_economico, marca, linea, modelo, placas, km_actual
+               FROM vehiculos WHERE id = ? AND activo = 1`, [id]
+        );
+        if (!vehiculo) return res.status(404).json({ ok: false, error: 'Vehículo no encontrado.' });
+
+        const [combustible] = await pool.query(
+            `SELECT fecha_recarga, litros, precio_litro, costo, ticket_no, observaciones
+               FROM vales_combustible WHERE vehiculo_id = ? ORDER BY fecha_recarga DESC`, [id]
+        );
+        const [mantenimiento] = await pool.query(
+            `SELECT componente, severidad, costo, estado, created_at
+               FROM mantenimiento_observaciones WHERE vehiculo_id = ? ORDER BY created_at DESC`, [id]
+        );
+        const [viajes] = await pool.query(
+            `SELECT id, fecha_inicio, fecha_fin, km_inicial, km_final,
+                    (km_final - km_inicial) AS km_recorridos, lugar_destino
+               FROM viajes WHERE vehiculo_id = ? AND estado = 'Finalizado'
+                AND km_final IS NOT NULL AND km_final > km_inicial
+               ORDER BY fecha_inicio DESC`, [id]
+        );
+
+        const totalComb = combustible.reduce((s, r) => s + Number(r.costo), 0);
+        const totalMant = mantenimiento.reduce((s, r) => s + Number(r.costo), 0);
+        const totalKm   = viajes.reduce((s, r) => s + Number(r.km_recorridos), 0);
+
+        res.json({
+            ok: true,
+            vehiculo,
+            resumen: {
+                costo_combustible: totalComb,
+                costo_mantenimiento: totalMant,
+                costo_total: totalComb + totalMant,
+                km_recorridos: totalKm,
+                costo_por_km: totalKm > 0 ? Math.round((totalComb + totalMant) / totalKm * 100) / 100 : null
+            },
+            combustible,
+            mantenimiento,
+            viajes
+        });
+    } catch (err) {
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
 // ----- Cron diario simple (sin dependencias) ---------------------------
 // Corre cada 60s y dispara un respaldo si:
 //   a) es 02:00–02:01, y
@@ -5552,6 +6217,160 @@ setInterval(async () => {
         console.log(`✅ Respaldo automático listo: ${r.nombre} (${r.tamano_bytes} bytes)`);
     } catch (err) {
         console.warn('⚠️  Cron de respaldos falló:', err.message);
+    }
+}, 60 * 1000);
+
+// ----- Vencimientos (Módulo A): generación de alertas + correo --------
+// Idempotente: borra las alertas auto-generadas y las regenera desde el
+// estado actual de la flota. Así re-ejecutar el job NO duplica alertas
+// (la tabla `alertas` no tiene UNIQUE key, por eso no se usa ON DUPLICATE).
+async function procesarAlertasVencimientos({ enviarCorreo = false } = {}) {
+    const [vehiculos] = await pool.query(
+        `SELECT id, no_economico, marca, linea, fecha_tenencia, fecha_verificacion,
+                fecha_seguro, km_actual
+           FROM vehiculos WHERE activo = 1`
+    );
+    const [programados] = await pool.query(`SELECT * FROM mantenimiento_programado`);
+
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    const diasHasta = (fecha) => {
+        if (!fecha) return null;
+        const f = new Date(String(fecha).slice(0, 10) + 'T00:00:00');
+        if (isNaN(f.getTime())) return null;
+        return Math.round((f - hoy) / 86400000);
+    };
+
+    // 1) Limpiar las alertas automáticas previas (solo los tipos que este job administra).
+    await pool.query(
+        `DELETE FROM alertas WHERE tipo IN ('tenencia','verificacion','seguro','mantenimiento')`
+    );
+
+    // 2) Regenerar alertas vigentes (ventana de 30 días o ya vencido).
+    const alertas = [];
+    for (const v of vehiculos) {
+        const docs = [
+            { tipo: 'tenencia',     fecha: v.fecha_tenencia },
+            { tipo: 'verificacion', fecha: v.fecha_verificacion },
+            { tipo: 'seguro',       fecha: v.fecha_seguro },
+        ];
+        for (const d of docs) {
+            const dias = diasHasta(d.fecha);
+            if (dias === null || dias > 30) continue;
+            const f = String(d.fecha).slice(0, 10);
+            const desc = `Unidad ${v.no_economico}: ${d.tipo} ${dias < 0 ? 'vencida hace ' + Math.abs(dias) + ' días' : 'vence en ' + dias + ' días'} (${f})`;
+            await pool.query(
+                `INSERT INTO alertas (vehiculo_id, tipo, descripcion, estado, fecha_vencimiento)
+                 VALUES (?, ?, ?, 'activa', ?)`,
+                [v.id, d.tipo, desc, f]
+            );
+            alertas.push({ eco: v.no_economico, tipo: d.tipo, dias, rojo: dias < 15 });
+        }
+
+        // Mantenimiento programado (por km y/o por fecha).
+        for (const mp of programados.filter(p => p.vehiculo_id === v.id)) {
+            let kmRest = null, dias = null;
+            if (mp.intervalo_km && mp.ultimo_km != null) {
+                kmRest = (Number(mp.ultimo_km) + Number(mp.intervalo_km)) - Number(v.km_actual);
+            }
+            if (mp.intervalo_meses && mp.ultima_fecha) {
+                const f = new Date(String(mp.ultima_fecha).slice(0, 10) + 'T00:00:00');
+                if (!isNaN(f.getTime())) {
+                    f.setMonth(f.getMonth() + Number(mp.intervalo_meses));
+                    dias = Math.round((f - hoy) / 86400000);
+                }
+            }
+            const criticoKm  = kmRest !== null && kmRest <= 1000;
+            const criticoDia = dias   !== null && dias <= 30;
+            if (!criticoKm && !criticoDia) continue;
+            const detalle = [
+                kmRest !== null ? (kmRest < 0 ? 'VENCIDO por km'    : kmRest + ' km restantes') : null,
+                dias   !== null ? (dias < 0   ? 'VENCIDO por fecha' : dias + ' días')           : null,
+            ].filter(Boolean).join(' · ');
+            await pool.query(
+                `INSERT INTO alertas (vehiculo_id, tipo, descripcion, estado, fecha_vencimiento)
+                 VALUES (?, 'mantenimiento', ?, 'activa', NULL)`,
+                [v.id, `Unidad ${v.no_economico}: ${mp.componente} — ${detalle}`]
+            );
+            const rojo = (kmRest !== null && kmRest <= 0) || (dias !== null && dias < 15);
+            alertas.push({ eco: v.no_economico, tipo: 'mantenimiento', dias, rojo });
+        }
+    }
+
+    const rojas = alertas.filter(a => a.rojo);
+
+    // 3) Correo a administradores (solo cuando se solicita explícitamente).
+    let correoEnviado = false;
+    if (enviarCorreo && rojas.length > 0 && process.env.MAIL_USER) {
+        try {
+            const [admins] = await pool.query(
+                `SELECT email FROM usuarios WHERE rol_id = 1 AND activo = 1`
+            );
+            if (admins.length > 0) {
+                const filas = rojas.map(a =>
+                    `<tr><td style="padding:6px 12px;border-bottom:1px solid #e2e8f0"><strong>${a.eco}</strong></td>
+                     <td style="padding:6px 12px;border-bottom:1px solid #e2e8f0;text-transform:capitalize">${a.tipo}</td>
+                     <td style="padding:6px 12px;border-bottom:1px solid #e2e8f0;color:#c53030">${a.dias != null ? (a.dias < 0 ? 'VENCIDO' : a.dias + ' días') : 'Revisar'}</td></tr>`
+                ).join('');
+                await mailTransport.sendMail({
+                    from: process.env.MAIL_FROM || 'SIGEPAV <no-reply@itszn.edu.mx>',
+                    to: admins.map(a => a.email).join(','),
+                    subject: `⚠️ SIGEPAV — ${rojas.length} alerta(s) en rojo`,
+                    html: `<div style="font-family:sans-serif;max-width:600px;margin:auto">
+                        <div style="background:#0d2d6b;padding:20px;border-radius:8px 8px 0 0">
+                            <h2 style="color:#fff;margin:0">SIGEPAV</h2>
+                            <p style="color:rgba(255,255,255,.7);margin:4px 0 0">Alertas de vencimiento</p>
+                        </div>
+                        <div style="background:#fff;padding:24px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px">
+                            <p>Las siguientes unidades requieren atención <strong>urgente</strong>:</p>
+                            <table style="width:100%;border-collapse:collapse;margin:12px 0">
+                                <thead><tr style="background:#f7fafc">
+                                    <th style="padding:8px 12px;text-align:left">Unidad</th>
+                                    <th style="padding:8px 12px;text-align:left">Tipo</th>
+                                    <th style="padding:8px 12px;text-align:left">Estado</th>
+                                </tr></thead>
+                                <tbody>${filas}</tbody>
+                            </table>
+                            <p style="color:#64748b;font-size:.85rem">Revisa el módulo de Vencimientos en SIGEPAV para más detalles.</p>
+                        </div>
+                    </div>`
+                });
+                correoEnviado = true;
+            }
+        } catch (mailErr) {
+            console.warn('⚠️  Correo de vencimientos no enviado:', mailErr.message);
+        }
+    }
+
+    return { procesadas: alertas.length, rojas: rojas.length, correoEnviado };
+}
+
+// Endpoint manual: genera/refresca las alertas al instante (para demo y pruebas).
+// Por defecto NO envía correo; usar ?correo=1 para forzar el envío a los admins.
+app.post('/api/alertas/generar', async (req, res) => {
+    try {
+        const enviarCorreo = req.query.correo === '1' || req.query.correo === 'true';
+        const r = await procesarAlertasVencimientos({ enviarCorreo });
+        res.json({ ok: true, ...r });
+    } catch (err) {
+        console.error('Error POST /api/alertas/generar:', err);
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// ----- Cron de vencimientos (Módulo A) ---------------------------------
+// Corre cada 60s; dispara a las 08:00–08:05 una vez por día (con correo).
+let _cronVencUltimoChequeo = 0;
+setInterval(async () => {
+    try {
+        const ahora = new Date();
+        if (ahora.getHours() !== 8 || ahora.getMinutes() > 5) return;
+        if (Date.now() - _cronVencUltimoChequeo < 5 * 60 * 1000) return;
+        _cronVencUltimoChequeo = Date.now();
+        console.log('🕗 Cron vencimientos: procesando alertas...');
+        const r = await procesarAlertasVencimientos({ enviarCorreo: true });
+        console.log(`✅ Cron vencimientos: ${r.procesadas} alertas, ${r.rojas} en rojo, correo=${r.correoEnviado}`);
+    } catch (err) {
+        console.warn('⚠️  Cron de vencimientos falló:', err.message);
     }
 }, 60 * 1000);
 

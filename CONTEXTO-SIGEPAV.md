@@ -120,3 +120,4 @@ Ya **no** debe salir el error rojo de MySQL.
 ## 💡 Ideas a futuro (NO urgentes, comentadas en sesión)
 - Aplicar la palomita verde a **otros avisos de éxito** (vehículo guardado, vale registrado, etc.), no solo a comisiones.
 - (Solo después del concurso) Partir el monolito `Server.js` (~250 KB) en módulos `routes/`, `controllers/`, `db.js`. **Alto riesgo, no tocar antes del INNOVATEC.**
+-Que no se me olvide corregir lo del manual del usuario, que se despliegue ahí mismo y no tener necesidad de descargar el pdf

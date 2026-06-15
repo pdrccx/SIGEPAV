@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Costos por vehículo · SIGEPAV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Styles.css">
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+    <style>
+        /* ── Tabla principal ── */
+        .tabla-costos { width:100%; border-collapse:collapse; font-size:.88rem; }
+        .tabla-costos th {
+            background:#f1f5f9; padding:.55rem .8rem; text-align:left;
+            border-bottom:2px solid #e2e8f0; font-size:.8rem; color:#475569;
+            cursor:pointer; user-select:none;
+        }
+        .tabla-costos th:hover { background:#e2e8f0; }
+        .tabla-costos td { padding:.55rem .8rem; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+        .tabla-costos tr:hover td { background:#f8fafc; }
+        .tabla-costos .eco-cell { font-weight:700; color:#0d2d6b; }
+
+        /* ── Barra de costo relativo ── */
+        .barra-costo-wrap { display:flex; align-items:center; gap:.5rem; }
+        .barra-costo-bg   { flex:1; background:#f1f5f9; border-radius:4px; height:8px; min-width:60px; }
+        .barra-costo-fill { height:8px; border-radius:4px; background:#0d2d6b; transition:width .3s; }
+
+        /* ── Badge costo/km ── */
+        .badge-costo-km {
+            display:inline-block; padding:.15rem .5rem; border-radius:999px;
+            font-size:.78rem; font-weight:700;
+        }
+        .badge-caro  { background:#fee2e2; color:#991b1b; }
+        .badge-medio { background:#fef9c3; color:#854d0e; }
+        .badge-barato{ background:#d1fae5; color:#065f46; }
+
+        /* ── Panel detalle ── */
+        #panel-detalle { display:none; margin-top:1.6rem; }
+        .detalle-tabs { display:flex; gap:.4rem; margin-bottom:1rem; flex-wrap:wrap; }
+        .tab-btn {
+            padding:.4rem 1rem; border-radius:.4rem; border:1px solid #cbd5e1;
+            background:#fff; cursor:pointer; font-size:.85rem; font-weight:600; color:#475569;
+        }
+        .tab-btn.activo { background:#0d2d6b; color:#fff; border-color:#0d2d6b; }
+        .tab-contenido { display:none; }
+        .tab-contenido.activo { display:block; }
+
+        .tabla-det { width:100%; border-collapse:collapse; font-size:.84rem; }
+        .tabla-det th { background:#f8fafc; padding:.45rem .7rem; text-align:left;
+                        border-bottom:1px solid #e2e8f0; color:#475569; font-size:.78rem; }
+        .tabla-det td { padding:.45rem .7rem; border-bottom:1px solid #f1f5f9; }
+
+        /* ── Filtros ── */
+        .filtros-costos { display:flex; gap:.8rem; flex-wrap:wrap; align-items:center; margin-bottom:1rem; }
+        .filtros-costos input, .filtros-costos select {
+            padding:.4rem .7rem; border:1px solid #cbd5e1; border-radius:.4rem;
+            font-size:.85rem; background:#fff;
+        }
+
+        /* ── Sort icon ── */
+        .sort-ico { font-size:.7rem; margin-left:.3rem; color:#94a3b8; }
+        .sort-ico.activo { color:#0d2d6b; }
+
+        /* ── Resumen KPI de la flota ── */
+        .costo-total-flota { font-size:1.3rem; font-weight:800; color:#0d2d6b; }
+
+        /* ── Candidato baja ── */
+        .badge-candidato { display:inline-flex; align-items:center; gap:.3rem;
+            padding:.15rem .55rem; border-radius:999px; font-size:.75rem; font-weight:700;
+            background:#fde8d8; color:#92400e; }
+    </style>
+    <!-- Módulo E — librerías de exportación (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="reportes-export.js"></script>
+</head>
+<body>
+    <div class="modal-overlay" id="modal-overlay" style="display:none;"></div>
+
+    <div id="app-container" style="display:flex;">
+
+        <header class="barra-superior">
+            <div class="barra-superior-contenido">
+                <div class="barra-izquierda">
+                    <div class="dropdown-modulos" id="dropdown-modulos-principal" data-navbar></div>
+                    <img src="Logo.jpeg" alt="Logo" class="logo-barra">
+                    <div class="titulo-sistema">
+                        <h1><a href="menu.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1>
+                    </div>
+                </div>
+                <div class="info-usuario">
+                    <span class="icono-usuario"><i class="fas fa-user-circle"></i></span>
+                    <span class="correo-usuario" id="user-email-display">Usuario</span>
+                    <button id="logoutBtn" class="btn-logout-header"><i class="fas fa-sign-out-alt"></i> Salir</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="contenedor-principal">
+
+            <div class="subtitulo-seccion">
+                <div class="encabezado-formulario">
+                    <h2><i class="fas fa-dollar-sign" style="color:#0d2d6b;margin-right:.4rem"></i> Costos por vehículo</h2>
+                    <p class="subtitulo-secundario">Combustible + mantenimiento · costo por km recorrido</p>
+                </div>
+                <button class="btn-primario" id="btn-refrescar" title="Actualizar">
+                    <i class="fas fa-sync-alt"></i> Actualizar
+                </button>
+            </div>
+
+            <!-- KPIs de flota -->
+            <section class="resumen-cards">
+                <div class="card-resumen">
+                    <div class="card-icono"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="card-info">
+                        <span class="card-numero costo-total-flota" id="kpi-total">$0</span>
+                        <span class="card-etiqueta">Costo total flota</span>
+                    </div>
+                </div>
+                <div class="card-resumen">
+                    <div class="card-icono"><i class="fas fa-gas-pump"></i></div>
+                    <div class="card-info">
+                        <span class="card-numero" id="kpi-comb">$0</span>
+                        <span class="card-etiqueta">Total combustible</span>
+                    </div>
+                </div>
+                <div class="card-resumen">
+                    <div class="card-icono"><i class="fas fa-tools"></i></div>
+                    <div class="card-info">
+                        <span class="card-numero" id="kpi-mant">$0</span>
+                        <span class="card-etiqueta">Total mantenimiento</span>
+                    </div>
+                </div>
+                <div class="card-resumen">
+                    <div class="card-icono"><i class="fas fa-road"></i></div>
+                    <div class="card-info">
+                        <span class="card-numero" id="kpi-km">0</span>
+                        <span class="card-etiqueta">Km recorridos totales</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Filtros -->
+            <div class="filtros-costos">
+                <input type="text" id="filtro-buscar" placeholder="Buscar por No. Eco o placas…" style="min-width:200px">
+                <select id="filtro-orden">
+                    <option value="costo_total">Ordenar: mayor costo total</option>
+                    <option value="costo_por_km">Ordenar: mayor costo/km</option>
+                    <option value="km_recorridos">Ordenar: más km recorridos</option>
+                    <option value="eco">Ordenar: No. Eco.</option>
+                </select>
+                <span style="flex:1"></span>
+                <button class="btn-secundario btn-mini" id="btn-export-pdf" title="Exportar a PDF"><i class="fas fa-file-pdf"></i> PDF</button>
+                <button class="btn-secundario btn-mini" id="btn-export-excel" title="Exportar a Excel"><i class="fas fa-file-excel"></i> Excel</button>
+            </div>
+
+            <!-- Tabla principal -->
+            <div class="panel-formulario" style="padding:0;overflow:auto">
+                <div class="panel-formulario-cabecera" style="padding:.8rem 1rem">
+                    <span><i class="fas fa-table"></i> Resumen de costos por unidad</span>
+                    <span id="leyenda-candidato" style="font-size:.78rem;color:#92400e;display:none">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Las unidades marcadas como <strong>candidato a revisión</strong> tienen el mayor costo/km <em>y</em> vencimiento en rojo.
+                    </span>
+                </div>
+                <div style="overflow-x:auto">
+                    <table class="tabla-costos" id="tabla-costos">
+                        <thead>
+                            <tr>
+                                <th data-col="eco">No. Eco. <span class="sort-ico" id="ico-eco">▼</span></th>
+                                <th>Vehículo</th>
+                                <th data-col="costo_combustible">Combustible <span class="sort-ico" id="ico-costo_combustible">▼</span></th>
+                                <th data-col="costo_mantenimiento">Mantenimiento <span class="sort-ico" id="ico-costo_mantenimiento">▼</span></th>
+                                <th data-col="costo_total">Costo total <span class="sort-ico" id="ico-costo_total">▼</span></th>
+                                <th data-col="km_recorridos">Km recorridos <span class="sort-ico" id="ico-km_recorridos">▼</span></th>
+                                <th data-col="costo_por_km">Costo / km <span class="sort-ico" id="ico-costo_por_km">▼</span></th>
+                                <th>Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-costos">
+                            <tr><td colspan="8" style="text-align:center;padding:2rem;color:#64748b">
+                                <i class="fas fa-spinner fa-spin"></i> Cargando...
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Panel de detalle por vehículo -->
+            <div class="panel-formulario" id="panel-detalle">
+                <div class="panel-formulario-cabecera">
+                    <span id="detalle-titulo"><i class="fas fa-car"></i> Detalle de unidad</span>
+                    <button class="btn-secundario btn-mini" id="btn-cerrar-detalle">
+                        <i class="fas fa-times"></i> Cerrar
+                    </button>
+                </div>
+                <div class="panel-formulario-cuerpo">
+
+                    <!-- Resumen compacto -->
+                    <div class="resumen-cards" id="detalle-kpis" style="margin-bottom:1rem"></div>
+
+                    <!-- Tabs -->
+                    <div class="detalle-tabs">
+                        <button class="tab-btn activo" data-tab="combustible">
+                            <i class="fas fa-gas-pump"></i> Combustible
+                        </button>
+                        <button class="tab-btn" data-tab="mantenimiento">
+                            <i class="fas fa-tools"></i> Mantenimiento
+                        </button>
+                        <button class="tab-btn" data-tab="viajes">
+                            <i class="fas fa-route"></i> Viajes
+                        </button>
+                    </div>
+
+                    <div class="tab-contenido activo" id="tab-combustible">
+                        <table class="tabla-det">
+                            <thead><tr>
+                                <th>Fecha</th><th>Litros</th><th>$/Litro</th>
+                                <th>Costo</th><th>Ticket</th><th>Observaciones</th>
+                            </tr></thead>
+                            <tbody id="det-tbody-comb"></tbody>
+                        </table>
+                    </div>
+                    <div class="tab-contenido" id="tab-mantenimiento">
+                        <table class="tabla-det">
+                            <thead><tr>
+                                <th>Componente</th><th>Severidad</th><th>Costo</th>
+                                <th>Estado</th><th>Fecha</th>
+                            </tr></thead>
+                            <tbody id="det-tbody-mant"></tbody>
+                        </table>
+                    </div>
+                    <div class="tab-contenido" id="tab-viajes">
+                        <table class="tabla-det">
+                            <thead><tr>
+                                <th>Fecha</th><th>Destino</th><th>Km recorridos</th>
+                            </tr></thead>
+                            <tbody id="det-tbody-viajes"></tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div class="toast" id="toast" aria-live="polite"></div>
+
+    <footer class="barra-inferior">
+        <div class="barra-inferior-contenido">
+            <p>Tecnológico Nacional de México campus Zacatecas Norte</p>
+        </div>
+    </footer>
+
+    <script src="Config.js"></script>
+    <script src="auth-guard.js"></script>
+    <script src="Script.js"></script>
+    <script src="navbar.js"></script>
+    <script src="modulos-router.js"></script>
+    <script>
+    // ================================================================
+    //  costos.html — Script
+    // ================================================================
+    (function () {
+        'use strict';
+
+        const $ = id => document.getElementById(id);
+
+        // ── Toast ───────────────────────────────────────────────────
+        function toast(msg, tipo = 'info') {
+            const t = $('toast');
+            t.textContent = msg;
+            t.className = `toast toast-${tipo} show`;
+            setTimeout(() => t.classList.remove('show'), 3500);
+        }
+
+        // ── Auth / sesión ───────────────────────────────────────────
+        // La protección de sesión, el email del header y el logout los
+        // gestiona auth-guard.js (sesión bajo la clave 'sigepav_usuario').
+        // Los endpoints del backend son abiertos: no se envía token Bearer.
+        const headers = { 'Content-Type': 'application/json' };
+
+        // ── Estado ──────────────────────────────────────────────────
+        let _datos    = [];
+        let _ordenCol = 'costo_total';
+        let _ordenAsc = false;
+        let _vencimientosMap = {}; // vehiculo_id -> semaforo_general
+
+        // ── Formato ─────────────────────────────────────────────────
+        const fmt$ = n => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const fmtKm = n => (Number(n) || 0).toLocaleString('es-MX') + ' km';
+
+        // ── KPIs globales ────────────────────────────────────────────
+        function actualizarKPIs() {
+            const totalCosto = _datos.reduce((s, r) => s + Number(r.costo_total), 0);
+            const totalComb  = _datos.reduce((s, r) => s + Number(r.costo_combustible), 0);
+            const totalMant  = _datos.reduce((s, r) => s + Number(r.costo_mantenimiento), 0);
+            const totalKm    = _datos.reduce((s, r) => s + Number(r.km_recorridos), 0);
+            $('kpi-total').textContent = fmt$(totalCosto);
+            $('kpi-comb').textContent  = fmt$(totalComb);
+            $('kpi-mant').textContent  = fmt$(totalMant);
+            $('kpi-km').textContent    = fmtKm(totalKm);
+        }
+
+        // ── Badge costo/km ───────────────────────────────────────────
+        function badgeCostoKm(datos, cpk) {
+            if (cpk === null || cpk === undefined) return '<span style="color:#94a3b8">—</span>';
+            const valores = datos.map(r => r.costo_por_km).filter(v => v != null).map(Number);
+            const max = Math.max(...valores);
+            const min = Math.min(...valores);
+            const rango = max - min || 1;
+            const pct = (cpk - min) / rango;
+            const cls = pct > 0.66 ? 'badge-caro' : pct > 0.33 ? 'badge-medio' : 'badge-barato';
+            return `<span class="badge-costo-km ${cls}">${fmt$(cpk)}/km</span>`;
+        }
+
+        // ── Barra relativa de costo ──────────────────────────────────
+        function barraCosto(valor, max) {
+            const pct = max > 0 ? Math.min((valor / max) * 100, 100) : 0;
+            return `<div class="barra-costo-wrap">
+                <span>${fmt$(valor)}</span>
+                <div class="barra-costo-bg">
+                    <div class="barra-costo-fill" style="width:${pct}%"></div>
+                </div>
+            </div>`;
+        }
+
+        // ── Renderizar tabla ─────────────────────────────────────────
+        function renderTabla() {
+            const buscar = $('filtro-buscar').value.toLowerCase();
+
+            let filas = _datos.filter(r =>
+                !buscar ||
+                r.no_economico.toLowerCase().includes(buscar) ||
+                r.placas.toLowerCase().includes(buscar) ||
+                `${r.marca} ${r.linea}`.toLowerCase().includes(buscar)
+            );
+
+            // Ordenar
+            filas = [...filas].sort((a, b) => {
+                let va = a[_ordenCol], vb = b[_ordenCol];
+                if (_ordenCol === 'eco') { va = a.no_economico; vb = b.no_economico; }
+                if (va === null || va === undefined) return 1;
+                if (vb === null || vb === undefined) return -1;
+                return _ordenAsc ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+            });
+
+            // Detectar candidatos a revisión/venta (top-25% costo/km + vencimiento rojo)
+            const cpkValidos = filas.map(r => r.costo_por_km).filter(v => v != null).map(Number).sort((a,b)=>b-a);
+            const umbral = cpkValidos[Math.floor(cpkValidos.length * 0.25)] ?? Infinity;
+            const hayCandidatos = filas.some(r =>
+                r.costo_por_km != null && Number(r.costo_por_km) >= umbral &&
+                _vencimientosMap[r.id] === 'rojo'
+            );
+            $('leyenda-candidato').style.display = hayCandidatos ? 'inline-flex' : 'none';
+
+            const maxCosto = Math.max(...filas.map(r => Number(r.costo_total) || 0), 1);
+
+            const tbody = $('tbody-costos');
+            if (filas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:#64748b">
+                    No se encontraron vehículos.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filas.map(r => {
+                const esCandidato = r.costo_por_km != null &&
+                    Number(r.costo_por_km) >= umbral &&
+                    _vencimientosMap[r.id] === 'rojo';
+                return `<tr>
+                    <td class="eco-cell">${r.no_economico}
+                        ${esCandidato ? '<span class="badge-candidato"><i class="fas fa-exclamation-triangle"></i> Revisar</span>' : ''}
+                    </td>
+                    <td>${r.marca} ${r.linea} <span style="color:#64748b;font-size:.78rem">(${r.modelo})</span><br>
+                        <span style="font-size:.78rem;color:#64748b">${r.placas}</span></td>
+                    <td>${barraCosto(r.costo_combustible, maxCosto)}</td>
+                    <td>${barraCosto(r.costo_mantenimiento, maxCosto)}</td>
+                    <td><strong>${fmt$(r.costo_total)}</strong></td>
+                    <td>${fmtKm(r.km_recorridos)}</td>
+                    <td>${badgeCostoKm(filas, r.costo_por_km)}</td>
+                    <td>
+                        <button class="btn-secundario btn-mini" onclick="verDetalle(${r.id})" title="Ver detalle">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            // Actualizar íconos de orden
+            document.querySelectorAll('.sort-ico').forEach(el => el.classList.remove('activo'));
+            const icoActivo = $(`ico-${_ordenCol}`);
+            if (icoActivo) {
+                icoActivo.classList.add('activo');
+                icoActivo.textContent = _ordenAsc ? '▲' : '▼';
+            }
+        }
+
+        // ── Ordenar por columna (click en th) ───────────────────────
+        document.querySelectorAll('.tabla-costos th[data-col]').forEach(th => {
+            th.addEventListener('click', () => {
+                const col = th.dataset.col;
+                if (_ordenCol === col) _ordenAsc = !_ordenAsc;
+                else { _ordenCol = col; _ordenAsc = false; }
+                renderTabla();
+            });
+        });
+
+        $('filtro-orden').addEventListener('change', () => {
+            _ordenCol = $('filtro-orden').value;
+            _ordenAsc = false;
+            renderTabla();
+        });
+
+        $('filtro-buscar').addEventListener('input', renderTabla);
+
+        // ── Cargar datos ─────────────────────────────────────────────
+        async function cargar() {
+            try {
+                // Cargar costos y vencimientos en paralelo
+                const [rCostos, rVenc] = await Promise.all([
+                    fetch(`${API_BASE}/api/costos/vehiculos`, { headers }),
+                    fetch(`${API_BASE}/api/vencimientos`, { headers })
+                ]);
+                const dCostos = await rCostos.json();
+                const dVenc   = await rVenc.json();
+
+                if (!dCostos.ok) throw new Error(dCostos.error);
+                // El endpoint devuelve combustible y mantenimiento por separado;
+                // derivamos costo_total en el cliente (lo usan KPIs, tabla y orden).
+                _datos = (dCostos.datos || []).map(r => ({
+                    ...r,
+                    costo_total: Number(r.costo_combustible || 0) + Number(r.costo_mantenimiento || 0)
+                }));
+
+                if (dVenc.ok) {
+                    _vencimientosMap = {};
+                    dVenc.datos.forEach(v => { _vencimientosMap[v.id] = v.semaforo_general; });
+                }
+
+                actualizarKPIs();
+                renderTabla();
+            } catch (e) {
+                toast('Error al cargar costos: ' + e.message, 'error');
+            }
+        }
+
+        $('btn-refrescar').addEventListener('click', cargar);
+
+        // ── Exportar reportes (Módulo E) ────────────────────────────
+        function filasOrdenadas() {
+            return [..._datos].sort((a, b) => Number(b.costo_total) - Number(a.costo_total));
+        }
+        $('btn-export-pdf').addEventListener('click', () => {
+            if (!_datos.length) { toast('No hay datos para exportar.', 'error'); return; }
+            const columnas = ['No. Eco.', 'Vehículo', 'Combustible', 'Mantenimiento', 'Costo total', 'Km', 'Costo/km'];
+            const filas = filasOrdenadas().map(r => [
+                r.no_economico,
+                `${r.marca} ${r.linea} (${r.modelo})`,
+                fmt$(r.costo_combustible),
+                fmt$(r.costo_mantenimiento),
+                fmt$(r.costo_total),
+                Number(r.km_recorridos || 0).toLocaleString('es-MX'),
+                r.costo_por_km != null ? fmt$(r.costo_por_km) + '/km' : '—'
+            ]);
+            window.exportarReportePDF({
+                titulo: 'Costos por vehículo',
+                subtitulo: `${_datos.length} unidades`,
+                columnas, filas,
+                nombreArchivo: 'SIGEPAV_costos_por_vehiculo',
+                orientacion: 'landscape'
+            });
+        });
+        $('btn-export-excel').addEventListener('click', () => {
+            if (!_datos.length) { toast('No hay datos para exportar.', 'error'); return; }
+            const columnas = ['No. Eco.', 'Vehículo', 'Año', 'Combustible', 'Mantenimiento', 'Costo total', 'Km recorridos', 'Costo/km'];
+            const filas = filasOrdenadas().map(r => [
+                r.no_economico,
+                `${r.marca} ${r.linea}`,
+                r.modelo,
+                Number(r.costo_combustible) || 0,
+                Number(r.costo_mantenimiento) || 0,
+                Number(r.costo_total) || 0,
+                Number(r.km_recorridos) || 0,
+                r.costo_por_km != null ? Number(r.costo_por_km) : ''
+            ]);
+            window.exportarReporteExcel({
+                titulo: 'SIGEPAV — Costos por vehículo',
+                columnas, filas,
+                nombreArchivo: 'SIGEPAV_costos_por_vehiculo',
+                nombreHoja: 'Costos'
+            });
+        });
+
+        // ── Detalle por vehículo ─────────────────────────────────────
+        window.verDetalle = async function (id) {
+            const panel = $('panel-detalle');
+            panel.style.display = 'block';
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            try {
+                const r = await fetch(`${API_BASE}/api/costos/vehiculos/${id}`, { headers });
+                const d = await r.json();
+                if (!d.ok) throw new Error(d.error);
+
+                const { vehiculo, resumen, combustible, mantenimiento, viajes } = d;
+                $('detalle-titulo').innerHTML =
+                    `<i class="fas fa-car"></i> ${vehiculo.no_economico} — ${vehiculo.marca} ${vehiculo.linea} (${vehiculo.modelo})`;
+
+                // KPIs de detalle
+                $('detalle-kpis').innerHTML = `
+                    <div class="card-resumen"><div class="card-icono"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="card-info"><span class="card-numero">${fmt$(resumen.costo_total)}</span>
+                        <span class="card-etiqueta">Costo total</span></div></div>
+                    <div class="card-resumen"><div class="card-icono"><i class="fas fa-gas-pump"></i></div>
+                        <div class="card-info"><span class="card-numero">${fmt$(resumen.costo_combustible)}</span>
+                        <span class="card-etiqueta">Combustible</span></div></div>
+                    <div class="card-resumen"><div class="card-icono"><i class="fas fa-tools"></i></div>
+                        <div class="card-info"><span class="card-numero">${fmt$(resumen.costo_mantenimiento)}</span>
+                        <span class="card-etiqueta">Mantenimiento</span></div></div>
+                    <div class="card-resumen"><div class="card-icono"><i class="fas fa-road"></i></div>
+                        <div class="card-info"><span class="card-numero">${resumen.costo_por_km != null ? fmt$(resumen.costo_por_km)+'/km' : '—'}</span>
+                        <span class="card-etiqueta">Costo por km</span></div></div>
+                `;
+
+                // Tabla combustible
+                $('det-tbody-comb').innerHTML = combustible.length === 0
+                    ? '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:1rem">Sin registros</td></tr>'
+                    : combustible.map(c => `<tr>
+                        <td>${c.fecha_recarga?.slice(0,10) || '—'}</td>
+                        <td>${Number(c.litros).toFixed(2)} L</td>
+                        <td>${fmt$(c.precio_litro)}</td>
+                        <td>${fmt$(c.costo)}</td>
+                        <td>${c.ticket_no || '—'}</td>
+                        <td>${c.observaciones || '—'}</td>
+                    </tr>`).join('');
+
+                // Tabla mantenimiento
+                const sevColor = { critica:'#fee2e2', alta:'#fef9c3', media:'#f0fdf4', baja:'#f8fafc' };
+                $('det-tbody-mant').innerHTML = mantenimiento.length === 0
+                    ? '<tr><td colspan="5" style="text-align:center;color:#64748b;padding:1rem">Sin registros</td></tr>'
+                    : mantenimiento.map(m => `<tr style="background:${sevColor[m.severidad]||''}">
+                        <td>${m.componente}</td>
+                        <td><span style="text-transform:capitalize">${m.severidad}</span></td>
+                        <td>${fmt$(m.costo)}</td>
+                        <td>${m.estado}</td>
+                        <td>${m.created_at?.slice(0,10) || '—'}</td>
+                    </tr>`).join('');
+
+                // Tabla viajes
+                $('det-tbody-viajes').innerHTML = viajes.length === 0
+                    ? '<tr><td colspan="3" style="text-align:center;color:#64748b;padding:1rem">Sin viajes finalizados</td></tr>'
+                    : viajes.map(v => `<tr>
+                        <td>${v.fecha_inicio?.slice(0,10) || '—'}</td>
+                        <td>${v.lugar_destino || '—'}</td>
+                        <td>${fmtKm(v.km_recorridos)}</td>
+                    </tr>`).join('');
+
+            } catch (e) {
+                toast('Error al cargar detalle: ' + e.message, 'error');
+            }
+        };
+
+        // ── Tabs del detalle ─────────────────────────────────────────
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+                document.querySelectorAll('.tab-contenido').forEach(c => c.classList.remove('activo'));
+                btn.classList.add('activo');
+                $(`tab-${btn.dataset.tab}`).classList.add('activo');
+            });
+        });
+
+        $('btn-cerrar-detalle').addEventListener('click', () => {
+            $('panel-detalle').style.display = 'none';
+        });
+
+        // ── Init ─────────────────────────────────────────────────────
+        cargar();
+    })();
+    </script>
+    <script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script>
+</body>
+</html>

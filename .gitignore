@@ -6,3 +6,5 @@ uploads/evidencias/
 uploads/perfiles/
 *.log
 node-install.log
+*.zip
+__pycache__/

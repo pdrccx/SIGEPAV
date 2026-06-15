@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salud de la flota · SIGEPAV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Styles.css">
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+    <style>
+        /* ── Banner de análisis ejecutivo ── */
+        .analisis-banner {
+            background: linear-gradient(135deg, #002b60, #006dc8);
+            color: #fff; border-radius: .8rem; padding: 1.3rem 1.5rem; margin-bottom: 1.4rem;
+            box-shadow: 0 4px 18px rgba(0,43,96,.18);
+        }
+        .analisis-banner h3 { margin: 0 0 .6rem; font-size: 1rem; display:flex; align-items:center; gap:.5rem; }
+        .analisis-texto { font-size: .92rem; line-height: 1.55; color: #eaf2fb; white-space: pre-wrap; }
+        .badge-fuente {
+            display:inline-flex; align-items:center; gap:.35rem; padding:.2rem .65rem;
+            border-radius:999px; font-size:.74rem; font-weight:700; margin-left:auto;
+        }
+        .fuente-gemini { background:#dcfce7; color:#166534; }
+        .fuente-local  { background:#e0e7ff; color:#3730a3; }
+
+        /* ── Cards de ranking ── */
+        .ranking-lista { display:flex; flex-direction:column; gap:.8rem; }
+        .veh-card {
+            background:#fff; border:1px solid #e2e8f0; border-radius:.7rem; padding:1rem 1.2rem;
+            border-left:6px solid #cbd5e1; transition:box-shadow .2s;
+        }
+        .veh-card:hover { box-shadow:0 3px 14px rgba(0,0,0,.07); }
+        .veh-card.critico { border-left-color:#ef4444; }
+        .veh-card.medio   { border-left-color:#f59e0b; }
+        .veh-card.bajo    { border-left-color:#10b981; }
+
+        .veh-head { display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; }
+        .veh-eco  { font-weight:800; font-size:1.05rem; color:#0d2d6b; }
+        .veh-nombre { color:#64748b; font-size:.85rem; }
+        .veh-pos  { background:#0d2d6b; color:#fff; width:26px; height:26px; border-radius:50%;
+                    display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; }
+
+        .badge-nivel { padding:.18rem .6rem; border-radius:999px; font-size:.74rem; font-weight:700; }
+        .nivel-critico { background:#fee2e2; color:#991b1b; }
+        .nivel-medio   { background:#fef9c3; color:#854d0e; }
+        .nivel-bajo    { background:#d1fae5; color:#065f46; }
+
+        .score-wrap { display:flex; align-items:center; gap:.5rem; margin-left:auto; }
+        .score-bar-bg { width:120px; height:8px; background:#f1f5f9; border-radius:4px; overflow:hidden; }
+        .score-bar-fill { height:8px; border-radius:4px; }
+        .score-num { font-weight:800; font-size:.95rem; color:#0d2d6b; min-width:28px; text-align:right; }
+
+        .razones { margin:.7rem 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:.35rem; }
+        .razones li { font-size:.84rem; color:#334155; display:flex; align-items:flex-start; gap:.45rem; }
+        .razones li i { color:#94a3b8; margin-top:.18rem; font-size:.78rem; }
+
+        .nota-operador {
+            margin-top:.6rem; background:#fff7ed; border:1px solid #fed7aa; border-radius:.5rem;
+            padding:.55rem .7rem; font-size:.83rem; color:#9a3412;
+        }
+        .nota-operador .nota-cats { font-weight:700; font-size:.74rem; text-transform:uppercase; letter-spacing:.02em; color:#c2410c; }
+
+        .kpi-flota { text-align:center; }
+    </style>
+</head>
+<body>
+    <div class="modal-overlay" id="modal-overlay" style="display:none;"></div>
+
+    <div id="app-container" style="display:flex;">
+
+        <header class="barra-superior">
+            <div class="barra-superior-contenido">
+                <div class="barra-izquierda">
+                    <div class="dropdown-modulos" id="dropdown-modulos-principal" data-navbar></div>
+                    <img src="Logo.jpeg" alt="Logo" class="logo-barra" onerror="this.style.display='none'">
+                    <div class="titulo-sistema">
+                        <h1><a href="menu.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1>
+                    </div>
+                </div>
+                <div class="info-usuario">
+                    <span class="icono-usuario"><i class="fas fa-user-circle"></i></span>
+                    <span class="correo-usuario" id="user-email-display">Usuario</span>
+                    <button id="logoutBtn" class="btn-logout-header"><i class="fas fa-sign-out-alt"></i> Salir</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="contenedor-principal">
+
+            <div class="subtitulo-seccion">
+                <div class="encabezado-formulario">
+                    <h2><i class="fas fa-heart-pulse" style="color:#0d2d6b;margin-right:.4rem"></i> Salud de la flota</h2>
+                    <p class="subtitulo-secundario">Mantenimiento predictivo: ranking de urgencia por vehículo, con IA</p>
+                </div>
+                <button class="btn-primario" id="btn-analizar" title="Volver a analizar">
+                    <i class="fas fa-rotate"></i> Analizar flota
+                </button>
+            </div>
+
+            <!-- KPIs -->
+            <section class="resumen-cards">
+                <div class="card-resumen kpi-flota">
+                    <div class="card-icono"><i class="fas fa-triangle-exclamation" style="color:#ef4444"></i></div>
+                    <div class="card-info"><span class="card-numero" id="kpi-criticos">0</span><span class="card-etiqueta">Críticos</span></div>
+                </div>
+                <div class="card-resumen kpi-flota">
+                    <div class="card-icono"><i class="fas fa-circle-exclamation" style="color:#f59e0b"></i></div>
+                    <div class="card-info"><span class="card-numero" id="kpi-medios">0</span><span class="card-etiqueta">Atención media</span></div>
+                </div>
+                <div class="card-resumen kpi-flota">
+                    <div class="card-icono"><i class="fas fa-circle-check" style="color:#10b981"></i></div>
+                    <div class="card-info"><span class="card-numero" id="kpi-bajos">0</span><span class="card-etiqueta">En buen estado</span></div>
+                </div>
+                <div class="card-resumen kpi-flota">
+                    <div class="card-icono"><i class="fas fa-car"></i></div>
+                    <div class="card-info"><span class="card-numero" id="kpi-total">0</span><span class="card-etiqueta">Total de unidades</span></div>
+                </div>
+            </section>
+
+            <!-- Análisis ejecutivo (IA o local) -->
+            <div class="analisis-banner" id="analisis-banner" style="display:none">
+                <h3>
+                    <i class="fas fa-robot"></i> Análisis ejecutivo de la flota
+                    <span class="badge-fuente" id="badge-fuente"></span>
+                </h3>
+                <div class="analisis-texto" id="analisis-texto">—</div>
+            </div>
+
+            <!-- Ranking de urgencia -->
+            <div class="panel-formulario" style="padding:1rem 1.2rem">
+                <div class="panel-formulario-cabecera" style="padding:0 0 .8rem">
+                    <span><i class="fas fa-ranking-star"></i> Ranking de urgencia de mantenimiento</span>
+                </div>
+                <div class="ranking-lista" id="ranking-lista">
+                    <p style="text-align:center;padding:2rem;color:#64748b">
+                        <i class="fas fa-spinner fa-spin"></i> Analizando la flota…
+                    </p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div class="toast" id="toast" aria-live="polite"></div>
+
+    <footer class="barra-inferior">
+        <div class="barra-inferior-contenido">
+            <p>Tecnológico Nacional de México campus Zacatecas Norte</p>
+        </div>
+    </footer>
+
+    <script src="Config.js"></script>
+    <script src="auth-guard.js"></script>
+    <script src="Script.js"></script>
+    <script src="navbar.js"></script>
+    <script src="modulos-router.js"></script>
+    <script>
+    // ================================================================
+    //  salud-flota.html — Módulo D (IA predictiva de flota)
+    // ================================================================
+    (function () {
+        'use strict';
+        const $ = id => document.getElementById(id);
+        const API_BASE = (window.SIGEPAV && window.SIGEPAV.API_BASE) || window.API_BASE || '';
+        // Sesión, email del header y logout los maneja auth-guard.js.
+        // Endpoints abiertos: sin token Bearer.
+
+        function toast(msg, tipo = 'info') {
+            const t = $('toast'); t.textContent = msg;
+            t.className = `toast toast-${tipo} show`;
+            setTimeout(() => t.classList.remove('show'), 3500);
+        }
+
+        const COLOR_NIVEL = { critico: '#ef4444', medio: '#f59e0b', bajo: '#10b981' };
+        const ICONO_CAT = {
+            'Transmisión': 'fa-gears', 'Embrague': 'fa-compact-disc', 'Frenos': 'fa-record-vinyl',
+            'Sobrecalentamiento': 'fa-temperature-high', 'Fuga': 'fa-droplet', 'Ruido/Vibración': 'fa-volume-high',
+            'Falla general': 'fa-triangle-exclamation'
+        };
+
+        function render(data) {
+            $('kpi-criticos').textContent = data.resumen.criticos;
+            $('kpi-medios').textContent   = data.resumen.medios;
+            $('kpi-bajos').textContent    = data.resumen.bajos;
+            $('kpi-total').textContent    = data.resumen.total;
+
+            // Análisis ejecutivo + fuente
+            $('analisis-banner').style.display = 'block';
+            $('analisis-texto').textContent = data.analisis;
+            const badge = $('badge-fuente');
+            if (data.fuente === 'gemini') {
+                badge.className = 'badge-fuente fuente-gemini';
+                badge.innerHTML = `<i class="fas fa-robot"></i> IA Gemini · ${data.modelo}`;
+            } else {
+                badge.className = 'badge-fuente fuente-local';
+                badge.innerHTML = `<i class="fas fa-gears"></i> Motor local`;
+            }
+
+            // Ranking
+            const maxScore = Math.max(1, ...data.ranking.map(r => r.score));
+            const cont = $('ranking-lista');
+            if (!data.ranking.length) {
+                cont.innerHTML = '<p style="text-align:center;padding:2rem;color:#64748b">Sin unidades registradas.</p>';
+                return;
+            }
+            cont.innerHTML = data.ranking.map((r, i) => {
+                const razones = r.razones.length
+                    ? `<ul class="razones">${r.razones.map(x => `<li><i class="fas fa-angle-right"></i> ${x}</li>`).join('')}</ul>`
+                    : '<ul class="razones"><li><i class="fas fa-check"></i> Sin señales de urgencia.</li></ul>';
+                const notas = (r.notas || []).map(n => `
+                    <div class="nota-operador">
+                        <div class="nota-cats">🚩 ${n.categorias.map(c => `<i class="fas ${ICONO_CAT[c]||'fa-wrench'}"></i> ${c}`).join(' · ')}</div>
+                        <div style="margin-top:.2rem">“${n.nota}”${n.destino ? ` <span style="color:#c2410c;opacity:.7">— viaje a ${n.destino}</span>` : ''}</div>
+                    </div>`).join('');
+                const pct = Math.round((r.score / maxScore) * 100);
+                return `
+                <div class="veh-card ${r.nivel}">
+                    <div class="veh-head">
+                        <span class="veh-pos">${i + 1}</span>
+                        <span class="veh-eco">${r.no_economico}</span>
+                        <span class="veh-nombre">${r.marca} ${r.linea} (${r.modelo})</span>
+                        <span class="badge-nivel nivel-${r.nivel}">${({critico:'🔴 Crítico',medio:'🟡 Atención',bajo:'🟢 Estable'})[r.nivel]}</span>
+                        <div class="score-wrap">
+                            <div class="score-bar-bg"><div class="score-bar-fill" style="width:${pct}%;background:${COLOR_NIVEL[r.nivel]}"></div></div>
+                            <span class="score-num">${r.score}</span>
+                        </div>
+                    </div>
+                    ${razones}
+                    ${notas}
+                </div>`;
+            }).join('');
+        }
+
+        async function analizar() {
+            const cont = $('ranking-lista');
+            cont.innerHTML = '<p style="text-align:center;padding:2rem;color:#64748b"><i class="fas fa-spinner fa-spin"></i> Analizando la flota con IA…</p>';
+            try {
+                const r = await fetch(`${API_BASE}/api/ia/parque/predictivo`);
+                const d = await r.json();
+                if (!d.ok) throw new Error(d.error || 'Error');
+                render(d);
+            } catch (e) {
+                cont.innerHTML = `<p style="text-align:center;padding:2rem;color:#b91c1c">⚠️ No se pudo analizar la flota: ${e.message}</p>`;
+                toast('Error al analizar la flota: ' + e.message, 'error');
+            }
+        }
+
+        $('btn-analizar').addEventListener('click', analizar);
+        analizar();
+    })();
+    </script>
+    <script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script>
+</body>
+</html>

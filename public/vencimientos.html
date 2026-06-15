@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vencimientos · SIGEPAV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Styles.css">
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+    <style>
+        /* ── Semáforos ── */
+        .badge-semaforo {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            padding: .2rem .6rem;
+            border-radius: 999px;
+            font-size: .78rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .semaforo-verde   { background: #d1fae5; color: #065f46; }
+        .semaforo-amarillo{ background: #fef9c3; color: #854d0e; }
+        .semaforo-rojo    { background: #fee2e2; color: #991b1b; }
+        .semaforo-sin     { background: #f1f5f9; color: #64748b; }
+
+        /* ── Tarjetas de KPI ── */
+        .kpi-venc { text-align:center; }
+
+        /* ── Tabla ── */
+        .tabla-venc { width:100%; border-collapse:collapse; font-size:.88rem; }
+        .tabla-venc th { background:#f1f5f9; padding:.55rem .8rem; text-align:left;
+                         border-bottom:2px solid #e2e8f0; font-size:.8rem; color:#475569; }
+        .tabla-venc td { padding:.55rem .8rem; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+        .tabla-venc tr:hover td { background:#f8fafc; }
+        .tabla-venc .eco-cell { font-weight:700; color:#0d2d6b; }
+
+        /* ── Panel mantenimiento programado ── */
+        .panel-mp { margin-top:1.6rem; }
+        .tabla-mp { width:100%; border-collapse:collapse; font-size:.85rem; }
+        .tabla-mp th { background:#f8fafc; padding:.5rem .8rem; text-align:left;
+                       border-bottom:2px solid #e2e8f0; color:#475569; font-size:.78rem; }
+        .tabla-mp td { padding:.5rem .8rem; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+
+        /* ── Filtros ── */
+        .filtros-venc { display:flex; gap:.8rem; flex-wrap:wrap; align-items:center; margin-bottom:1rem; }
+        .filtros-venc select, .filtros-venc input[type=text] {
+            padding:.4rem .7rem; border:1px solid #cbd5e1; border-radius:.4rem;
+            font-size:.85rem; background:#fff; }
+
+        /* ── Días badge ── */
+        .dias-badge { font-size:.78rem; color:#64748b; }
+
+        /* ── Modal formulario MP ── */
+        #modal-mp .modal-contenido { max-width:500px; }
+    </style>
+    <!-- Módulo E — librerías de exportación (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="reportes-export.js"></script>
+</head>
+<body>
+    <div class="modal-overlay" id="modal-overlay" style="display:none;"></div>
+
+    <div id="app-container" style="display:flex;">
+
+        <header class="barra-superior">
+            <div class="barra-superior-contenido">
+                <div class="barra-izquierda">
+                    <div class="dropdown-modulos" id="dropdown-modulos-principal" data-navbar></div>
+                    <img src="Logo.jpeg" alt="Logo" class="logo-barra">
+                    <div class="titulo-sistema">
+                        <h1><a href="menu.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1>
+                    </div>
+                </div>
+                <div class="info-usuario">
+                    <span class="icono-usuario"><i class="fas fa-user-circle"></i></span>
+                    <span class="correo-usuario" id="user-email-display">Usuario</span>
+                    <button id="logoutBtn" class="btn-logout-header"><i class="fas fa-sign-out-alt"></i> Salir</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="contenedor-principal">
+
+            <div class="subtitulo-seccion">
+                <div class="encabezado-formulario">
+                    <h2><i class="fas fa-calendar-alt" style="color:#0d2d6b;margin-right:.4rem"></i> Vencimientos y alertas</h2>
+                    <p class="subtitulo-secundario">Semáforo de tenencia, verificación, seguro y mantenimiento preventivo</p>
+                </div>
+                <button class="btn-primario" id="btn-refrescar" title="Actualizar">
+                    <i class="fas fa-sync-alt"></i> Actualizar
+                </button>
+            </div>
+
+            <!-- KPIs -->
+            <section class="resumen-cards">
+                <div class="card-resumen kpi-venc">
+                    <div class="card-icono"><i class="fas fa-check-circle" style="color:#10b981"></i></div>
+                    <div class="card-info">
+                        <span class="card-numero" id="kpi-verde">0</span>
+                        <span class="card-etiqueta">En verde</span>
+                    </div>
+                </div>
+                <div class="card-resumen kpi-venc">
+                    <div class="card-icono"><i class="fas fa-exclamation-circle" style="color:#f59e0b"></i></div>
+                    <div class="card-info">
+                        <span class="card-numero" id="kpi-amarillo">0</span>
+                        <span class="card-etiqueta">Próximos a vencer</span>
+                    </div>
+                </div>
+                <div class="card-resumen kpi-venc">
+                    <div class="card-icono"><i class="fas fa-times-circle" style="color:#ef4444"></i></div>
+                    <div class="card-info">
+                        <span class="card-numero" id="kpi-rojo">0</span>
+                        <span class="card-etiqueta">Urgentes / Vencidos</span>
+                    </div>
+                </div>
+                <div class="card-resumen kpi-venc">
+                    <div class="card-icono"><i class="fas fa-tools"></i></div>
+                    <div class="card-info">
+                        <span class="card-numero" id="kpi-mant">0</span>
+                        <span class="card-etiqueta">Mant. programados</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Filtros -->
+            <div class="filtros-venc">
+                <label style="font-size:.85rem;font-weight:600;color:#374151">Filtrar por:</label>
+                <select id="filtro-semaforo">
+                    <option value="">Todos los estados</option>
+                    <option value="rojo">🔴 Urgente / Vencido</option>
+                    <option value="amarillo">🟡 Próximo a vencer</option>
+                    <option value="verde">🟢 En regla</option>
+                </select>
+                <select id="filtro-tipo">
+                    <option value="">Todos los tipos</option>
+                    <option value="tenencia">Tenencia</option>
+                    <option value="verificacion">Verificación</option>
+                    <option value="seguro">Seguro</option>
+                    <option value="mantenimiento">Mantenimiento</option>
+                </select>
+                <input type="text" id="filtro-buscar" placeholder="Buscar por No. Eco o placas…" style="min-width:200px">
+                <span style="flex:1"></span>
+                <button class="btn-secundario btn-mini" id="btn-export-pdf" title="Exportar a PDF"><i class="fas fa-file-pdf"></i> Exportar PDF</button>
+            </div>
+
+            <!-- Tabla principal -->
+            <div class="panel-formulario" style="padding:0;overflow:auto">
+                <div class="panel-formulario-cabecera" style="padding:.8rem 1rem;">
+                    <span><i class="fas fa-table"></i> Resumen por vehículo</span>
+                </div>
+                <div style="overflow-x:auto">
+                    <table class="tabla-venc" id="tabla-vencimientos">
+                        <thead>
+                            <tr>
+                                <th>No. Eco.</th>
+                                <th>Vehículo</th>
+                                <th>Tenencia</th>
+                                <th>Verificación</th>
+                                <th>Seguro</th>
+                                <th>Estado general</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-vencimientos">
+                            <tr><td colspan="7" style="text-align:center;padding:2rem;color:#64748b">
+                                <i class="fas fa-spinner fa-spin"></i> Cargando...
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Panel mantenimiento programado -->
+            <div class="panel-formulario panel-mp">
+                <div class="panel-formulario-cabecera">
+                    <span><i class="fas fa-tools"></i> Mantenimiento preventivo programado</span>
+                    <button class="btn-cabecera" id="btn-nuevo-mp">
+                        <i class="fas fa-plus"></i> Agregar intervalo
+                    </button>
+                </div>
+                <div class="panel-formulario-cuerpo">
+                    <!-- Selector de vehículo -->
+                    <div class="form-grid" style="margin-bottom:1rem">
+                        <div class="campo">
+                            <label for="mp-filtro-vehiculo">Filtrar por vehículo</label>
+                            <select id="mp-filtro-vehiculo" class="select-estilizado">
+                                <option value="">— Todos los vehículos —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table class="tabla-mp" id="tabla-mp">
+                            <thead>
+                                <tr>
+                                    <th>Vehículo</th>
+                                    <th>Componente</th>
+                                    <th>Intervalo km</th>
+                                    <th>Intervalo meses</th>
+                                    <th>Último km</th>
+                                    <th>Última fecha</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-mp">
+                                <tr><td colspan="8" style="text-align:center;padding:1.5rem;color:#64748b">
+                                    Cargando...
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main><!-- /main -->
+    </div><!-- /app-container -->
+
+    <!-- Modal: agregar/editar mantenimiento programado -->
+    <div class="modal" id="modal-mp" style="display:none;">
+        <div class="modal-contenido">
+            <div class="modal-header">
+                <i class="fas fa-tools modal-icono"></i>
+                <h3 id="modal-mp-titulo">Agregar intervalo de mantenimiento</h3>
+            </div>
+            <input type="hidden" id="mp-id">
+            <div class="form-grid" style="margin-top:1rem">
+                <div class="campo campo-doble">
+                    <label for="mp-vehiculo">Vehículo <span class="campo-requerido">*</span></label>
+                    <select id="mp-vehiculo" class="select-estilizado" required></select>
+                </div>
+                <div class="campo campo-doble">
+                    <label for="mp-componente">Componente <span class="campo-requerido">*</span></label>
+                    <input type="text" id="mp-componente" class="input-estilizado"
+                           placeholder="Ej. Cambio de aceite, Frenos, Llantas…">
+                </div>
+                <div class="campo">
+                    <label for="mp-intervalo-km">Intervalo (km)</label>
+                    <input type="number" id="mp-intervalo-km" class="input-estilizado"
+                           placeholder="Ej. 10000" min="0">
+                </div>
+                <div class="campo">
+                    <label for="mp-intervalo-meses">Intervalo (meses)</label>
+                    <input type="number" id="mp-intervalo-meses" class="input-estilizado"
+                           placeholder="Ej. 6" min="1" max="120">
+                </div>
+                <div class="campo">
+                    <label for="mp-ultimo-km">Último km registrado</label>
+                    <input type="number" id="mp-ultimo-km" class="input-estilizado"
+                           placeholder="Km al último servicio" min="0">
+                </div>
+                <div class="campo">
+                    <label for="mp-ultima-fecha">Última fecha de servicio</label>
+                    <input type="date" id="mp-ultima-fecha" class="input-estilizado">
+                </div>
+            </div>
+            <div class="modal-botones">
+                <button class="btn-secundario" id="mp-cancelar">Cancelar</button>
+                <button class="btn-primario" id="mp-guardar">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal confirmar eliminar -->
+    <div class="modal" id="modal-confirmar-mp" style="display:none;">
+        <div class="modal-contenido">
+            <div class="modal-header">
+                <i class="fas fa-trash modal-icono modal-icono-rojo"></i>
+                <h3>¿Eliminar intervalo?</h3>
+            </div>
+            <p>Esta acción no se puede deshacer.</p>
+            <div class="modal-botones">
+                <button class="btn-secundario" id="mp-conf-cancelar">Cancelar</button>
+                <button class="btn-peligro" id="mp-conf-aceptar">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: registrar servicio realizado -->
+    <div class="modal" id="modal-servicio" style="display:none;">
+        <div class="modal-contenido">
+            <div class="modal-header">
+                <i class="fas fa-screwdriver-wrench modal-icono"></i>
+                <h3>Registrar servicio realizado</h3>
+            </div>
+            <p id="servicio-info" style="color:#4a5568;font-size:.9rem;margin:.2rem 0 .8rem"></p>
+            <input type="hidden" id="servicio-mp-id">
+            <div class="form-grid">
+                <div class="campo">
+                    <label for="servicio-km">Kilometraje del odómetro <span class="campo-requerido">*</span></label>
+                    <input type="number" id="servicio-km" class="input-estilizado" min="0" placeholder="Lee el tablero del vehículo">
+                </div>
+                <div class="campo">
+                    <label for="servicio-fecha">Fecha del servicio</label>
+                    <input type="date" id="servicio-fecha" class="input-estilizado">
+                </div>
+                <div class="campo">
+                    <label for="servicio-costo">Costo ($)</label>
+                    <input type="number" id="servicio-costo" class="input-estilizado" min="0" step="0.01" placeholder="0.00">
+                </div>
+                <div class="campo campo-doble">
+                    <label for="servicio-nota">Nota (opcional)</label>
+                    <input type="text" id="servicio-nota" class="input-estilizado" placeholder="Ej. Cambio de aceite y filtro" maxlength="255">
+                </div>
+            </div>
+            <p style="font-size:.78rem;color:#64748b;margin-top:.5rem">
+                <i class="fas fa-info-circle"></i> Esto reinicia el contador del servicio y registra el costo en el módulo de Costos por vehículo.
+            </p>
+            <div class="modal-botones">
+                <button class="btn-secundario" id="servicio-cancelar">Cancelar</button>
+                <button class="btn-primario" id="servicio-guardar"><i class="fas fa-check"></i> Registrar servicio</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" aria-live="polite"></div>
+
+    <footer class="barra-inferior">
+        <div class="barra-inferior-contenido">
+            <p>Tecnológico Nacional de México campus Zacatecas Norte</p>
+        </div>
+    </footer>
+
+    <script src="Config.js"></script>
+    <script src="auth-guard.js"></script>
+    <script src="Script.js"></script>
+    <script src="navbar.js"></script>
+    <script src="modulos-router.js"></script>
+    <script>
+    // ================================================================
+    //  vencimientos.html — Script
+    // ================================================================
+    (function () {
+        'use strict';
+
+        const $ = id => document.getElementById(id);
+
+        // ── Toast ───────────────────────────────────────────────────
+        function toast(msg, tipo = 'info') {
+            const t = $('toast');
+            t.textContent = msg;
+            t.className = `toast toast-${tipo} show`;
+            setTimeout(() => t.classList.remove('show'), 3500);
+        }
+
+        // ── Auth / sesión ───────────────────────────────────────────
+        // La protección de sesión, el email del header y el logout los
+        // gestiona auth-guard.js (sesión bajo la clave 'sigepav_usuario').
+        // Los endpoints del backend son abiertos: no se envía token Bearer.
+        const headers = { 'Content-Type': 'application/json' };
+
+        // ── Datos ───────────────────────────────────────────────────
+        let _datos    = [];
+        let _vehiculos = [];
+        let _mp       = [];
+        let _eliminarMpId = null;
+
+        // ── Semáforo badge ──────────────────────────────────────────
+        function badgeSem(sem, dias) {
+            const cls = { verde:'semaforo-verde', amarillo:'semaforo-amarillo', rojo:'semaforo-rojo' };
+            const ico = { verde:'✅', amarillo:'⚠️', rojo:'🔴' };
+            const label = dias === null
+                ? 'Sin fecha'
+                : dias < 0 ? `Vencido hace ${Math.abs(dias)}d`
+                : dias === 0 ? 'Vence hoy'
+                : `${dias} días`;
+            return `<span class="badge-semaforo ${cls[sem] || 'semaforo-sin'}">${ico[sem] || '—'} ${label}</span>`;
+        }
+
+        // ── Renderizar tabla principal ──────────────────────────────
+        function renderTabla() {
+            const filtroSem  = $('filtro-semaforo').value;
+            const filtroTipo = $('filtro-tipo').value;
+            const filtroBus  = $('filtro-buscar').value.toLowerCase();
+
+            let filas = _datos;
+
+            if (filtroSem) filas = filas.filter(v => {
+                if (filtroTipo === 'tenencia')     return v.semaforo_tenencia === filtroSem;
+                if (filtroTipo === 'verificacion') return v.semaforo_verificacion === filtroSem;
+                if (filtroTipo === 'seguro')       return v.semaforo_seguro === filtroSem;
+                if (filtroTipo === 'mantenimiento')
+                    return v.mantenimiento.some(m => m.semaforo === filtroSem);
+                return v.semaforo_general === filtroSem;
+            });
+
+            if (filtroBus) filas = filas.filter(v =>
+                v.no_economico.toLowerCase().includes(filtroBus) ||
+                v.placas.toLowerCase().includes(filtroBus) ||
+                `${v.marca} ${v.linea}`.toLowerCase().includes(filtroBus)
+            );
+
+            const tbody = $('tbody-vencimientos');
+            if (filas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#64748b">
+                    No se encontraron vehículos con esos filtros.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filas.map(v => `
+                <tr>
+                    <td class="eco-cell">${v.no_economico}</td>
+                    <td>${v.marca} ${v.linea} <span class="dias-badge">(${v.modelo})</span></td>
+                    <td>${badgeSem(v.semaforo_tenencia, v.dias_tenencia)}</td>
+                    <td>${badgeSem(v.semaforo_verificacion, v.dias_verificacion)}</td>
+                    <td>${badgeSem(v.semaforo_seguro, v.dias_seguro)}</td>
+                    <td>${badgeSem(v.semaforo_general, null).replace('Sin fecha','').replace('—','')
+                        || `<span class="badge-semaforo semaforo-${v.semaforo_general}">${
+                            {verde:'🟢 Al día', amarillo:'🟡 Próximo', rojo:'🔴 Urgente'}[v.semaforo_general]
+                        }</span>`}</td>
+                    <td>
+                        <button class="btn-secundario btn-mini" onclick="verDetalle(${v.id})" title="Ver detalle">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ── KPIs ────────────────────────────────────────────────────
+        function actualizarKPIs() {
+            $('kpi-verde').textContent    = _datos.filter(v => v.semaforo_general === 'verde').length;
+            $('kpi-amarillo').textContent = _datos.filter(v => v.semaforo_general === 'amarillo').length;
+            $('kpi-rojo').textContent     = _datos.filter(v => v.semaforo_general === 'rojo').length;
+            $('kpi-mant').textContent     = _mp.length;
+        }
+
+        // ── Cargar vencimientos ─────────────────────────────────────
+        async function cargarVencimientos() {
+            try {
+                const r = await fetch(`${API_BASE}/api/vencimientos`, { headers });
+                const d = await r.json();
+                if (!d.ok) throw new Error(d.error);
+                _datos = d.datos;
+                actualizarKPIs();
+                renderTabla();
+            } catch (e) {
+                toast('Error al cargar vencimientos: ' + e.message, 'error');
+            }
+        }
+
+        // ── Cargar mantenimiento programado ─────────────────────────
+        async function cargarMP(vehiculoId = '') {
+            try {
+                const url = vehiculoId
+                    ? `${API_BASE}/api/mantenimiento-programado?vehiculo_id=${vehiculoId}`
+                    : `${API_BASE}/api/mantenimiento-programado`;
+                const r = await fetch(url, { headers });
+                const d = await r.json();
+                if (!d.ok) throw new Error(d.error);
+                _mp = d.datos;
+                actualizarKPIs();
+                renderMP();
+            } catch (e) {
+                toast('Error al cargar mantenimiento programado: ' + e.message, 'error');
+            }
+        }
+
+        // km_actual de un vehículo (busca en datos de vencimientos o catálogo).
+        function kmDeVehiculo(vehiculoId) {
+            const d = _datos.find(v => v.id === vehiculoId);
+            if (d && d.km_actual != null) return Number(d.km_actual);
+            const v = _vehiculos.find(x => x.id === vehiculoId);
+            return v && v.km_actual != null ? Number(v.km_actual) : null;
+        }
+
+        // Proyecta el próximo servicio en el cliente (el endpoint CRUD no lo calcula).
+        // Replica la lógica del backend: rojo <15d / amarillo 15–29d / verde ≥30d
+        // y por km: rojo vencido, amarillo <500 km, verde el resto.
+        function estadoMP(m) {
+            let dias = null, kmRest = null;
+            if (m.intervalo_meses && m.ultima_fecha) {
+                const f = new Date(String(m.ultima_fecha).slice(0, 10) + 'T00:00:00');
+                if (!isNaN(f.getTime())) {
+                    f.setMonth(f.getMonth() + Number(m.intervalo_meses));
+                    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+                    dias = Math.round((f - hoy) / 86400000);
+                }
+            }
+            const km = kmDeVehiculo(m.vehiculo_id);
+            if (m.intervalo_km && m.ultimo_km != null && km != null) {
+                kmRest = (Number(m.ultimo_km) + Number(m.intervalo_km)) - km;
+            }
+            const ord = { rojo: 3, amarillo: 2, verde: 1, sin: 0 };
+            let sd = dias == null ? null : (dias < 15 ? 'rojo' : dias < 30 ? 'amarillo' : 'verde');
+            let sk = kmRest == null ? null : (kmRest < 0 ? 'rojo' : kmRest < 500 ? 'amarillo' : 'verde');
+            let sem = 'sin';
+            [sd, sk].forEach(s => { if (s && ord[s] > ord[sem]) sem = s; });
+            return { dias, kmRest, sem };
+        }
+
+        function badgeMP(est) {
+            const cls = { verde: 'semaforo-verde', amarillo: 'semaforo-amarillo', rojo: 'semaforo-rojo', sin: 'semaforo-sin' };
+            const ico = { verde: '✅', amarillo: '⚠️', rojo: '🔴', sin: '—' };
+            const partes = [];
+            if (est.kmRest != null) partes.push(est.kmRest < 0
+                ? `pasado ${Math.abs(est.kmRest).toLocaleString()} km`
+                : `${est.kmRest.toLocaleString()} km`);
+            if (est.dias != null) partes.push(est.dias < 0
+                ? `vencido ${Math.abs(est.dias)}d`
+                : `${est.dias}d`);
+            const label = partes.join(' · ') || 'Sin datos';
+            return `<span class="badge-semaforo ${cls[est.sem]}">${ico[est.sem]} ${label}</span>`;
+        }
+
+        function renderMP() {
+            const tbody = $('tbody-mp');
+            if (_mp.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:1.5rem;color:#64748b">
+                    No hay intervalos de mantenimiento programados.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = _mp.map(m => {
+                const semBadge = badgeMP(estadoMP(m));
+                return `<tr>
+                    <td class="eco-cell">${m.no_economico || ''} <span style="color:#64748b;font-size:.78rem">${m.marca||''} ${m.linea||''}</span></td>
+                    <td>${m.componente}</td>
+                    <td>${m.intervalo_km ? m.intervalo_km.toLocaleString() + ' km' : '—'}</td>
+                    <td>${m.intervalo_meses ? m.intervalo_meses + ' meses' : '—'}</td>
+                    <td>${m.ultimo_km != null ? m.ultimo_km.toLocaleString() + ' km' : '—'}</td>
+                    <td>${m.ultima_fecha || '—'}</td>
+                    <td>${semBadge}</td>
+                    <td style="white-space:nowrap">
+                        <button class="btn-exito btn-mini" onclick="abrirRegistrarServicio(${m.id})" title="Registrar servicio realizado">
+                            <i class="fas fa-check"></i> Servicio
+                        </button>
+                        <button class="btn-secundario btn-mini" onclick="editarMP(${m.id})" title="Editar">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button class="btn-peligro btn-mini" onclick="confirmarEliminarMP(${m.id})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ── Cargar catálogo de vehículos para selects ───────────────
+        async function cargarVehiculos() {
+            try {
+                const r = await fetch(`${API_BASE}/api/vehiculos`, { headers });
+                const d = await r.json();
+                _vehiculos = Array.isArray(d) ? d : (d.datos || []);
+                const opts = _vehiculos.map(v =>
+                    `<option value="${v.id}">${v.no_economico} — ${v.marca} ${v.linea}</option>`
+                ).join('');
+                $('mp-vehiculo').innerHTML = '<option value="">— Seleccione vehículo —</option>' + opts;
+                $('mp-filtro-vehiculo').innerHTML = '<option value="">— Todos los vehículos —</option>' + opts;
+            } catch (e) {
+                console.warn('No se pudieron cargar vehículos:', e.message);
+            }
+        }
+
+        // ── Modal MP ─────────────────────────────────────────────────
+        function abrirModalMP(modo, mp = null) {
+            $('modal-mp-titulo').textContent = modo === 'nuevo'
+                ? 'Agregar intervalo de mantenimiento'
+                : 'Editar intervalo de mantenimiento';
+            $('mp-id').value            = mp?.id || '';
+            $('mp-vehiculo').value      = mp?.vehiculo_id || '';
+            $('mp-componente').value    = mp?.componente || '';
+            $('mp-intervalo-km').value  = mp?.intervalo_km || '';
+            $('mp-intervalo-meses').value = mp?.intervalo_meses || '';
+            $('mp-ultimo-km').value     = mp?.ultimo_km ?? '';
+            $('mp-ultima-fecha').value  = mp?.ultima_fecha || '';
+            $('mp-vehiculo').disabled   = modo === 'editar';
+            $('modal-mp').style.display = 'flex';
+            $('modal-overlay').style.display = 'block';
+        }
+
+        function cerrarModalMP() {
+            $('modal-mp').style.display = 'none';
+            $('modal-overlay').style.display = 'none';
+        }
+
+        $('btn-nuevo-mp').addEventListener('click', () => abrirModalMP('nuevo'));
+        $('mp-cancelar').addEventListener('click', cerrarModalMP);
+
+        $('mp-guardar').addEventListener('click', async () => {
+            const id         = $('mp-id').value;
+            const vehiculoId = $('mp-vehiculo').value;
+            const componente = $('mp-componente').value.trim();
+            if (!componente || (!id && !vehiculoId)) {
+                toast('Completa vehículo y componente.', 'error'); return;
+            }
+            const body = {
+                vehiculo_id:      vehiculoId,
+                componente,
+                intervalo_km:     $('mp-intervalo-km').value     || null,
+                intervalo_meses:  $('mp-intervalo-meses').value  || null,
+                ultimo_km:        $('mp-ultimo-km').value        || null,
+                ultima_fecha:     $('mp-ultima-fecha').value     || null,
+            };
+            try {
+                const url    = id
+                    ? `${API_BASE}/api/mantenimiento-programado/${id}`
+                    : `${API_BASE}/api/mantenimiento-programado`;
+                const method = id ? 'PUT' : 'POST';
+                const r = await fetch(url, { method, headers, body: JSON.stringify(body) });
+                const d = await r.json();
+                if (!d.ok) throw new Error(d.error);
+                toast(id ? 'Intervalo actualizado.' : 'Intervalo agregado.', 'success');
+                cerrarModalMP();
+                cargarMP($('mp-filtro-vehiculo').value);
+                cargarVencimientos();
+            } catch (e) {
+                toast('Error: ' + e.message, 'error');
+            }
+        });
+
+        window.editarMP = function (id) {
+            const mp = _mp.find(m => m.id === id);
+            if (mp) abrirModalMP('editar', mp);
+        };
+
+        window.confirmarEliminarMP = function (id) {
+            _eliminarMpId = id;
+            $('modal-confirmar-mp').style.display = 'flex';
+            $('modal-overlay').style.display = 'block';
+        };
+
+        $('mp-conf-cancelar').addEventListener('click', () => {
+            $('modal-confirmar-mp').style.display = 'none';
+            $('modal-overlay').style.display = 'none';
+        });
+
+        $('mp-conf-aceptar').addEventListener('click', async () => {
+            try {
+                const r = await fetch(`${API_BASE}/api/mantenimiento-programado/${_eliminarMpId}`,
+                    { method: 'DELETE', headers });
+                const d = await r.json();
+                if (!d.ok) throw new Error(d.error);
+                toast('Intervalo eliminado.', 'success');
+                $('modal-confirmar-mp').style.display = 'none';
+                $('modal-overlay').style.display = 'none';
+                cargarMP($('mp-filtro-vehiculo').value);
+            } catch (e) {
+                toast('Error: ' + e.message, 'error');
+            }
+        });
+
+        // ── Registrar servicio realizado ────────────────────────────
+        window.abrirRegistrarServicio = function (mpId) {
+            const mp = _mp.find(m => m.id === mpId);
+            if (!mp) return;
+            $('servicio-mp-id').value = mpId;
+            $('servicio-info').textContent = `${mp.no_economico || ''} ${mp.marca || ''} ${mp.linea || ''} — ${mp.componente}`;
+            // Km sugerido del sistema, pero EDITABLE: el admin teclea el real del odómetro.
+            const kmSug = kmDeVehiculo(mp.vehiculo_id);
+            $('servicio-km').value = kmSug != null ? kmSug : '';
+            $('servicio-fecha').value = new Date().toISOString().slice(0, 10);
+            $('servicio-costo').value = '';
+            $('servicio-nota').value = '';
+            $('modal-servicio').style.display = 'flex';
+            $('modal-overlay').style.display = 'block';
+        };
+        function cerrarModalServicio() {
+            $('modal-servicio').style.display = 'none';
+            $('modal-overlay').style.display = 'none';
+        }
+        $('servicio-cancelar').addEventListener('click', cerrarModalServicio);
+        $('servicio-guardar').addEventListener('click', async () => {
+            const id = $('servicio-mp-id').value;
+            const km = $('servicio-km').value;
+            if (km === '' || isNaN(Number(km))) { toast('Captura el kilometraje del odómetro.', 'error'); return; }
+            let usuarioId = null;
+            try {
+                const ses = (window.SIGEPAV && window.SIGEPAV.getSession && window.SIGEPAV.getSession())
+                    || JSON.parse(sessionStorage.getItem('sigepav_usuario') || '{}');
+                usuarioId = ses && ses.id ? ses.id : null;
+            } catch (e) {}
+            const body = {
+                km: Number(km),
+                fecha: $('servicio-fecha').value || null,
+                costo: Number($('servicio-costo').value) || 0,
+                nota: $('servicio-nota').value.trim() || null,
+                usuario_id: usuarioId
+            };
+            try {
+                const r = await fetch(`${API_BASE}/api/mantenimiento-programado/${id}/registrar-servicio`, {
+                    method: 'POST', headers, body: JSON.stringify(body)
+                });
+                const d = await r.json();
+                if (!d.ok) throw new Error(d.error);
+                toast('Servicio registrado. Contador reiniciado.', 'success');
+                cerrarModalServicio();
+                cargarMP($('mp-filtro-vehiculo').value);
+                cargarVencimientos();
+            } catch (e) {
+                toast('Error: ' + e.message, 'error');
+            }
+        });
+
+        window.verDetalle = function (id) {
+            const v = _datos.find(x => x.id === id);
+            if (!v) return;
+            const lineas = [
+                `🚗 ${v.no_economico} — ${v.marca} ${v.linea} (${v.modelo})`,
+                `Placas: ${v.placas}   Km actual: ${v.km_actual?.toLocaleString() || '—'}`,
+                '',
+                `Tenencia:      ${v.fecha_tenencia || 'Sin fecha'} (${v.dias_tenencia !== null ? v.dias_tenencia + 'd' : '—'})`,
+                `Verificación:  ${v.fecha_verificacion || 'Sin fecha'} (${v.dias_verificacion !== null ? v.dias_verificacion + 'd' : '—'})`,
+                `Seguro:        ${v.fecha_seguro || 'Sin fecha'} (${v.dias_seguro !== null ? v.dias_seguro + 'd' : '—'})`,
+            ];
+            if (v.mantenimiento.length) {
+                lineas.push('', 'Mantenimiento programado:');
+                v.mantenimiento.forEach(m =>
+                    lineas.push(`  • ${m.componente}: ${m.km_restantes != null ? m.km_restantes + ' km restantes' : '—'} / ${m.dias_para_mantenimiento != null ? m.dias_para_mantenimiento + ' días' : '—'}`)
+                );
+            }
+            alert(lineas.join('\n'));
+        };
+
+        // ── Filtros ─────────────────────────────────────────────────
+        ['filtro-semaforo','filtro-tipo','filtro-buscar'].forEach(id =>
+            $(id).addEventListener('input', renderTabla)
+        );
+
+        $('mp-filtro-vehiculo').addEventListener('change', () =>
+            cargarMP($('mp-filtro-vehiculo').value)
+        );
+
+        $('btn-refrescar').addEventListener('click', () => {
+            cargarVencimientos();
+            cargarMP($('mp-filtro-vehiculo').value);
+        });
+
+        // ── Exportar reporte de vencimientos (Módulo E) ─────────────
+        function estadoVencTxt(sem, dias) {
+            const et = { verde: 'En regla', amarillo: 'Por vencer', rojo: 'Urgente' };
+            const d = dias === null || dias === undefined ? 'sin fecha'
+                : dias < 0 ? `vencido ${Math.abs(dias)}d`
+                : dias === 0 ? 'vence hoy' : `${dias} días`;
+            return `${et[sem] || '—'} (${d})`;
+        }
+        $('btn-export-pdf').addEventListener('click', () => {
+            if (!_datos.length) { toast('No hay datos para exportar.', 'error'); return; }
+            const orden = { rojo: 0, amarillo: 1, verde: 2 };
+            const filas = [..._datos]
+                .sort((a, b) => orden[a.semaforo_general] - orden[b.semaforo_general])
+                .map(v => [
+                    v.no_economico,
+                    `${v.marca} ${v.linea} (${v.modelo})`,
+                    estadoVencTxt(v.semaforo_tenencia, v.dias_tenencia),
+                    estadoVencTxt(v.semaforo_verificacion, v.dias_verificacion),
+                    estadoVencTxt(v.semaforo_seguro, v.dias_seguro),
+                    ({ verde: 'AL DÍA', amarillo: 'PRÓXIMO', rojo: 'EN RIESGO' })[v.semaforo_general] || '—'
+                ]);
+            window.exportarReportePDF({
+                titulo: 'Vencimientos y alertas de la flota',
+                subtitulo: `${_datos.length} unidades`,
+                columnas: ['No. Eco.', 'Vehículo', 'Tenencia', 'Verificación', 'Seguro', 'Estado'],
+                filas,
+                nombreArchivo: 'SIGEPAV_vencimientos',
+                orientacion: 'landscape'
+            });
+        });
+
+        // ── Init ────────────────────────────────────────────────────
+        cargarVehiculos();
+        cargarVencimientos();
+        cargarMP();
+    })();
+    </script>
+    <script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script>
+</body>
+</html>

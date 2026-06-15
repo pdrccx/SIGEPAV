@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración · SIGEPAV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="Styles.css">
+    <link rel="stylesheet" href="responsive.css?v=sigepav-responsive-v14">
+    <style>
+        .modo-cards { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:.4rem; }
+        @media (max-width:680px){ .modo-cards { grid-template-columns:1fr; } }
+        .modo-card {
+            border:2px solid #e2e8f0; border-radius:.8rem; padding:1.2rem 1.3rem; cursor:pointer;
+            transition:border-color .15s, box-shadow .15s, background .15s; background:#fff;
+        }
+        .modo-card:hover { border-color:#94a3b8; }
+        .modo-card.activo { border-color:#0d2d6b; background:#f5f8fe; box-shadow:0 3px 14px rgba(13,45,107,.12); }
+        .modo-card h3 { margin:0 0 .3rem; display:flex; align-items:center; gap:.5rem; color:#0d2d6b; }
+        .modo-card p { margin:0; font-size:.86rem; color:#64748b; line-height:1.45; }
+        .modo-card .check { float:right; color:#0d2d6b; font-size:1.2rem; visibility:hidden; }
+        .modo-card.activo .check { visibility:visible; }
+        .modo-card ul { margin:.6rem 0 0; padding-left:1.1rem; font-size:.82rem; color:#475569; }
+        .modo-card ul li { margin:.18rem 0; }
+        .estado-actual {
+            display:inline-flex; align-items:center; gap:.45rem; padding:.3rem .8rem; border-radius:999px;
+            font-size:.82rem; font-weight:700; margin-left:.5rem;
+        }
+        .estado-publico { background:#dbeafe; color:#1e40af; }
+        .estado-privado { background:#dcfce7; color:#166534; }
+    </style>
+</head>
+<body>
+    <div class="modal-overlay" id="modal-overlay" style="display:none;"></div>
+
+    <div id="app-container" style="display:flex;">
+        <header class="barra-superior">
+            <div class="barra-superior-contenido">
+                <div class="barra-izquierda">
+                    <div class="dropdown-modulos" id="dropdown-modulos-principal" data-navbar></div>
+                    <img src="Logo.jpeg" alt="Logo" class="logo-barra" onerror="this.style.display='none'">
+                    <div class="titulo-sistema"><h1><a href="menu.html" style="color:inherit;text-decoration:none;cursor:pointer;">SIGEPAV</a></h1></div>
+                </div>
+                <div class="info-usuario">
+                    <span class="icono-usuario"><i class="fas fa-user-circle"></i></span>
+                    <span class="correo-usuario" id="user-email-display">Usuario</span>
+                    <button id="logoutBtn" class="btn-logout-header"><i class="fas fa-sign-out-alt"></i> Salir</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="contenedor-principal">
+            <div class="subtitulo-seccion">
+                <div class="encabezado-formulario">
+                    <h2><i class="fas fa-sliders" style="color:#0d2d6b;margin-right:.4rem"></i> Configuración del sistema</h2>
+                    <p class="subtitulo-secundario">Modo de operación del mismo núcleo: sector público o empresa privada</p>
+                </div>
+            </div>
+
+            <div class="panel-formulario" style="padding:1.3rem 1.5rem">
+                <div style="display:flex;align-items:center;flex-wrap:wrap">
+                    <span style="font-weight:700;color:#0d2d6b">Modo de operación actual:</span>
+                    <span class="estado-actual" id="estado-actual">—</span>
+                </div>
+                <p style="font-size:.86rem;color:#64748b;margin:.6rem 0 0">
+                    El núcleo de SIGEPAV (vehículos, comisiones, mantenimiento, costos, salud de la flota) es el mismo en ambos modos.
+                    Lo único que cambia es la <strong>transparencia ciudadana</strong>: en modo privado se oculta el módulo de reportes ciudadanos.
+                </p>
+
+                <div class="modo-cards">
+                    <div class="modo-card" id="card-publico" data-modo="publico">
+                        <i class="fas fa-circle-check check"></i>
+                        <h3><i class="fas fa-landmark"></i> Sector público</h3>
+                        <p>Para dependencias e instituciones obligadas a la transparencia.</p>
+                        <ul>
+                            <li>Transparencia ciudadana por QR activa</li>
+                            <li>Módulo de reportes ciudadanos visible</li>
+                            <li>Cumple la Ley General de Transparencia</li>
+                        </ul>
+                    </div>
+                    <div class="modo-card" id="card-privado" data-modo="privado">
+                        <i class="fas fa-circle-check check"></i>
+                        <h3><i class="fas fa-building"></i> Empresa privada</h3>
+                        <p>Para flotillas de empresas que no requieren transparencia pública.</p>
+                        <ul>
+                            <li>Interfaz enfocada en control y costos</li>
+                            <li>Módulo ciudadano oculto (sin eliminarlo)</li>
+                            <li>Ideal para distribución, logística, construcción</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="margin-top:1.3rem;display:flex;gap:.6rem;align-items:center">
+                    <button class="btn-primario" id="btn-guardar-modo"><i class="fas fa-save"></i> Guardar modo</button>
+                    <span id="guardar-status" style="font-size:.85rem;color:#16a34a;display:none"><i class="fas fa-check"></i> Guardado</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="barra-inferior">
+        <div class="barra-inferior-contenido"><p>Tecnológico Nacional de México campus Zacatecas Norte</p></div>
+    </footer>
+    <div class="toast" id="toast" aria-live="polite"></div>
+
+    <script src="Config.js"></script>
+    <script src="auth-guard.js"></script>
+    <script src="Script.js"></script>
+    <script src="navbar.js"></script>
+    <script src="modulos-router.js"></script>
+    <script>
+    (function () {
+        'use strict';
+        const $ = id => document.getElementById(id);
+        const API_BASE = (window.SIGEPAV && window.SIGEPAV.API_BASE) || window.API_BASE || '';
+        const headers = { 'Content-Type': 'application/json' };
+        let _modoSel = 'publico';
+
+        function toast(msg, tipo = 'info') {
+            const t = $('toast'); t.textContent = msg;
+            t.className = `toast toast-${tipo} show`;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function pintarEstado(modo) {
+            const badge = $('estado-actual');
+            if (modo === 'privado') { badge.className = 'estado-actual estado-privado'; badge.innerHTML = '<i class="fas fa-building"></i> Empresa privada'; }
+            else { badge.className = 'estado-actual estado-publico'; badge.innerHTML = '<i class="fas fa-landmark"></i> Sector público'; }
+        }
+        function marcarSeleccion(modo) {
+            _modoSel = modo;
+            $('card-publico').classList.toggle('activo', modo === 'publico');
+            $('card-privado').classList.toggle('activo', modo === 'privado');
+        }
+
+        $('card-publico').addEventListener('click', () => marcarSeleccion('publico'));
+        $('card-privado').addEventListener('click', () => marcarSeleccion('privado'));
+
+        async function cargar() {
+            try {
+                const r = await fetch(`${API_BASE}/api/configuracion`);
+                const d = await r.json();
+                const modo = (d.ok && d.config && d.config.MODO_OPERACION) || 'publico';
+                try { localStorage.setItem('sigepav_modo', modo); } catch (e) {}
+                pintarEstado(modo);
+                marcarSeleccion(modo);
+            } catch (e) {
+                toast('No se pudo cargar la configuración.', 'error');
+            }
+        }
+
+        $('btn-guardar-modo').addEventListener('click', async () => {
+            try {
+                const r = await fetch(`${API_BASE}/api/configuracion`, {
+                    method: 'PUT', headers, body: JSON.stringify({ MODO_OPERACION: _modoSel })
+                });
+                const d = await r.json();
+                if (!d.ok) throw new Error(d.error);
+                try { localStorage.setItem('sigepav_modo', _modoSel); } catch (e) {}
+                pintarEstado(_modoSel);
+                const st = $('guardar-status'); st.style.display = 'inline'; setTimeout(() => st.style.display = 'none', 2500);
+                toast('Modo de operación actualizado.', 'success');
+            } catch (e) {
+                toast('Error al guardar: ' + e.message, 'error');
+            }
+        });
+
+        cargar();
+    })();
+    </script>
+    <script src="ui-interaction-fix.js?v=sigepav-ui-fix-v14"></script>
+</body>
+</html>

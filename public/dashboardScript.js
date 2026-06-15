@@ -11,9 +11,7 @@
     ];
 
     let charts = {};
-    let refreshTimer = null;
     let cargando = false;
-    const REFRESH_MS = 10000;
 
     function destroyChart(id) {
         if (charts[id]) { charts[id].destroy(); delete charts[id]; }
@@ -152,7 +150,7 @@
             renderCharts(rCharts);
             if (status) {
                 const ahora = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                status.innerHTML = `<i class="fas fa-circle" style="font-size:.55rem;color:#1f9d67;"></i> En tiempo real · ${ahora}`;
+                status.innerHTML = `<i class="fas fa-circle" style="font-size:.55rem;color:#1f9d67;"></i> Actualizado · ${ahora}`;
             }
         } catch (e) {
             console.warn('[dashboard] API no disponible:', e.message);
@@ -163,12 +161,11 @@
         }
     }
 
-    function iniciarTiempoReal() {
+    function iniciarDashboard() {
+        // Carga al entrar a la pestaña. SIN auto-refresh periódico: los datos
+        // solo se recargan al abrir el dashboard o al volver el foco a la
+        // pestaña (cuando el admin entra de nuevo).
         cargar();
-        if (refreshTimer) clearInterval(refreshTimer);
-        refreshTimer = setInterval(() => {
-            if (!document.hidden) cargar();
-        }, REFRESH_MS);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) cargar();
         });
@@ -190,6 +187,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         initNavbar();
-        iniciarTiempoReal();
+        iniciarDashboard();
     });
 })();
