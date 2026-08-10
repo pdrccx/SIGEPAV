@@ -9,6 +9,7 @@
 --    mysql -u root -p sigepav < seed/demo_jdm.sql
 -- =====================================================================
 USE sigepav;
+SET NAMES utf8mb4;   -- evita mojibake en acentos al cargar el seed
 
 SET @adm = (SELECT id FROM usuarios WHERE rol_id = 1 ORDER BY id LIMIT 1);
 SET @ope = (SELECT id FROM usuarios WHERE rol_id = 2 ORDER BY id LIMIT 1);
