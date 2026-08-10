@@ -1,7 +1,5 @@
     // ====== Lógica específica de la página de vehículos ======
     document.addEventListener('DOMContentLoaded', () => {
-        SIGEPAV.initPagina('vehiculos');
-
         const API = (typeof window !== 'undefined' && window.API_BASE) ? window.API_BASE : (window.location && window.location.origin ? window.location.origin : 'http://localhost:3000');
 
         // ---------- Estado ----------
