@@ -4,6 +4,9 @@ node_modules/
 backups/
 uploads/evidencias/
 uploads/perfiles/
+# Los QR son salida generada: backfillQRVehiculos() los recrea al arrancar
+# cada vez que cambia BASE_URL. No tiene caso versionarlos.
+uploads/qr/
 *.log
 node-install.log
 *.zip
