@@ -129,9 +129,61 @@
         renderCharts({ porEstado: [], porTipo: [], valesMes: [], alertasTipo: [], topVehiculos: [] });
     }
 
+    // Integración cruzada: resúmenes de Salud de la flota (Módulo D) y
+    // Vencimientos urgentes (Módulo A) directo en el dashboard.
+    function cargarIntegraciones() {
+        const base = window.API_BASE || (window.location && window.location.origin ? window.location.origin : 'http://localhost:3000');
+        const color = { critico: '#ef4444', medio: '#f59e0b', bajo: '#10b981' };
+
+        fetch(`${base}/api/ia/parque/predictivo`, { cache: 'no-store' })
+            .then(r => r.json())
+            .then(d => {
+                const cont = document.getElementById('dash-salud-flota');
+                if (!cont) return;
+                const top = (d.ranking || []).filter(r => r.nivel !== 'bajo').slice(0, 4);
+                if (!top.length) { cont.innerHTML = '<p style="color:#16a34a;text-align:center;padding:1rem"><i class="fas fa-circle-check"></i> Flota en buen estado</p>'; return; }
+                cont.innerHTML = top.map(r => `
+                    <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .3rem;border-bottom:1px solid #f1f5f9">
+                        <span style="width:9px;height:9px;border-radius:50%;background:${color[r.nivel]};flex-shrink:0"></span>
+                        <div style="flex:1;min-width:0">
+                            <strong style="color:#0d2d6b">${r.no_economico}</strong>
+                            <span style="color:#64748b;font-size:.82rem"> ${r.marca} ${r.linea}</span>
+                            <div style="font-size:.77rem;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.razones[0] || ''}</div>
+                        </div>
+                        <span style="font-weight:800;color:${color[r.nivel]}">${r.score}</span>
+                    </div>`).join('');
+            })
+            .catch(() => { const c = document.getElementById('dash-salud-flota'); if (c) c.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:1rem">No disponible</p>'; });
+
+        fetch(`${base}/api/vencimientos`, { cache: 'no-store' })
+            .then(r => r.json())
+            .then(d => {
+                const cont = document.getElementById('dash-vencimientos');
+                if (!cont) return;
+                const rojos = (d.datos || []).filter(v => v.semaforo_general === 'rojo').slice(0, 5);
+                if (!rojos.length) { cont.innerHTML = '<p style="color:#16a34a;text-align:center;padding:1rem"><i class="fas fa-circle-check"></i> Sin vencimientos urgentes</p>'; return; }
+                function peor(v) {
+                    const items = [['Tenencia', v.dias_tenencia, v.semaforo_tenencia], ['Verificación', v.dias_verificacion, v.semaforo_verificacion], ['Seguro', v.dias_seguro, v.semaforo_seguro]];
+                    const r = items.filter(i => i[2] === 'rojo').sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0))[0];
+                    return r ? `${r[0]}: ${r[1] < 0 ? 'vencida' : r[1] + 'd'}` : '';
+                }
+                cont.innerHTML = rojos.map(v => `
+                    <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .3rem;border-bottom:1px solid #f1f5f9">
+                        <span style="width:9px;height:9px;border-radius:50%;background:#ef4444;flex-shrink:0"></span>
+                        <div style="flex:1;min-width:0">
+                            <strong style="color:#0d2d6b">${v.no_economico}</strong>
+                            <span style="color:#64748b;font-size:.82rem"> ${v.marca} ${v.linea}</span>
+                        </div>
+                        <span style="font-size:.8rem;color:#991b1b;font-weight:600;white-space:nowrap">${peor(v)}</span>
+                    </div>`).join('');
+            })
+            .catch(() => { const c = document.getElementById('dash-vencimientos'); if (c) c.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:1rem">No disponible</p>'; });
+    }
+
     async function cargar() {
         if (cargando) return;
         cargando = true;
+        cargarIntegraciones();
         const base = window.API_BASE || (window.location && window.location.origin ? window.location.origin : 'http://localhost:3000');
         const status = document.getElementById('dash-live-status');
         try {

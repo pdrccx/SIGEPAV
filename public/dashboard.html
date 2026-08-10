@@ -38,10 +38,10 @@
         <div class="subtitulo-seccion">
             <div class="encabezado-formulario">
                 <h2>Dashboard</h2>
-                <p class="subtitulo-secundario">Resumen ejecutivo del parque vehicular — datos en tiempo real.</p>
+                <p class="subtitulo-secundario">Resumen ejecutivo del parque vehicular.</p>
             </div>
             <div class="dash-live-status" id="dash-live-status" style="margin-left:auto;align-self:center;font-size:.86rem;color:#4a5568;display:flex;align-items:center;gap:.45rem;">
-                <i class="fas fa-circle" style="font-size:.55rem;color:#1f9d67;"></i> Actualización en tiempo real
+                <i class="fas fa-circle" style="font-size:.55rem;color:#1f9d67;"></i> Actualizado al entrar
             </div>
         </div>
 
@@ -73,6 +73,29 @@
                 <div class="card-info">
                     <span class="card-numero" id="kpi-comisiones">—</span>
                     <span class="card-etiqueta">Comisiones registradas</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Integración cruzada: Salud de la flota (Módulo D) + Vencimientos (Módulo A) -->
+        <section class="dash-grid-2">
+            <div class="dash-card">
+                <div class="dash-card-header" style="display:flex;align-items:center;justify-content:space-between">
+                    <h3><i class="fas fa-heart-pulse"></i> Salud de la flota — prioridad</h3>
+                    <a href="salud-flota.html" class="modulo-dropdown" data-modulo="salud-flota" style="font-size:.8rem;color:#006dc8;text-decoration:none;font-weight:600">Ver todo →</a>
+                </div>
+                <div id="dash-salud-flota" style="padding:.2rem">
+                    <p style="color:#64748b;text-align:center;padding:1rem">Cargando…</p>
+                </div>
+            </div>
+
+            <div class="dash-card">
+                <div class="dash-card-header" style="display:flex;align-items:center;justify-content:space-between">
+                    <h3><i class="fas fa-calendar-xmark"></i> Vencimientos urgentes</h3>
+                    <a href="vencimientos.html" class="modulo-dropdown" data-modulo="alertas" style="font-size:.8rem;color:#006dc8;text-decoration:none;font-weight:600">Ver todo →</a>
+                </div>
+                <div id="dash-vencimientos" style="padding:.2rem">
+                    <p style="color:#64748b;text-align:center;padding:1rem">Cargando…</p>
                 </div>
             </div>
         </section>
