@@ -7,7 +7,14 @@
 })();
 
 function logout() {
-    if (window.SIGEPAV && window.SIGEPAV.clearSession) window.SIGEPAV.clearSession();
+    // auth-guard.js es el dueño de la sesión: limpia sessionStorage, localStorage
+    // y las redirecciones pendientes. SIGEPAV.clearSession nunca existió.
+    if (typeof window.__sigepav_limpiar_sesion === 'function') {
+        window.__sigepav_limpiar_sesion();
+    } else {
+        try { sessionStorage.removeItem('sigepav_usuario'); } catch (e) {}
+        try { localStorage.removeItem('sigepav_usuario'); } catch (e) {}
+    }
     location.href = 'index.html';
 }
 
