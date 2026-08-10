@@ -196,6 +196,10 @@ function subirFotoPerfil(req, res, next) {
         await asegurarModuloRespaldos();
         await asegurarVencimientos();
         await asegurarConfiguracion();
+        // El deep-link de notificaciones (urlNotificacion en el frontend) necesita
+        // referencia_id. Las bases creadas antes de que se poblara no la traen.
+        await asegurarColumna('notificaciones', 'referencia_id',
+            'INT UNSIGNED NULL DEFAULT NULL AFTER tipo');
         await repararNumerosEconomicosTemporales();
         // Garantiza que cada vehículo activo tenga qr_token + qr_image_path.
         // Regenera el PNG si BASE_URL cambió desde el último arranque.
@@ -3351,7 +3355,7 @@ app.get('/api/notificaciones/:usuario_id', async (req, res) => {
     try {
         const uid = parseInt(req.params.usuario_id, 10);
         const [rows] = await pool.query(
-            `SELECT id, titulo, cuerpo, leida, tipo, created_at
+            `SELECT id, titulo, cuerpo, leida, tipo, referencia_id, created_at
              FROM notificaciones
              WHERE usuario_id = ?
              ORDER BY created_at DESC
@@ -3673,7 +3677,8 @@ app.post('/api/solicitudes-finalizacion', async (req, res) => {
         await notificarAdmins({
             titulo: 'Solicitud de finalización de comisión',
             cuerpo: `El usuario ${nombreUsuario} quiere finalizar su comisión #${viaje_id}.`,
-            tipo: 'solicitud_finalizacion'
+            tipo: 'solicitud_finalizacion',
+            referencia_id: r.insertId
         });
 
         await registrarBitacora(
@@ -3787,7 +3792,8 @@ app.put('/api/solicitudes-finalizacion/:id/aprobar', async (req, res) => {
             usuario_id: sol.usuario_id,
             titulo: 'Comisión finalizada',
             cuerpo: `Tu comisión #${sol.viaje_id} fue aprobada y finalizada por el administrador.`,
-            tipo: 'comision_aprobada'
+            tipo: 'comision_aprobada',
+            referencia_id: sol.viaje_id
         });
 
         await registrarBitacora(admin_id, `Aprobó finalización de comisión #${sol.viaje_id}`, 'comisiones', sol.viaje_id, req.ip);
@@ -3846,7 +3852,8 @@ app.put('/api/solicitudes-finalizacion/:id/rechazar', async (req, res) => {
             titulo: 'Solicitud rechazada',
             cuerpo: 'Se rechazó tu comisión, revisa que tus datos sean correctos.'
                   + (comentario_admin ? ` Comentario del administrador: ${comentario_admin}` : ''),
-            tipo: 'comision_rechazada'
+            tipo: 'comision_rechazada',
+            referencia_id: sol.viaje_id
         });
 
         await registrarBitacora(admin_id, `Rechazó finalización de comisión #${sol.viaje_id}`, 'comisiones', sol.viaje_id, req.ip);
@@ -3921,13 +3928,19 @@ function sseEnviar(usuarioId, evento, payload) {
 }
 
 // Inserta una notificación dirigida a un usuario concreto.
-async function crearNotificacion({ usuario_id, titulo, cuerpo, tipo }) {
+//  referencia_id — id del registro que originó la notificación (viaje, solicitud,
+//  reporte...). El frontend lo usa en urlNotificacion() para llevar al usuario
+//  directo al registro en vez de a la página genérica. Si va null, cae al listado.
+async function crearNotificacion({ usuario_id, titulo, cuerpo, tipo, referencia_id }) {
     if (!usuario_id) return null;
+    const refId = Number.isFinite(Number(referencia_id)) && Number(referencia_id) > 0
+        ? Number(referencia_id)
+        : null;
     try {
         const [r] = await pool.query(
-            `INSERT INTO notificaciones (usuario_id, titulo, cuerpo, tipo, leida)
-             VALUES (?, ?, ?, ?, 0)`,
-            [usuario_id, titulo || 'Notificación', cuerpo || '', tipo || 'info']
+            `INSERT INTO notificaciones (usuario_id, titulo, cuerpo, tipo, referencia_id, leida)
+             VALUES (?, ?, ?, ?, ?, 0)`,
+            [usuario_id, titulo || 'Notificación', cuerpo || '', tipo || 'info', refId]
         );
 
         // ── Empujar en tiempo real al/los clientes SSE de este usuario ──
@@ -3937,6 +3950,7 @@ async function crearNotificacion({ usuario_id, titulo, cuerpo, tipo }) {
             titulo: titulo || 'Notificación',
             cuerpo: cuerpo || '',
             tipo:   tipo   || 'info',
+            referencia_id: refId,
             leida:  0,
             created_at: new Date().toISOString()
         });
@@ -3949,13 +3963,13 @@ async function crearNotificacion({ usuario_id, titulo, cuerpo, tipo }) {
 }
 
 // Envía la misma notificación a todos los administradores (rol_id = 1, activos)
-async function notificarAdmins({ titulo, cuerpo, tipo }) {
+async function notificarAdmins({ titulo, cuerpo, tipo, referencia_id }) {
     try {
         const [admins] = await pool.query(
             'SELECT id FROM usuarios WHERE rol_id = 1 AND activo = 1'
         );
         for (const a of admins) {
-            await crearNotificacion({ usuario_id: a.id, titulo, cuerpo, tipo });
+            await crearNotificacion({ usuario_id: a.id, titulo, cuerpo, tipo, referencia_id });
         }
         return admins.length;
     } catch (err) {
@@ -4605,7 +4619,8 @@ app.post(
                 titulo: '🚨 Nuevo reporte ciudadano',
                 cuerpo: `Se recibió un reporte: "${motivoSafe}"` +
                         (vehiculoIdN ? ` para vehículo #${vehiculoIdN}` : '') + '.',
-                tipo: 'reporte_ciudadano'
+                tipo: 'reporte_ciudadano',
+                referencia_id: r.insertId
             });
 
             // Send acknowledgment email to citizen
@@ -4941,7 +4956,8 @@ app.patch('/api/reportes-ciudadanos/:id/estatus', async (req, res) => {
                 usuario_id: admin_id,
                 titulo: '✓ Reporte actualizado',
                 cuerpo: `Reporte #${id} marcado como "${estatus.replace('_',' ')}".`,
-                tipo: 'info'
+                tipo: 'info',
+                referencia_id: id
             });
         }
 
