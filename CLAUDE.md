@@ -112,6 +112,16 @@ localhost, LAN o ngrok sin recompilar nada.
 Cada uno tiene **dos caminos**: `generar*Local()` (heurística en JS puro, siempre funciona) y
 `consultarGemini*()` (llama a la API de Google). Si no hay API key o Gemini falla, cae al local.
 
+**Hoy el sistema corre 100% con el motor local**, porque `GEMINI_API_KEY` está vacía en
+`public/Config.js`. Gemini es una mejora opcional, no una dependencia: sin internet y sin
+key, los tres módulos siguen funcionando. La UI dice cuál se usó ("Motor local" vs. el
+nombre del modelo), así que no hay que tocar los badges: ya son honestos.
+
+`MODELOS_GEMINI` en `Config.js` está recortada **a propósito** a modelos del free tier
+(solo Flash y Flash-Lite, verificado ago-2026). Los modelos "pro" siempre se cobran; antes
+encabezaban la lista. `modelosGeminiPreferidos()` (`Server.js:1770`) además antepone
+`gemini-2.5-flash`, `gemini-2.5-flash-lite` y `gemini-1.5-flash` como red de seguridad.
+
 **Detalle importante:** el backend obtiene la API key **leyendo y parseando con regex el archivo
 del frontend** `public/Config.js` (`leerGeminiDesdeConfigJs()`, `Server.js:1740`). No usa una
 variable de entorno. Si cambias el formato de `Config.js`, rompes el backend.

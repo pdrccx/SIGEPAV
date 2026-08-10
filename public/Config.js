@@ -5,60 +5,41 @@
 //  No lo subas a repositorios públicos (agrégalo a .gitignore).
 // =================================================================
 
-// API key de Google AI Studio (Gemini)
-// El backend también la lee desde este archivo para /api/ia/recomendacion.
-// No lo subas a repositorios públicos.
+// ─────────────────────────────────────────────────────────────────
+//  IA — Google AI Studio (Gemini). OPCIONAL.
+// ─────────────────────────────────────────────────────────────────
+//  SIGEPAV NO depende de esto. Con la key vacía (el estado por defecto),
+//  los tres módulos de IA corren con su motor local de reglas:
+//
+//    /api/ia/recomendacion      → generarRecomendacionLocal()        Server.js
+//    /api/ia/mantenimiento      → generarAnalisisMantenimientoLocal()
+//    /api/ia/parque/predictivo  → generarAnalisisParqueLocal()
+//
+//  El motor local funciona sin internet y sin costo. Poner una key aquí
+//  solo cambia la redacción del análisis, no los datos ni el ranking.
+//  La interfaz avisa cuál se usó ("Motor local" vs. el nombre del modelo).
+//
+//  El backend lee esta key parseando ESTE archivo con regex
+//  (leerGeminiDesdeConfigJs en Server.js). Si cambias el formato de la
+//  línea de abajo, el backend deja de encontrarla.
+// ─────────────────────────────────────────────────────────────────
 const GEMINI_API_KEY = "";
 
-// Lista de modelos de Gemini en orden de preferencia (mejor a peor)
-// El sistema probará uno por uno hasta que alguno responda exitosamente.
-// Listado completo de modelos compatibles con generateContent (texto).
+// Modelos a probar, en orden, hasta que alguno responda.
+//
+//  ⚠️ SOLO modelos del FREE TIER de Google AI Studio (verificado ago-2026).
+//  El free tier cubre únicamente Flash y Flash-Lite; los modelos "pro"
+//  SIEMPRE se cobran. Antes esta lista los traía hasta arriba, lo que
+//  habría generado cargos en cuanto se pusiera una key. No los regreses
+//  sin tener facturación activada a propósito.
+//
+//  Límites del free tier: ~5-15 peticiones por minuto y cuota diaria.
+//  Si se agota, el sistema cae solo al motor local (no truena).
 const MODELOS_GEMINI = [
-    // ===== Gemini 3.x (la generación más reciente) =====
-    "gemini-3.1-pro-preview",
-    "gemini-3.1-pro-preview-customtools",
-    "gemini-3-pro-preview",
-    "gemini-3-flash-preview",
-    "gemini-3.1-flash-lite-preview",
-
-    // ===== Gemini 2.5 (estables, producción) =====
-    "gemini-2.5-pro",
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
-    "gemini-2.5-flash-preview-09-2025",
-    "gemini-2.5-flash-lite-preview-09-2025",
-
-    // ===== Gemini 1.5 (legacy, alta disponibilidad) =====
-    "gemini-1.5-pro",
-    "gemini-1.5-pro-latest",
-    "gemini-1.5-pro-002",
-    "gemini-1.5-pro-001",
     "gemini-1.5-flash",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-flash-002",
-    "gemini-1.5-flash-001",
-    "gemini-1.5-flash-8b",
-    "gemini-1.5-flash-8b-latest",
-    "gemini-1.5-flash-8b-001",
-
-    // ===== Gemini 1.0 (muy legacy, último recurso) =====
-    "gemini-pro",
-    "gemini-1.0-pro",
-    "gemini-1.0-pro-latest",
-    "gemini-1.0-pro-001",
-    "gemini-1.0-pro-vision-latest",
-    "gemini-pro-vision",
-
-    // ===== Modelos abiertos Gemma (último recurso) =====
-    "gemma-3-27b-it",
-    "gemma-3-12b-it",
-    "gemma-3-4b-it",
-    "gemma-3-1b-it",
-    "gemma-3n-e4b-it",
-    "gemma-3n-e2b-it",
-    "gemma-2-27b-it",
-    "gemma-2-9b-it",
-    "gemma-2-2b-it"
+    "gemini-1.5-flash-8b"
 ];
 
 // =================================================================
