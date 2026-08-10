@@ -18,6 +18,9 @@ SIGEPAV/
 ├── Server.js              ← Backend principal (Node/Express). Punto de entrada.
 ├── package.json           ← Dependencias y scripts de npm.
 ├── .env / env.env         ← Configuración secreta (BD, correo, BASE_URL). NO se sube a git.
+├── CLAUDE.md              ← Mapa de la arquitectura (qué existe y dónde están las trampas).
+├── INICIAR-SIGEPAV.bat    ← Lanzador de un clic (MySQL + medidor + app + navegador).
+├── APAGAR-SIGEPAV.bat     ← Apaga lo que abrió el lanzador.
 │
 ├── public/                ← TODO el frontend (lo que ve el navegador)
 │   ├── index.html, *.html       páginas
@@ -25,7 +28,7 @@ SIGEPAV/
 │   ├── Script.js, *Script.js    lógica del navegador
 │   ├── Config.js                configuración del frontend (API, Gemini, medidor)
 │   ├── Logo.jpeg                 logotipo
-│   └── Manual_SIGEPAV.pdf        manual de usuario (se descarga desde la app)
+│   └── Manual_SIGEPAV.pdf        manual de usuario (se lee dentro de la app)
 │
 ├── medidor/               ← Medidor de combustible (Python/Flask)
 │   ├── Gasolina.py
@@ -33,24 +36,32 @@ SIGEPAV/
 │
 ├── database/              ← Scripts SQL (esquema y migraciones). Se ejecutan a mano.
 │   ├── sigepav_BDD.sql              (base de datos completa)
-│   ├── ciudadano_migration.sql
 │   ├── notificaciones_navegacion_migration.sql
 │   └── reparar_no_economico_temporal.sql
 │
 ├── scripts/              ← Scripts de arranque/operación (.bat y .ps1)
+│   ├── configurar-base-de-datos.bat crea la BD y el usuario de la app
 │   ├── iniciar-sigepav.bat          arranca solo el backend
 │   ├── iniciar-todo.bat             arranca backend + medidor
 │   ├── iniciar-medidor.bat          arranca solo el medidor
 │   ├── iniciar-sigepav-ngrok.ps1    arranca todo + ngrok (acceso público)
 │   ├── actualizar-baseurl-ngrok.ps1 cambia la URL pública y regenera QR
+│   ├── fix_encoding.js              repara acentos dañados en la BD
 │   ├── detener-*.ps1                detiene los procesos
 │   └── ...
 │
-├── docs/                 ← Documentación e instrucciones de despliegue (.txt)
+├── documentacion/        ← Documentación técnica (ver su propio README)
+│   ├── flujos/                   trazas de ingeniería inversa, con diagramas
+│   └── despliegue/               instrucciones de puesta en marcha (.txt)
+│
 ├── seed/                 ← Datos semilla (estados, municipios, localidades).
 ├── uploads/             ← Archivos subidos (evidencias, fotos de perfil, QR).
 └── backups/             ← Respaldos generados por la app.
 ```
+
+> 📘 **¿Quieres entender cómo funciona por dentro?** Empieza por
+> [`documentacion/`](documentacion/README.md): tiene las trazas de flujo con diagramas,
+> del clic en la pantalla hasta la consulta SQL.
 
 > **Nota:** los scripts de `scripts/` se localizan solos (usan su propia ruta),
 > así que funcionan sin importar en qué carpeta o unidad esté el proyecto.

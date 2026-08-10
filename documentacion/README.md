@@ -1,0 +1,52 @@
+# Documentación técnica — SIGEPAV
+
+Sistema de Gestión del Parque Vehicular · INNOVATEC 2026
+
+Documentación de ingeniería del sistema: cómo está construido, cómo viaja la información
+por dentro y cómo se despliega.
+
+---
+
+## Trazas de flujo
+
+Cada traza recorre una funcionalidad **de punta a punta** —del clic en la pantalla hasta la
+consulta SQL y de regreso— con diagramas y referencias `archivo:línea` al código real.
+Siguen el modelo **entrada → proceso → estado interno → salida → fallo/limitación**.
+
+| # | Flujo | Qué enseña | Estado |
+|---|---|---|---|
+| 1 | [Login y roles](flujos/01-login.md) | La puerta de entrada, el modelo de sesión y por qué la guardia de rol es de navegación y no de seguridad | ✅ |
+| 2 | Comisión: registrar → solicitar fin → aprobar | El corazón del sistema: 3 tablas, 2 roles, notificaciones en tiempo real y bitácora | ⬜ |
+| 3 | Reporte ciudadano por QR | Entrada pública sin sesión, desde un teléfono, escaneando un código | ⬜ |
+| 4 | Salud de flota / IA | El patrón de motor de análisis con respaldo local | ⬜ |
+| 5 | Vale de gasolina + medidor | El cruce al servicio de Python/Flask por proxy interno | ⬜ |
+
+> Los diagramas están en formato **Mermaid**: se renderizan solos en GitHub y siguen siendo
+> texto plano, así que se versionan y se editan sin depender de un programa de dibujo.
+
+## Despliegue
+
+Instrucciones de puesta en marcha en distintos entornos.
+
+| Documento | Entorno |
+|---|---|
+| [INSTRUCCIONES_AZURE_SIGEPAV.txt](despliegue/INSTRUCCIONES_AZURE_SIGEPAV.txt) | Servidor en Azure |
+| [INSTRUCCIONES_NGROK_SIGEPAV.txt](despliegue/INSTRUCCIONES_NGROK_SIGEPAV.txt) | Exposición pública con ngrok |
+| [INSTRUCCIONES_LARAGON_NGROK.txt](despliegue/INSTRUCCIONES_LARAGON_NGROK.txt) | Entorno local con Laragon |
+
+> ⚠️ **Estos tres archivos traen rutas desactualizadas** (mencionan la carpeta
+> `Gesti-n-Vehicular-main`, que se renombró a `SIGEPAV`; scripts que hoy viven en
+> `scripts/`; y el servicio `MySQL80` cuando el entorno local usa `MySQL84`).
+> Revísalos antes de seguirlos al pie de la letra.
+
+## Otros documentos del proyecto
+
+| Documento | Para qué sirve |
+|---|---|
+| [`../README.md`](../README.md) | Presentación general y cómo ejecutar el sistema |
+| [`../CLAUDE.md`](../CLAUDE.md) | Mapa estático de la arquitectura: qué existe, cómo se organiza y dónde están las trampas |
+| [`../CONTEXTO-SIGEPAV.md`](../CONTEXTO-SIGEPAV.md) | Bitácora de en qué se quedó el trabajo entre sesiones |
+
+**La diferencia entre `CLAUDE.md` y esta carpeta:** `CLAUDE.md` es el mapa —qué existe y
+dónde. Las trazas de `flujos/` son el recorrido —qué pasa cuando alguien usa el sistema.
+El mapa te ubica; la traza te explica.
