@@ -852,7 +852,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (modulo === 'dashboard') {
                     window.location.href = 'dashboard.html';
                 } else if (modulo === 'alertas') {
-                    window.location.href = 'vehiculos.html';
+                    // Coincide con RUTAS_MODULOS de modulos-router.js. Antes mandaba a
+                    // vehiculos.html, que ni era la página de alertas ni existe ya.
+                    window.location.href = 'vencimientos.html';
                 } else if (modulo === 'control-combustible') {
                     window.location.href = 'reg-vales.html';
                 } else {
@@ -2108,6 +2110,21 @@ async function registrar() {
         mostrarVistaLista();
 
         await recargarDesdeBD();
+        abrirVehiculoDeLaURL();
+    }
+
+    // Deep-link de notificaciones: alta-edicion.html?vehiculo_id=123 abre la ficha
+    // de ese vehículo en vez de dejarte en la lista. El id lo pone el backend en
+    // notificaciones.referencia_id. Si el vehículo ya no existe, se ignora sin ruido.
+    function abrirVehiculoDeLaURL() {
+        let idURL;
+        try {
+            idURL = parseInt(new URLSearchParams(location.search).get('vehiculo_id'), 10);
+        } catch (e) { return; }
+        if (!Number.isFinite(idURL)) return;
+
+        const v = vehiculos.find(x => Number(x.id) === idURL);
+        if (v) verDetalle(v.id);
     }
 
     return {
@@ -3050,7 +3067,7 @@ const notificacionesAdmin = (() => {
             case 'reporte_ciudadano':
                 return id ? `reportes.html?reporte_id=${id}` : 'reportes.html';
             case 'vehiculo':
-                return id ? `vehiculos.html?vehiculo_id=${id}` : 'vehiculos.html';
+                return id ? `alta-edicion.html?vehiculo_id=${id}` : 'alta-edicion.html';
             case 'comision_aprobada':
                 return id ? `consulta-comisiones.html?viaje_id=${id}` : 'consulta-comisiones.html';
             case 'comision_rechazada':

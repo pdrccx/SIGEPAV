@@ -587,7 +587,7 @@
                 case 'reporte_ciudadano':
                     return id ? `reportes.html?reporte_id=${id}` : 'reportes.html';
                 case 'vehiculo':
-                    return id ? `vehiculos.html?vehiculo_id=${id}` : 'vehiculos.html';
+                    return id ? `alta-edicion.html?vehiculo_id=${id}` : 'alta-edicion.html';
                 default:
                     return null;
             }

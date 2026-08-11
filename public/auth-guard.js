@@ -325,7 +325,6 @@
             'vales.html': true,
             'alta-edicion.html': true,
             'mantenimiento.html': true,
-            'vehiculos.html': true,
             'dashboard.html': true,
             'reportes.html': true,
             'historial.html': true,

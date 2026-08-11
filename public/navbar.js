@@ -77,7 +77,6 @@
         'alta-edicion.html': 'alta-edicion',
         'consulta-comisiones.html': 'consulta-comisiones',
         'solicitudes-finalizacion.html': 'solicitudes-finalizacion',
-        'vehiculos.html':  'alta-edicion',
         'dashboard.html':  'dashboard',
         'reportes.html':   'reportes',
         'historial.html':  'bitacora',
