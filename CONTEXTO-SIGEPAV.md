@@ -87,7 +87,7 @@ FLUSH PRIVILEGES;
 > Ojo: ese .bat asume MySQL 8.4 en la ruta de arriba; si el `mysql.exe` está en otro lado, hay que ajustar la ruta dentro del .bat.
 
 **Paso 3 — Arrancar la app:**
-Doble clic a `scripts/iniciar-sigepav.bat` (o `npm start`). Abrir `http://localhost:3000`.
+Doble clic a `INICIAR-SIGEPAV.bat` en la raíz (o `npm start`). Abrir `http://localhost:3000`.
 Ya **no** debe salir el error rojo de MySQL.
 
 ---
@@ -101,9 +101,9 @@ Ya **no** debe salir el error rojo de MySQL.
 ---
 
 ## ▶️ Comandos útiles
-- **Correr:** `npm start`  (o `scripts/iniciar-sigepav.bat`)
-- **Correr app + medidor Python:** `scripts/iniciar-todo.bat`
-- **Detener:** cerrar la ventana, o `scripts/detener-sigepav.ps1`
+- **Correr todo de un clic:** `INICIAR-SIGEPAV.bat` (raíz) — MySQL + medidor + app + navegador
+- **Solo el backend:** `npm start`
+- **Detener:** `APAGAR-SIGEPAV.bat` (raíz)
 - **Probar que sirve (sin navegador):** `curl http://localhost:3000/`
 
 ---

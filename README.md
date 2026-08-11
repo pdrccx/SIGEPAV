@@ -39,16 +39,13 @@ SIGEPAV/
 │   ├── notificaciones_navegacion_migration.sql
 │   └── reparar_no_economico_temporal.sql
 │
-├── scripts/              ← Scripts de arranque/operación (.bat y .ps1)
+├── scripts/              ← Utilidades de instalación y despliegue
 │   ├── configurar-base-de-datos.bat crea la BD y el usuario de la app
-│   ├── iniciar-sigepav.bat          arranca solo el backend
-│   ├── iniciar-todo.bat             arranca backend + medidor
-│   ├── iniciar-medidor.bat          arranca solo el medidor
 │   ├── iniciar-sigepav-ngrok.ps1    arranca todo + ngrok (acceso público)
 │   ├── actualizar-baseurl-ngrok.ps1 cambia la URL pública y regenera QR
-│   ├── fix_encoding.js              repara acentos dañados en la BD
-│   ├── detener-*.ps1                detiene los procesos
-│   └── ...
+│   ├── iniciar-en-segundo-plano.ps1 arranca sin ventanas (para el servidor)
+│   ├── abrir-firewall.bat           abre el puerto 3000 en Windows
+│   └── fix_encoding.js              repara acentos dañados en la BD
 │
 ├── documentacion/        ← Documentación técnica (ver su propio README)
 │   ├── flujos/                   trazas de ingeniería inversa, con diagramas
@@ -80,15 +77,21 @@ SIGEPAV/
 # 1. Instalar dependencias del backend (solo la primera vez)
 npm install
 
-# 2. Configurar .env (BD, correo, BASE_URL). Ver docs/ para ejemplos.
+# 2. Configurar .env (BD, correo, BASE_URL). Ver documentacion/despliegue/ para ejemplos.
 
-# 3. Arrancar el backend
+# 3. Crear la base de datos (una sola vez)
+scripts\configurar-base-de-datos.bat
+
+# 4. Arrancar el backend
 npm start            # equivale a: node Server.js
 ```
 La app queda en **http://localhost:3000**.
 
-En Windows también puedes dar doble clic a `scripts/iniciar-sigepav.bat`
-(backend) o `scripts/iniciar-todo.bat` (backend + medidor).
+### La forma fácil (Windows)
+
+Doble clic a **`INICIAR-SIGEPAV.bat`** en la raíz. Ese único archivo arranca el servicio
+de MySQL si está apagado, levanta el medidor de combustible, levanta la app y te abre el
+navegador. Para apagar, **`APAGAR-SIGEPAV.bat`**.
 
 ---
 

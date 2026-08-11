@@ -34,10 +34,17 @@ Instrucciones de puesta en marcha en distintos entornos.
 | [INSTRUCCIONES_NGROK_SIGEPAV.txt](despliegue/INSTRUCCIONES_NGROK_SIGEPAV.txt) | Exposición pública con ngrok |
 | [INSTRUCCIONES_LARAGON_NGROK.txt](despliegue/INSTRUCCIONES_LARAGON_NGROK.txt) | Entorno local con Laragon |
 
-> ⚠️ **Estos tres archivos traen rutas desactualizadas** (mencionan la carpeta
-> `Gesti-n-Vehicular-main`, que se renombró a `SIGEPAV`; scripts que hoy viven en
-> `scripts/`; y el servicio `MySQL80` cuando el entorno local usa `MySQL84`).
-> Revísalos antes de seguirlos al pie de la letra.
+> ⚠️ **Estos tres archivos traen rutas y comandos desactualizados.** Revísalos antes de
+> seguirlos al pie de la letra:
+>
+> - Mencionan la carpeta `Gesti-n-Vehicular-main`, renombrada a `SIGEPAV`.
+> - Mencionan scripts que hoy viven en `scripts/`, o que **ya no existen**:
+>   `detener-sigepav.ps1` y `detener-todo-ngrok.ps1` se eliminaron porque mataban
+>   *todos* los procesos `node.exe` y `python.exe` de la máquina, no solo los de
+>   SIGEPAV. Se reemplazaron por `APAGAR-SIGEPAV.bat` en la raíz, que cierra por
+>   título de ventana.
+> - `INSTRUCCIONES_LARAGON_NGROK.txt` habla del servicio `MySQL80`; el entorno local
+>   usa `MySQL84`.
 
 ## Otros documentos del proyecto
 

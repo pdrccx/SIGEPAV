@@ -22,9 +22,11 @@ Tres piezas:
 npm start                      # arranca el backend en http://localhost:3000 (= node Server.js)
 ```
 
-- **Backend + medidor Python:** `scripts/iniciar-todo.bat`
-- **Solo el medidor:** `scripts/iniciar-medidor.bat`
-- **Detener:** `scripts/detener-sigepav.ps1`
+- **Todo de un clic** (MySQL + medidor + app + navegador): `INICIAR-SIGEPAV.bat` en la raíz.
+  Es **el único** lanzador; antes había tres y se consolidaron.
+- **Apagar:** `APAGAR-SIGEPAV.bat` en la raíz. Cierra por título de ventana y, como
+  respaldo, libera el puerto 3000. **No** mates `node.exe` a lo bruto: tumbarías
+  cualquier otro Node de la máquina.
 - **Montar la BD desde cero:** `scripts/configurar-base-de-datos.bat` (pide la contraseña de
   root y ejecuta `database/sigepav_BDD.sql` + crea el usuario `sigepav_user`).
   Ese .bat asume MySQL 8.4 en `C:\Program Files\MySQL\MySQL Server 8.4\bin\`; si `mysql.exe`

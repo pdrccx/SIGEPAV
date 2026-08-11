@@ -35,7 +35,7 @@ if errorlevel 1 goto error
 echo.
 echo ============================================================
 echo   LISTO! Base de datos configurada correctamente.
-echo   Ahora corre la app con:  scripts\iniciar-sigepav.bat
+echo   Ahora corre la app con:  INICIAR-SIGEPAV.bat  (en la raiz)
 echo ============================================================
 pause
 exit /b 0
