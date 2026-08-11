@@ -848,7 +848,6 @@
         renderDocumentos();
         // Cargar km del vehículo inicial
         if (estado.vehiculoActualId) cargarKmVehiculo(estado.vehiculoActualId);
-        console.log('✅ Expediente Digital Vehicular iniciado.', VEHICULOS.length, 'vehículos cargados.');
     }
 
     if (document.readyState === 'loading') {

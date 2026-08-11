@@ -473,8 +473,9 @@ ALTER TABLE notificaciones
     MODIFY COLUMN leida TINYINT(1)   NOT NULL DEFAULT 0;
 ALTER TABLE notificaciones
     ADD COLUMN IF NOT EXISTS created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE notificaciones
-    ADD COLUMN IF NOT EXISTS referencia_id INT UNSIGNED NULL DEFAULT NULL AFTER tipo;
+-- (Se quitó un ALTER que agregaba referencia_id: este mismo script ya la declara
+--  en el CREATE TABLE de notificaciones, y como arriba se hace DROP DATABASE,
+--  siempre corre sobre una base nueva donde la columna ya existe.)
 
 -- 2.8  bitacora — asegurar columnas
 ALTER TABLE bitacora

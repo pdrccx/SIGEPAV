@@ -1036,7 +1036,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const porcentaje = Math.round(event.data.percentage);
             actualizarMedidor(porcentaje);
             cerrarMedidor();
-            console.log('Nivel de combustible registrado:', porcentaje + '%');
         } else if (event.data.tipo === 'medidor-cancelar') {
             cerrarMedidor();
         }
@@ -1271,7 +1270,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.__sigepav_abrirRegistroComisiones = abrirRegistroComisiones;
     window.__sigepav_abrirMantenimiento = abrirMantenimiento;
 
-    console.log('✅ Sistema listo – Registro de comisiones integrado.');
 });
 
 window.SIGEPAV = (function () {

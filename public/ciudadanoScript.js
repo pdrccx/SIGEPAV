@@ -589,13 +589,11 @@ function formatKm(value) {
 // =====================================================================
 async function loadDirectorio() {
   showLoading(true);
-  console.log('[ciudadano] Cargando directorio público…');
   try {
     const res = await fetch('/api/public/directorio?' + nocache(), { headers: FETCH_HEADERS });
-    console.log('[ciudadano] /api/public/directorio respondió HTTP', res.status);
 
     if (res.status === 404) {
-      showError('El endpoint del directorio público no está disponible. Verifica que el servidor Node esté corriendo la versión actualizada (debe imprimir "BUILD: restauracion-completa-v3" al arrancar).');
+      showError('El directorio público no está disponible en este momento. Vuelve a intentarlo más tarde.');
       return;
     }
 
@@ -615,10 +613,6 @@ async function loadDirectorio() {
       }
       return;
     }
-    console.log('[ciudadano] Directorio cargado:', {
-      activas: (data.activas || []).length,
-      finalizadas: (data.finalizadas || []).length
-    });
     renderDirectorio(data);
   } catch (err) {
     console.error('[ciudadano] loadDirectorio error:', err);

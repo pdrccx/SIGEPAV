@@ -885,7 +885,6 @@
             window.location.href = 'index.html';
         });
 
-        console.log('✅ Panel de usuario listo. Sesión:', sesion.email);
     });
 
 window.sigepavLoading = {

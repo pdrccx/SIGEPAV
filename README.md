@@ -36,7 +36,6 @@ SIGEPAV/
 │
 ├── database/              ← Scripts SQL (esquema y migraciones). Se ejecutan a mano.
 │   ├── sigepav_BDD.sql              (base de datos completa)
-│   ├── notificaciones_navegacion_migration.sql
 │   └── reparar_no_economico_temporal.sql
 │
 ├── scripts/              ← Utilidades de instalación y despliegue

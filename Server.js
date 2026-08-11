@@ -4008,49 +4008,6 @@ app.get('/api/notificaciones/stream/:usuario_id', (req, res) => {
     });
 });
 
-// ============== ARRANQUE ==============
-// =====================================================================
-//  SIGEPAV — Módulo Ciudadano
-//  INSTRUCCIONES DE INTEGRACIÓN:
-//
-//  1. Instala las dependencias nuevas:
-//       npm install nodemailer multer qrcode express-rate-limit uuid
-//
-//  2. Copia este bloque COMPLETO y pégalo en Server.js,
-//     justo ANTES de la línea:   app.listen(PORT, () => {
-//
-//  3. Añade al inicio de Server.js (junto a los otros require):
-//       const nodemailer = require('nodemailer');
-//       const multer     = require('multer');
-//       const QRCode     = require('qrcode');
-//       const rateLimit  = require('express-rate-limit');
-//       const { v4: uuidv4 } = require('uuid');
-//       const fs         = require('fs');
-//       const path       = require('path');
-//
-//  4. Añade las variables de entorno a tu .env:
-//       MAIL_HOST=smtp.gmail.com
-//       MAIL_PORT=587
-//       MAIL_USER=tu_cuenta@gmail.com
-//       MAIL_PASS=tu_app_password
-//       MAIL_FROM="SIGEPAV <tu_cuenta@gmail.com>"
-//       BASE_URL=http://localhost:3000
-//
-//  5. Ejecuta el SQL de ciudadano_migration.sql en tu base de datos.
-//
-//  6. Copia ciudadano.html, ciudadano.css, ciudadano.js y
-//     seguimiento-publico.html a la raíz del proyecto.
-// =====================================================================
-
-// ── New requires (add at top of Server.js) ────────────────────────────
-// const nodemailer = require('nodemailer');
-// const multer     = require('multer');
-// const QRCode     = require('qrcode');
-// const rateLimit  = require('express-rate-limit');
-// const { v4: uuidv4 } = require('uuid');
-// const fs   = require('fs');
-// const path = require('path');
-
 // =====================================================================
 //  ██████╗  ██╗   ██╗██████╗ ██╗     ██╗ ██████╗
 //  ██╔══██╗ ██║   ██║██╔══██╗██║     ██║██╔════╝

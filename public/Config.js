@@ -77,9 +77,6 @@ const MODELOS_GEMINI = [
     }
 
     window.API_BASE = resolverApiBase();
-    // Alias por compatibilidad con código viejo
-    window.SIGEPAV_API = window.API_BASE;
-    console.info('[SIGEPAV] API_BASE =', window.API_BASE);
 })();
 
 // =================================================================

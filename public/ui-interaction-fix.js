@@ -36,6 +36,9 @@
     });
   }
 
+  // Escotilla de emergencia INTENCIONAL: nada la llama desde el código, y así
+  // debe ser. Si la interfaz se traba con un panel invisible encima, se corre
+  // sigepavUnlockUI() desde la consola del navegador para destrabarla.
   window.sigepavUnlockUI = unlockHiddenOverlays;
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', unlockHiddenOverlays, { once: true });
