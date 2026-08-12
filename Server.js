@@ -561,6 +561,25 @@ function textoErrorDuplicado(err) {
     return String(err?.sqlMessage || err?.message || '').toLowerCase();
 }
 
+// ── Normalización de datos de vehículo ───────────────────────────────
+//  Esta validación vivía copiada, idéntica, en POST y en PUT /api/vehiculos.
+//  No fallaba, pero el día que se agregue un tipo nuevo tocando solo una de las
+//  dos copias, se podría crear el vehículo y no editarlo (o al revés). Es la
+//  misma forma en que nació la divergencia de diasHasta.
+const TIPOS_VEHICULO = ['sedan','coupe','pickup','suv','hatchback','van','motocicleta','otro'];
+
+// Tipo en minúsculas si es de la lista; null si no lo es o viene vacío.
+function normalizarTipoVehiculo(tipo) {
+    const t = String(tipo == null ? '' : tipo).trim().toLowerCase();
+    return TIPOS_VEHICULO.includes(t) ? t : null;
+}
+
+// Capacidad como entero de 0 a 255 (lo que aguanta la columna); null si no.
+function normalizarCapacidadVehiculo(capacidad) {
+    const n = parseInt(capacidad, 10);
+    return (Number.isFinite(n) && n >= 0 && n <= 255) ? n : null;
+}
+
 function mensajeDuplicadoVehiculo(err) {
     const msg = textoErrorDuplicado(err);
     if (msg.includes('uq_vehiculos_placas') || msg.includes('placas')) {
@@ -1204,6 +1223,23 @@ app.get('/api/usuarios', async (req, res) => {
     }
 });
 
+// Convierte el rol que manda el formulario al rol_id de la BD (1 = Administrador,
+// 2 = Operativo). Devuelve null si no lo reconoce, para que el endpoint responda
+// 400 en vez de degradar en silencio.
+//
+// Antes esto estaba escrito dos veces con reglas distintas: crear aceptaba
+// 'admin' y 'administrador'; editar aceptaba además '1'. Y el `: 2` final se
+// tragaba cualquier valor desconocido, así que un typo creaba al usuario como
+// Operativo sin avisarle a nadie hasta que la persona no podía entrar a su
+// módulo. Hoy el formulario solo manda 'admin' o 'usuario', así que la
+// divergencia no rompía nada todavía.
+function derivarRolId(rol) {
+    const r = String(rol == null ? '' : rol).trim().toLowerCase();
+    if (r === 'admin'   || r === 'administrador' || r === '1') return 1;
+    if (r === 'usuario' || r === 'operativo'     || r === '2') return 2;
+    return null;
+}
+
 app.post('/api/usuarios', subirFotoPerfil, async (req, res) => {
     try {
         const { nombre, apellidos, email, rol, departamento, cargo, password_inicial } = req.body;
@@ -1214,7 +1250,11 @@ app.post('/api/usuarios', subirFotoPerfil, async (req, res) => {
             return res.status(400).json({ ok: false, error: 'La contraseña inicial debe tener al menos 6 caracteres.' });
         }
 
-        const rol_id = (rol === 'admin' || rol === 'administrador') ? 1 : 2;
+        const rol_id = derivarRolId(rol);
+        if (rol_id === null) {
+            if (req.file) borrarArchivoPerfilSeguro(`uploads/perfiles/${req.file.filename}`);
+            return res.status(400).json({ ok: false, error: 'El rol indicado no es válido. Usa "admin" o "usuario".' });
+        }
         // El admin asigna una contraseña inicial; el usuario debe cambiarla en primer acceso.
         const passwordHash = await bcrypt.hash(String(password_inicial), 10);
         const fotoPerfil = req.file ? `uploads/perfiles/${req.file.filename}` : null;
@@ -1271,7 +1311,11 @@ app.put('/api/usuarios/:id/admin', subirFotoPerfil, async (req, res) => {
             return res.status(400).json({ ok: false, error: 'Correo electrónico no válido.' });
         }
 
-        const rol_id = (rol === 'admin' || rol === 'administrador' || rol === '1') ? 1 : 2;
+        const rol_id = derivarRolId(rol);
+        if (rol_id === null) {
+            if (req.file) borrarArchivoPerfilSeguro(`uploads/perfiles/${req.file.filename}`);
+            return res.status(400).json({ ok: false, error: 'El rol indicado no es válido. Usa "admin" o "usuario".' });
+        }
 
         const [actualRows] = await pool.query(
             `SELECT u.id, u.email, u.foto_perfil
@@ -2432,13 +2476,8 @@ app.post('/api/vehiculos', async (req, res) => {
             });
         }
 
-        const TIPOS_VALIDOS = ['sedan','coupe','pickup','suv','hatchback','van','motocicleta','otro'];
-        const tipoFinal = (tipo && TIPOS_VALIDOS.includes(String(tipo).toLowerCase()))
-            ? String(tipo).toLowerCase() : null;
-
-        const capacidadNum = parseInt(capacidad, 10);
-        const capacidadFinal = (Number.isFinite(capacidadNum) && capacidadNum >= 0 && capacidadNum <= 255)
-            ? capacidadNum : null;
+        const tipoFinal      = normalizarTipoVehiculo(tipo);
+        const capacidadFinal = normalizarCapacidadVehiculo(capacidad);
 
         conn = await pool.getConnection();
         await conn.beginTransaction();
@@ -2487,7 +2526,10 @@ app.post('/api/vehiculos', async (req, res) => {
         res.json({ ok: true, id: nuevoId, no_economico: noEcoFinal, mensaje: 'Vehículo registrado correctamente' });
     } catch (err) {
         if (conn) {
-            try { await conn.rollback(); } catch (_) {}
+            // Si el rollback falla hay que saberlo: quedaria una transaccion a
+            // medias en la base y antes no aparecia en ningun log.
+            try { await conn.rollback(); }
+            catch (errRb) { console.error('   ⚠️  Rollback falló al crear vehículo:', errRb.message); }
             conn.release();
         }
         console.error('Error en POST /api/vehiculos:', err);
@@ -2525,13 +2567,8 @@ app.put('/api/vehiculos/:id', async (req, res) => {
         // No. Económico SIEMPRE derivado del ID, nunca del cliente
         const noEcoFinal = String(id).padStart(3, '0');
 
-        const TIPOS_VALIDOS = ['sedan','coupe','pickup','suv','hatchback','van','motocicleta','otro'];
-        const tipoFinal = (tipo && TIPOS_VALIDOS.includes(String(tipo).toLowerCase()))
-            ? String(tipo).toLowerCase() : null;
-
-        const capacidadNum = parseInt(capacidad, 10);
-        const capacidadFinal = (Number.isFinite(capacidadNum) && capacidadNum >= 0 && capacidadNum <= 255)
-            ? capacidadNum : null;
+        const tipoFinal      = normalizarTipoVehiculo(tipo);
+        const capacidadFinal = normalizarCapacidadVehiculo(capacidad);
 
         const sql = `
             UPDATE vehiculos

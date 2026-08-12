@@ -4,8 +4,10 @@
 //   node scripts/fix_encoding.js
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
-const mysql = require(path.join(ROOT, 'node_modules', 'mysql2', 'promise'));
-const iconv = require(path.join(ROOT, 'node_modules', 'iconv-lite'));
+// Ambas están declaradas en package.json, así que Node las resuelve solo
+// subiendo a ../node_modules. No hace falta armar la ruta a mano.
+const mysql = require('mysql2/promise');
+const iconv = require('iconv-lite');
 const fs = require('fs');
 
 // Carga credenciales de env.env / .env (igual que Server.js)
