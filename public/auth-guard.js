@@ -52,7 +52,6 @@
     function limpiarSesion() {
         try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
         try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
-        try { sessionStorage.removeItem('sigepav_abrir_modulo'); } catch (e) {}
         try { sessionStorage.removeItem('sigepav_redirect_after_login'); } catch (e) {}
         try { localStorage.removeItem('sigepav_redirect_after_login'); } catch (e) {}
     }

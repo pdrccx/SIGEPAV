@@ -146,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function limpiarSesion() {
         try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
         try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
-        try { sessionStorage.removeItem('sigepav_abrir_modulo'); } catch (e) {}
         try { sessionStorage.removeItem('sigepav_redirect_after_login'); } catch (e) {}
         try { localStorage.removeItem('sigepav_redirect_after_login'); } catch (e) {}
     }
@@ -254,14 +253,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.SIGEPAV && SIGEPAV.modulos && SIGEPAV.modulos.notificacionesAdmin) {
                 SIGEPAV.modulos.notificacionesAdmin.inicializar();
             }
-            // Si veníamos de la página antigua consultas.html, abrir el módulo directamente
-            try {
-                const pendiente = sessionStorage.getItem('sigepav_abrir_modulo');
-                if (pendiente === 'consulta-comisiones' && SIGEPAV.modulos.consultaComisiones) {
-                    sessionStorage.removeItem('sigepav_abrir_modulo');
-                    SIGEPAV.modulos.consultaComisiones.abrir();
-                }
-            } catch (e) { /* sessionStorage puede no estar disponible */ }
             return true;
         } catch (err) {
             console.error('Error en login:', err);
@@ -855,8 +846,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Coincide con RUTAS_MODULOS de modulos-router.js. Antes mandaba a
                     // vehiculos.html, que ni era la página de alertas ni existe ya.
                     window.location.href = 'vencimientos.html';
-                } else if (modulo === 'control-combustible') {
-                    window.location.href = 'reg-vales.html';
                 } else {
                     demoModulo(nombre);
                 }

@@ -142,12 +142,6 @@
         // index.html: NO sobreescribimos el HTML (Script.js engancha sus
         // listeners ahí). Sólo quitamos los items excluidos y renombramos.
 
-        // Items a excluir por data-modulo
-        const aExcluir = ['control-combustible'];
-        aExcluir.forEach(m => {
-            cont.querySelectorAll(`.modulo-dropdown[data-modulo="${m}"]`).forEach(el => el.remove());
-        });
-
         // Renombrar "Reportes" → "Reportes ciudadanos"
         const repItem = cont.querySelector('.modulo-dropdown[data-modulo="reportes"]');
         if (repItem) {

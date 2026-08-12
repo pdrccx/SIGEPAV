@@ -117,6 +117,31 @@ Ya **no** debe salir el error rojo de MySQL.
 
 ---
 
+## 🔨 PENDIENTE DECIDIDO: reconstruir Expediente Digital
+
+`public/expediente.html` **muestra vehículos reales** (los lee de `/api/vehiculos`),
+pero **la subida de documentos es una maqueta**: `expedienteScript.js` los guarda en
+`const documentosMock = {}`, un objeto en memoria del navegador. Se pierden al recargar.
+**No existe ningún endpoint `/api/expediente*` en el backend.**
+
+Pedro decidió (2026-08-12) **dejarlo pendiente y reconstruirlo bien más adelante**, para
+que de verdad guarde la documentación importante del vehículo (factura, tarjeta de
+circulación, póliza, verificación).
+
+Lo que hace falta cuando se retome:
+1. Tabla `expediente_documentos` (vehiculo_id, tipo, nombre_archivo, ruta, subido_por, fecha).
+   Crearla con el patrón `asegurarTabla*()` del arranque, como el resto.
+2. Endpoints `GET/POST/DELETE /api/vehiculos/:id/documentos`.
+3. Almacenamiento con **multer** hacia `uploads/expedientes/` — ya existe el patrón
+   completo en las fotos de perfil (`perfilStorage` / `subirFotoPerfil` en `Server.js`).
+4. Sumar `uploads/expedientes/` al `.gitignore` y al bloqueo de estáticos si aplica.
+5. Cambiar `documentosMock` por llamadas reales en `expedienteScript.js`.
+
+> ⚠️ Mientras tanto: **no enseñar la subida de documentos en la demo del concurso**,
+> o aclarar que es una maqueta.
+
+---
+
 ## 💡 Ideas a futuro (NO urgentes, comentadas en sesión)
 - Aplicar la palomita verde a **otros avisos de éxito** (vehículo guardado, vale registrado, etc.), no solo a comisiones.
 - (Solo después del concurso) Partir el monolito `Server.js` (~250 KB) en módulos `routes/`, `controllers/`, `db.js`. **Alto riesgo, no tocar antes del INNOVATEC.**

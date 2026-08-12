@@ -3219,29 +3219,8 @@ app.put('/api/comisiones/:id/finalizar', async (req, res) => {
 
 
 // ============== VIAJES / COMISIONES ==============
-app.get('/api/viajes', async (req, res) => {
-    try {
-        const usuario_id = req.query.usuario_id;
-        let sql = `
-            SELECT v.id, v.no_vale, v.no_oficio, v.lugar_destino, v.motivo,
-                   v.km_inicial, v.km_final, v.nivel_comb_ini, v.fecha_inicio,
-                   v.fecha_fin, v.estado, v.created_at,
-                   ve.no_economico, ve.marca, ve.linea, ve.modelo,
-                   u.nombre AS usuario_nombre, u.email AS usuario_email
-            FROM viajes v
-            JOIN vehiculos ve ON ve.id = v.vehiculo_id
-            JOIN usuarios u   ON u.id  = v.usuario_id`;
-        const params = [];
-        if (usuario_id) { sql += ' WHERE v.usuario_id = ?'; params.push(usuario_id); }
-        sql += ' ORDER BY v.created_at DESC LIMIT 200';
-        const [rows] = await pool.query(sql, params);
-        res.json({ ok: true, viajes: rows });
-    } catch (err) {
-        console.error('Error /api/viajes:', err);
-        res.status(500).json({ ok: false, error: err.message });
-    }
-});
-
+//  Nota: el listado general GET /api/viajes se eliminó por no tener un solo
+//  consumidor. El frontend usa POST /api/viajes y GET /api/viajes/usuario/:id.
 app.post('/api/viajes', async (req, res) => {
     try {
         const {
@@ -3336,33 +3315,10 @@ app.post('/api/viajes', async (req, res) => {
     }
 });
 
-app.put('/api/viajes/:id/finalizar', async (req, res) => {
-    try {
-        const id = parseInt(req.params.id, 10);
-        const { km_final, nivel_comb_fin, observaciones } = req.body;
-        await pool.query(
-            `UPDATE viajes
-             SET km_final = ?, nivel_comb_fin = ?, observaciones = ?,
-                 fecha_fin = NOW(), estado = 'Finalizado'
-             WHERE id = ?`,
-            [km_final, nivel_comb_fin || null, observaciones || null, id]
-        );
-        // Actualizar km del vehículo
-        if (km_final) {
-            await pool.query(
-                `UPDATE vehiculos v
-                 JOIN viajes vi ON vi.vehiculo_id = v.id
-                 SET v.km_actual = ?
-                 WHERE vi.id = ?`,
-                [km_final, id]
-            );
-        }
-        res.json({ ok: true });
-    } catch (err) {
-        console.error('Error PUT /api/viajes/:id/finalizar:', err);
-        res.status(500).json({ ok: false, error: err.message });
-    }
-});
+//  Aquí vivía PUT /api/viajes/:id/finalizar, la versión antigua de finalizar
+//  una comisión. Nadie la llamaba: el frontend usa PUT /api/comisiones/:id/finalizar,
+//  que además exige rol de administrador y pasa por el flujo de solicitudes.
+//  Esta finalizaba el viaje de un golpe, saltándose ese flujo.
 
 function normalizarEstadoMantenimiento(estado) {
     const e = String(estado || 'pendiente').trim().toLowerCase();
