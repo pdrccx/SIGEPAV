@@ -1888,6 +1888,45 @@ function diasDesde(fecha) {
     return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
 }
 
+// ── Días para un vencimiento ─────────────────────────────────────────
+//  Un solo cálculo para todo el sistema. Antes había CUATRO variantes —dos en
+//  GET /api/vencimientos y dos en el cron de alertas— que discrepaban hasta en
+//  un día: unas comparaban contra la hora actual y leían "2026-08-26" como
+//  medianoche UTC (que en UTC-6 es el día anterior a las 18:00), otras
+//  normalizaban a medianoche local. Resultado: el mismo seguro salía ROJO en
+//  la pantalla y AMARILLO en el correo. Aquí se normaliza siempre a medianoche
+//  local en ambos lados de la resta.
+
+// Convierte una fecha de la BD ("2026-08-26" o Date) a medianoche LOCAL.
+// Devuelve null si la fecha falta o es inválida.
+function aMedianocheLocal(fecha) {
+    if (!fecha) return null;
+    const f = new Date(String(fecha).slice(0, 10) + 'T00:00:00');
+    return Number.isNaN(f.getTime()) ? null : f;
+}
+
+function hoyAMedianoche() {
+    const h = new Date();
+    h.setHours(0, 0, 0, 0);
+    return h;
+}
+
+// Días que faltan para `fecha`. Negativo si ya venció, null si no hay fecha.
+function diasHasta(fecha) {
+    const f = aMedianocheLocal(fecha);
+    if (!f) return null;
+    return Math.round((f - hoyAMedianoche()) / 86400000);
+}
+
+// Días que faltan para `fecha + meses`: el próximo mantenimiento programado.
+function diasHastaMasMeses(fecha, meses) {
+    const f = aMedianocheLocal(fecha);
+    const m = Number(meses);
+    if (!f || !Number.isFinite(m)) return null;
+    f.setMonth(f.getMonth() + m);
+    return Math.round((f - hoyAMedianoche()) / 86400000);
+}
+
 async function obtenerDatosMantenimientoIA(vehiculoId) {
     const id = Number.parseInt(vehiculoId, 10);
     if (!Number.isInteger(id) || id <= 0) {
@@ -5791,7 +5830,6 @@ app.delete('/api/respaldos/:id', async (req, res) => {
 // semaforo: 'verde' (≥30 días), 'amarillo' (15–29 días), 'rojo' (<15 o vencido/null)
 app.get('/api/vencimientos', async (req, res) => {
     try {
-        const hoy = new Date();
         const [vehiculos] = await pool.query(
             `SELECT id, no_economico, marca, linea, modelo, placas,
                     fecha_tenencia, fecha_verificacion, fecha_seguro, km_actual
@@ -5804,12 +5842,6 @@ app.get('/api/vencimientos', async (req, res) => {
                JOIN vehiculos v ON v.id = mp.vehiculo_id
               WHERE v.activo = 1`
         );
-
-        function diasHasta(fecha) {
-            if (!fecha) return null;
-            const d = new Date(fecha);
-            return Math.floor((d - hoy) / 86400000);
-        }
 
         function semaforo(dias) {
             if (dias === null) return 'rojo';
@@ -5828,9 +5860,7 @@ app.get('/api/vencimientos', async (req, res) => {
                 .map(mp => {
                     let diasMant = null;
                     if (mp.intervalo_meses && mp.ultima_fecha) {
-                        const proxFecha = new Date(mp.ultima_fecha);
-                        proxFecha.setMonth(proxFecha.getMonth() + mp.intervalo_meses);
-                        diasMant = Math.floor((proxFecha - hoy) / 86400000);
+                        diasMant = diasHastaMasMeses(mp.ultima_fecha, mp.intervalo_meses);
                     }
                     let kmRestantes = null;
                     if (mp.intervalo_km && mp.ultimo_km != null) {
@@ -6205,13 +6235,6 @@ async function procesarAlertasVencimientos({ enviarCorreo = false } = {}) {
     );
     const [programados] = await pool.query(`SELECT * FROM mantenimiento_programado`);
 
-    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-    const diasHasta = (fecha) => {
-        if (!fecha) return null;
-        const f = new Date(String(fecha).slice(0, 10) + 'T00:00:00');
-        if (isNaN(f.getTime())) return null;
-        return Math.round((f - hoy) / 86400000);
-    };
 
     // 1) Limpiar las alertas automáticas previas (solo los tipos que este job administra).
     await pool.query(
@@ -6246,11 +6269,7 @@ async function procesarAlertasVencimientos({ enviarCorreo = false } = {}) {
                 kmRest = (Number(mp.ultimo_km) + Number(mp.intervalo_km)) - Number(v.km_actual);
             }
             if (mp.intervalo_meses && mp.ultima_fecha) {
-                const f = new Date(String(mp.ultima_fecha).slice(0, 10) + 'T00:00:00');
-                if (!isNaN(f.getTime())) {
-                    f.setMonth(f.getMonth() + Number(mp.intervalo_meses));
-                    dias = Math.round((f - hoy) / 86400000);
-                }
+                dias = diasHastaMasMeses(mp.ultima_fecha, mp.intervalo_meses);
             }
             const criticoKm  = kmRest !== null && kmRest <= 1000;
             const criticoDia = dias   !== null && dias <= 30;
