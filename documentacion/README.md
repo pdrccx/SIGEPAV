@@ -17,7 +17,7 @@ Siguen el modelo **entrada → proceso → estado interno → salida → fallo/l
 |---|---|---|---|
 | 1 | [Login y roles](flujos/01-login.md) | La puerta de entrada, el modelo de sesión y por qué la guardia de rol es de navegación y no de seguridad | ✅ |
 | 2 | [Comisión completa](flujos/02-comision.md) | El corazón del sistema: la máquina de estados de una comisión, el candado de un vehículo a la vez, y por qué el operativo no puede cerrar su propia comisión | ✅ |
-| 3 | Reporte ciudadano por QR | Entrada pública sin sesión, desde un teléfono, escaneando un código | ⬜ |
+| 3 | [Reporte ciudadano por QR](flujos/03-reporte-ciudadano.md) | La única entrada sin sesión: los dos tokens, las cinco validaciones del endpoint más expuesto, y cómo finalizar una comisión resuelve reportes sola | ✅ |
 | 4 | Salud de flota / IA | El patrón de motor de análisis con respaldo local | ⬜ |
 | 5 | Vale de gasolina + medidor | El cruce al servicio de Python/Flask por proxy interno | ⬜ |
 
