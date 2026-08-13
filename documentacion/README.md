@@ -16,7 +16,7 @@ Siguen el modelo **entrada → proceso → estado interno → salida → fallo/l
 | # | Flujo | Qué enseña | Estado |
 |---|---|---|---|
 | 1 | [Login y roles](flujos/01-login.md) | La puerta de entrada, el modelo de sesión y por qué la guardia de rol es de navegación y no de seguridad | ✅ |
-| 2 | Comisión: registrar → solicitar fin → aprobar | El corazón del sistema: 3 tablas, 2 roles, notificaciones en tiempo real y bitácora | ⬜ |
+| 2 | [Comisión completa](flujos/02-comision.md) | El corazón del sistema: la máquina de estados de una comisión, el candado de un vehículo a la vez, y por qué el operativo no puede cerrar su propia comisión | ✅ |
 | 3 | Reporte ciudadano por QR | Entrada pública sin sesión, desde un teléfono, escaneando un código | ⬜ |
 | 4 | Salud de flota / IA | El patrón de motor de análisis con respaldo local | ⬜ |
 | 5 | Vale de gasolina + medidor | El cruce al servicio de Python/Flask por proxy interno | ⬜ |
