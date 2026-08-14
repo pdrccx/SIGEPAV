@@ -19,7 +19,7 @@ Siguen el modelo **entrada → proceso → estado interno → salida → fallo/l
 | 2 | [Comisión completa](flujos/02-comision.md) | El corazón del sistema: la máquina de estados de una comisión, el candado de un vehículo a la vez, y por qué el operativo no puede cerrar su propia comisión | ✅ |
 | 3 | [Reporte ciudadano por QR](flujos/03-reporte-ciudadano.md) | La única entrada sin sesión: los dos tokens, las cinco validaciones del endpoint más expuesto, y cómo finalizar una comisión resuelve reportes sola | ✅ |
 | 4 | [Salud de la flota y el motor de IA](flujos/04-salud-flota-ia.md) | Por qué la IA no calcula nada: el algoritmo de urgencia de 5 factores, el catálogo que traduce el español del chofer, y el anclaje anti-alucinación | ✅ |
-| 5 | Vale de gasolina + medidor | El cruce al servicio de Python/Flask por proxy interno | ⬜ |
+| 5 | [Vale y medidor en Python](flujos/05-vale-medidor.md) | El ciclo borrador→disponible→usado, y por qué Flask no es una base de datos sino un dial remoto detrás del proxy de Node | ✅ |
 
 > Los diagramas están en formato **Mermaid**: se renderizan solos en GitHub y siguen siendo
 > texto plano, así que se versionan y se editan sin depender de un programa de dibujo.
