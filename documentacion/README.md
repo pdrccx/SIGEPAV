@@ -7,6 +7,13 @@ por dentro y cómo se despliega.
 
 ---
 
+## Empieza aquí
+
+**[Arquitectura](arquitectura.md)** — el panorama completo: qué hace cada tecnología del
+stack y por qué está construido así. Explica el sistema primero con una metáfora (una
+oficina de gobierno) y luego pieza por pieza, con ejemplos del código real. Si vas a
+presentar el proyecto o apenas lo estás conociendo, empieza por ahí.
+
 ## Trazas de flujo
 
 Cada traza recorre una funcionalidad **de punta a punta** —del clic en la pantalla hasta la
