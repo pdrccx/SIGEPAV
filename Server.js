@@ -145,6 +145,32 @@ app.post(['/gasolina/set_fuel', '/set_fuel'], (req, res) => proxyFlask(req, res,
 
 app.use(express.static(path.join(__dirname, 'public'))); // sirve public/index.html, public/Styles.css, etc.
 
+// ── Font Awesome servido en local ────────────────────────────────────
+//  Antes las 24 páginas lo cargaban desde cdnjs.cloudflare.com, así que
+//  SIN INTERNET la app funcionaba pero se veía sin un solo icono. Era la
+//  única dependencia externa del frontend. Ahora se sirve desde el propio
+//  servidor: viene de node_modules, así que `npm install` lo trae y no hay
+//  binarios de fuentes duplicados en el repositorio.
+app.use('/vendor/fontawesome', express.static(
+    path.join(__dirname, 'node_modules', '@fortawesome', 'fontawesome-free'),
+    { maxAge: '30d', immutable: true }   // la versión está fijada en package.json
+));
+
+// ── Librerías del frontend, también en local ─────────────────────────
+//  Mismo problema que Font Awesome: venían de cdnjs. Sin internet el
+//  dashboard se quedaba SIN GRÁFICAS y las exportaciones a PDF y Excel
+//  no funcionaban. Con esto la app es 100% offline: no queda una sola
+//  petición a un dominio externo.
+const VENDOR = { maxAge: '30d', immutable: true };
+app.use('/vendor/chartjs', express.static(
+    path.join(__dirname, 'node_modules', 'chart.js', 'dist'), VENDOR));
+app.use('/vendor/jspdf', express.static(
+    path.join(__dirname, 'node_modules', 'jspdf', 'dist'), VENDOR));
+app.use('/vendor/jspdf-autotable', express.static(
+    path.join(__dirname, 'node_modules', 'jspdf-autotable', 'dist'), VENDOR));
+app.use('/vendor/xlsx', express.static(
+    path.join(__dirname, 'node_modules', 'xlsx', 'dist'), VENDOR));
+
 
 // ── Multer — fotos de perfil de usuarios ─────────────────────────────
 const perfilStorage = multer.diskStorage({

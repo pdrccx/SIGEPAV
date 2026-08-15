@@ -18,7 +18,7 @@
     <title>Expediente Digital Vehicular · SIGEPAV</title>
 
     <!-- Iconos FontAwesome (mismo CDN usado en el resto del sistema) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
 
     <!-- 1º: estilos base de SIGEPAV (navbar, footer, variables, modales) -->
     <link rel="stylesheet" href="Styles.css">
@@ -66,6 +66,17 @@
                     </p>
                 </div>
             </div>
+
+                        <!-- ============== SELECTOR DE VEHÍCULO ============== -->
+            <div class="exp-selector">
+                <label for="select-vehiculo">
+                    <i class="fas fa-car-side"></i> Selecciona el vehículo:
+                </label>
+                <select id="select-vehiculo">
+                    <!-- Opciones rellenadas por JavaScript desde el catálogo mock -->
+                </select>
+            </div>
+            
 
             <!-- ============== HERO: VEHÍCULO SELECCIONADO ============== -->
             <!-- Tarjeta principal con gradiente morado.
@@ -135,15 +146,7 @@
                 </div>
             </div>
 
-            <!-- ============== SELECTOR DE VEHÍCULO ============== -->
-            <div class="exp-selector">
-                <label for="select-vehiculo">
-                    <i class="fas fa-car-side"></i> Selecciona el vehículo:
-                </label>
-                <select id="select-vehiculo">
-                    <!-- Opciones rellenadas por JavaScript desde el catálogo mock -->
-                </select>
-            </div>
+
 
             <!-- ============== DRAG & DROP DE ARCHIVOS ============== -->
             <div class="exp-dropzone" id="dropzone" tabindex="0" role="button"

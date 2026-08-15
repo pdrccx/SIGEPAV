@@ -351,7 +351,82 @@ las ventanillas normales. **Menos complejidad para la misma función.**
 
 ---
 
-# Parte 3 · Cómo encaja todo: el recorrido de una petición
+# Parte 3 · Por qué la app es 100% offline
+
+Esto no era cierto hasta el 2026-08-15. **Vale la pena entender el problema, porque es
+justo el argumento más fuerte del proyecto y estuvo a punto de fallar en vivo.**
+
+## El problema
+
+Las 26 páginas cargaban sus librerías desde **`cdnjs.cloudflare.com`**:
+
+| Librería | En cuántas páginas | Qué se rompía sin internet |
+|---|---|---|
+| Font Awesome | 24 | **Ningún icono** en toda la aplicación |
+| Chart.js | 1 (dashboard) | **El dashboard sin una sola gráfica** |
+| jsPDF + autotable | 3 | La exportación a PDF |
+| xlsx | 1 | La exportación a Excel |
+
+Y aquí lo delicado: **la app seguía funcionando**. Podías registrar comisiones, aprobar,
+generar QR — todo. Lo que se rompía era **lo que se ve**.
+
+Imagina la demostración: *"miren, funciona sin internet"* … y la pantalla aparece sin un
+solo icono y con el dashboard en blanco. El argumento se voltea en contra.
+
+## La solución: servir todo desde el propio servidor
+
+En vez de copiar los archivos al repositorio, se declararon como **dependencias de npm**
+y se sirven desde `node_modules`:
+
+```js
+// Server.js
+const VENDOR = { maxAge: '30d', immutable: true };
+app.use('/vendor/fontawesome', express.static(
+    path.join(__dirname, 'node_modules', '@fortawesome', 'fontawesome-free'), VENDOR));
+app.use('/vendor/chartjs',  express.static(path.join(__dirname,'node_modules','chart.js','dist'), VENDOR));
+app.use('/vendor/jspdf',    express.static(path.join(__dirname,'node_modules','jspdf','dist'), VENDOR));
+app.use('/vendor/xlsx',     express.static(path.join(__dirname,'node_modules','xlsx','dist'), VENDOR));
+```
+
+Y en el HTML se cambió el dominio por la ruta local:
+
+```diff
+- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
++ <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet"/>
+```
+
+**Por qué desde npm y no copiando los archivos al repo:**
+
+| | npm + `express.static` | Copiar a `public/vendor/` |
+|---|---|---|
+| Peso del repositorio | Sin cambios | **+1.5 MB de binarios** |
+| Versión | Fijada en `package.json` | Solo en el nombre de la carpeta |
+| Actualizar | `npm update` | Volver a descargar a mano |
+| Máquina nueva | `npm install` (ya era necesario) | Nada extra |
+
+Como `npm install` ya era obligatorio para levantar el proyecto, la vía de npm no agrega
+ningún paso y mantiene el repositorio limpio.
+
+`immutable: true` con caché de 30 días le dice al navegador que esos archivos **nunca
+cambian** para una versión dada: los pide una vez y ya.
+
+## Cómo comprobarlo
+
+Con la app corriendo, abre las herramientas de desarrollo del navegador, pestaña **Red**,
+y recarga. **Todas las peticiones deben ir a `localhost`.** Si aparece un dominio externo,
+algo se coló.
+
+Verificación hecha el 2026-08-15 sobre el dashboard: **30 de 30 peticiones a
+`localhost:3000`**, cero externas, con Font Awesome cargando su fuente local
+(`fa-solid-900.woff2`) y Chart.js 4.4.1 dibujando las 4 gráficas.
+
+> **Regla para el futuro:** si agregas una librería, **no pegues un `<script>` a un CDN**.
+> Instálala con npm, móntala en `/vendor/...` y apunta el HTML ahí. Es la única forma de
+> que la app siga siendo demostrable sin red.
+
+---
+
+# Parte 4 · Cómo encaja todo: el recorrido de una petición
 
 Aterrizando las nueve piezas en un solo ejemplo — pulsar "Guardar" en un vehículo nuevo:
 
@@ -384,7 +459,7 @@ lo que significa "arquitectura por capas".
 
 ---
 
-# Parte 4 · Las decisiones y lo que costaron
+# Parte 5 · Las decisiones y lo que costaron
 
 | Decisión | Lo que ganaste | Lo que cuesta |
 |---|---|---|
@@ -402,7 +477,7 @@ cero beneficio visible para el concurso.
 
 ---
 
-# Parte 5 · Cómo defenderlo
+# Parte 6 · Cómo defenderlo
 
 Si un juez pregunta *"¿por qué no usaste un framework moderno?"*:
 

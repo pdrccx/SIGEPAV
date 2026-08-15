@@ -14,6 +14,9 @@ stack y por qué está construido así. Explica el sistema primero con una metá
 oficina de gobierno) y luego pieza por pieza, con ejemplos del código real. Si vas a
 presentar el proyecto o apenas lo estás conociendo, empieza por ahí.
 
+**[Registro de cambios](CAMBIOS.md)** — bitácora legible de lo que se ha modificado y por
+qué, agrupada por tema. Para el detalle línea por línea está `git log`.
+
 ## Trazas de flujo
 
 Cada traza recorre una funcionalidad **de punta a punta** —del clic en la pantalla hasta la
