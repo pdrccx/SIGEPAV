@@ -4,6 +4,9 @@ node_modules/
 backups/
 uploads/evidencias/
 uploads/perfiles/
+# Documentos del expediente vehicular: facturas, pólizas, tarjetas de
+# circulación. Son documentos reales de la institución, no van al repo.
+uploads/expedientes/
 # Los QR son salida generada: backfillQRVehiculos() los recrea al arrancar
 # cada vez que cambia BASE_URL. No tiene caso versionarlos.
 uploads/qr/

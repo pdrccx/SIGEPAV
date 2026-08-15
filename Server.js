@@ -196,6 +196,7 @@ function subirFotoPerfil(req, res, next) {
         await asegurarModuloRespaldos();
         await asegurarVencimientos();
         await asegurarConfiguracion();
+        await asegurarTablaExpediente();
         // El deep-link de notificaciones (urlNotificacion en el frontend) necesita
         // referencia_id. Las bases creadas antes de que se poblara no la traen.
         await asegurarColumna('notificaciones', 'referencia_id',
@@ -1552,6 +1553,128 @@ app.delete('/api/usuarios/:id', async (req, res) => {
     }
 });
 
+// =====================================================================
+//  EXPEDIENTE DIGITAL VEHICULAR
+// =====================================================================
+//  El expediente NO es una tabla nueva de datos operativos: casi todo lo
+//  que muestra ya vive en otras tablas (mantenimiento_observaciones,
+//  mantenimiento_programado, viajes, vales_combustible,
+//  reportes_ciudadanos). Lo único que faltaba eran LOS ARCHIVOS: la
+//  factura de origen, la tarjeta de circulación, la póliza escaneada, el
+//  ticket del taller. Eso es lo que guarda esta tabla.
+//
+//  Nota sobre vigencias: `fecha_vencimiento` es del documento y NO
+//  alimenta el semáforo de /api/vencimientos, que sigue leyendo
+//  vehiculos.fecha_seguro / fecha_verificacion / fecha_tenencia. Es a
+//  propósito: el módulo de alertas ya funciona y no se quiso tocar.
+// =====================================================================
+const TIPOS_DOCUMENTO = [
+    'factura', 'tarjeta_circulacion', 'poliza_seguro', 'verificacion',
+    'tenencia', 'servicio_taller', 'baja', 'otro'
+];
+
+async function asegurarTablaExpediente() {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS expediente_documentos (
+                id                INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+                vehiculo_id       INT UNSIGNED  NOT NULL,
+                tipo              ENUM('factura','tarjeta_circulacion','poliza_seguro',
+                                       'verificacion','tenencia','servicio_taller',
+                                       'baja','otro') NOT NULL DEFAULT 'otro',
+                titulo            VARCHAR(150)  NOT NULL,
+                folio             VARCHAR(80)   NULL DEFAULT NULL,
+                emisor            VARCHAR(120)  NULL DEFAULT NULL,
+                fecha_emision     DATE          NULL DEFAULT NULL,
+                fecha_vencimiento DATE          NULL DEFAULT NULL,
+                monto             DECIMAL(10,2) NULL DEFAULT NULL,
+                archivo_ruta      VARCHAR(300)  NOT NULL,
+                archivo_nombre    VARCHAR(200)  NULL DEFAULT NULL,
+                archivo_mime      VARCHAR(100)  NULL DEFAULT NULL,
+                archivo_bytes     INT UNSIGNED  NULL DEFAULT NULL,
+                notas             TEXT          NULL DEFAULT NULL,
+                subido_por        INT UNSIGNED  NULL DEFAULT NULL,
+                created_at        DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                INDEX idx_exp_vehiculo (vehiculo_id),
+                INDEX idx_exp_tipo     (tipo),
+                INDEX idx_exp_vence    (fecha_vencimiento),
+                CONSTRAINT fk_exp_vehiculo FOREIGN KEY (vehiculo_id)
+                    REFERENCES vehiculos (id) ON DELETE CASCADE,
+                CONSTRAINT fk_exp_usuario  FOREIGN KEY (subido_por)
+                    REFERENCES usuarios (id) ON DELETE SET NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        `);
+
+        // La colación TIENE que coincidir con la del resto del esquema. Sin el
+        // COLLATE explícito, MySQL 8.4 asigna utf8mb4_0900_ai_ci y el UNION del
+        // timeline truena con "Illegal mix of collations". Esto repara las bases
+        // donde la tabla ya se creó sin él.
+        const [[col]] = await pool.query(
+            `SELECT TABLE_COLLATION AS c FROM information_schema.TABLES
+              WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'expediente_documentos'`
+        );
+        if (col && col.c && col.c !== 'utf8mb4_unicode_ci') {
+            await pool.query(
+                'ALTER TABLE expediente_documentos CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+            console.log('   → colación de expediente_documentos corregida a utf8mb4_unicode_ci.');
+        }
+        console.log('✅ Tabla expediente_documentos lista.');
+    } catch (err) {
+        console.warn('⚠️  No se pudo asegurar tabla expediente_documentos:', err.message);
+    }
+}
+
+// ── Multer — documentos del expediente ───────────────────────────────
+//  A diferencia de la evidencia ciudadana, aquí sí se aceptan PDF: la
+//  mayoría de facturas y pólizas llegan en ese formato.
+const expedienteStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = path.join(__dirname, 'uploads', 'expedientes');
+        fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase() || '.bin';
+        cb(null, `doc_${Date.now()}_${uuidv4().slice(0, 8)}${ext}`);
+    }
+});
+const uploadDocumento = multer({
+    storage: expedienteStorage,
+    limits: { fileSize: 10 * 1024 * 1024 },   // 10 MB
+    fileFilter: (req, file, cb) => {
+        const permitidos = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+        if (!permitidos.includes(file.mimetype)) {
+            return cb(new Error('Solo se permiten archivos PDF, JPG, PNG o WEBP.'));
+        }
+        cb(null, true);
+    }
+});
+
+// Envuelve a multer para devolver un JSON legible en vez de reventar.
+function subirDocumentoExpediente(req, res, next) {
+    uploadDocumento.single('archivo')(req, res, (err) => {
+        if (!err) return next();
+        const msg = err.code === 'LIMIT_FILE_SIZE'
+            ? 'El documento no debe superar los 10 MB.'
+            : err.message;
+        return res.status(400).json({ ok: false, error: msg });
+    });
+}
+
+// Borra un archivo del expediente sin salirse de uploads/expedientes.
+function borrarArchivoExpediente(rutaRelativa) {
+    try {
+        if (!rutaRelativa) return;
+        const base = path.join(__dirname, 'uploads', 'expedientes');
+        const abs  = path.resolve(__dirname, rutaRelativa);
+        if (!abs.startsWith(base)) return;   // fuera de la carpeta: no se toca
+        if (fs.existsSync(abs)) fs.unlinkSync(abs);
+    } catch (err) {
+        console.warn('⚠️  No se pudo borrar el archivo del expediente:', err.message);
+    }
+}
+
 // ============== VEHÍCULOS ==============
 app.get('/api/vehiculos', async (req, res) => {
     try {
@@ -2686,6 +2809,257 @@ app.delete('/api/vehiculos/:id', async (req, res) => {
             ok: false,
             error: 'Error al eliminar vehículo: ' + err.message
         });
+    }
+});
+
+// =====================================================================
+//  EXPEDIENTE DIGITAL — ENDPOINTS
+// =====================================================================
+
+// ---- GET /api/vehiculos/:id/documentos ----
+//  Lista los documentos del expediente, del más nuevo al más viejo.
+app.get('/api/vehiculos/:id/documentos', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (!id) return res.status(400).json({ ok: false, error: 'ID de vehículo inválido.' });
+
+        const [rows] = await pool.query(
+            `SELECT d.id, d.tipo, d.titulo, d.folio, d.emisor,
+                    d.fecha_emision, d.fecha_vencimiento, d.monto,
+                    d.archivo_ruta, d.archivo_nombre, d.archivo_mime, d.archivo_bytes,
+                    d.notas, d.created_at,
+                    CONCAT_WS(' ', u.nombre, u.apellidos) AS subido_por_nombre
+               FROM expediente_documentos d
+               LEFT JOIN usuarios u ON u.id = d.subido_por
+              WHERE d.vehiculo_id = ?
+              ORDER BY d.created_at DESC`,
+            [id]
+        );
+        res.json({ ok: true, documentos: rows });
+    } catch (err) {
+        console.error('Error GET /api/vehiculos/:id/documentos:', err);
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// ---- POST /api/vehiculos/:id/documentos ----
+//  Sube un documento al expediente. multipart/form-data, campo "archivo".
+app.post('/api/vehiculos/:id/documentos', subirDocumentoExpediente, async (req, res) => {
+    const limpiarArchivo = () => {
+        if (req.file) borrarArchivoExpediente(`uploads/expedientes/${req.file.filename}`);
+    };
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (!id) { limpiarArchivo(); return res.status(400).json({ ok: false, error: 'ID de vehículo inválido.' }); }
+        if (!req.file) return res.status(400).json({ ok: false, error: 'Falta el archivo del documento.' });
+
+        const { tipo, titulo, folio, emisor, fecha_emision,
+                fecha_vencimiento, monto, notas, usuario_id } = req.body;
+
+        if (!titulo || !String(titulo).trim()) {
+            limpiarArchivo();
+            return res.status(400).json({ ok: false, error: 'El título del documento es obligatorio.' });
+        }
+        const tipoFinal = TIPOS_DOCUMENTO.includes(String(tipo || '').trim().toLowerCase())
+            ? String(tipo).trim().toLowerCase()
+            : 'otro';
+
+        // El vehículo debe existir y estar activo
+        const [[veh]] = await pool.query(
+            'SELECT id, no_economico FROM vehiculos WHERE id = ? AND activo = 1 LIMIT 1', [id]);
+        if (!veh) { limpiarArchivo(); return res.status(404).json({ ok: false, error: 'Vehículo no encontrado.' }); }
+
+        const soloFecha = (v) => {
+            const s = String(v || '').trim();
+            return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+        };
+        const montoNum = (monto !== undefined && monto !== null && String(monto).trim() !== '')
+            ? Number(monto) : null;
+
+        const [r] = await pool.query(
+            `INSERT INTO expediente_documentos
+                (vehiculo_id, tipo, titulo, folio, emisor, fecha_emision,
+                 fecha_vencimiento, monto, archivo_ruta, archivo_nombre,
+                 archivo_mime, archivo_bytes, notas, subido_por)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                id, tipoFinal,
+                String(titulo).trim().slice(0, 150),
+                (folio  || '').trim().slice(0, 80)  || null,
+                (emisor || '').trim().slice(0, 120) || null,
+                soloFecha(fecha_emision),
+                soloFecha(fecha_vencimiento),
+                Number.isFinite(montoNum) ? montoNum : null,
+                `uploads/expedientes/${req.file.filename}`,
+                String(req.file.originalname || '').slice(0, 200),
+                req.file.mimetype,
+                req.file.size,
+                (notas || '').trim().slice(0, 2000) || null,
+                usuario_id ? parseInt(usuario_id, 10) : null
+            ]
+        );
+
+        await registrarBitacora(
+            usuario_id ? parseInt(usuario_id, 10) : null,
+            `Documento "${String(titulo).trim()}" agregado al expediente de ${veh.no_economico}`,
+            'expediente', r.insertId, req.ip
+        );
+
+        res.json({ ok: true, id: r.insertId, archivo_ruta: `uploads/expedientes/${req.file.filename}` });
+    } catch (err) {
+        limpiarArchivo();   // si falla el INSERT, no dejamos el archivo huérfano
+        console.error('Error POST /api/vehiculos/:id/documentos:', err);
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// ---- DELETE /api/documentos/:id ----
+//  Borra el registro y el archivo del disco.
+app.delete('/api/documentos/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (!id) return res.status(400).json({ ok: false, error: 'ID inválido.' });
+
+        const [[doc]] = await pool.query(
+            `SELECT d.id, d.titulo, d.archivo_ruta, v.no_economico
+               FROM expediente_documentos d
+               JOIN vehiculos v ON v.id = d.vehiculo_id
+              WHERE d.id = ?`, [id]);
+        if (!doc) return res.status(404).json({ ok: false, error: 'Documento no encontrado.' });
+
+        await pool.query('DELETE FROM expediente_documentos WHERE id = ?', [id]);
+        borrarArchivoExpediente(doc.archivo_ruta);
+
+        await registrarBitacora(
+            req.body && req.body.usuario_id ? parseInt(req.body.usuario_id, 10) : null,
+            `Documento "${doc.titulo}" eliminado del expediente de ${doc.no_economico}`,
+            'expediente', id, req.ip
+        );
+
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('Error DELETE /api/documentos/:id:', err);
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// ---- GET /api/vehiculos/:id/expediente ----
+//  La vista única: reúne en una sola respuesta lo que hoy está repartido
+//  en cinco módulos. No inventa datos, solo los junta.
+app.get('/api/vehiculos/:id/expediente', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (!id) return res.status(400).json({ ok: false, error: 'ID de vehículo inválido.' });
+
+        const [[vehiculo]] = await pool.query(
+            `SELECT id, no_economico, marca, linea, modelo, tipo, capacidad, color,
+                    no_serie, placas, combustible, km_actual,
+                    fecha_tenencia, fecha_verificacion, fecha_seguro,
+                    qr_token, qr_image_path, created_at
+               FROM vehiculos WHERE id = ? AND activo = 1`, [id]);
+        if (!vehiculo) return res.status(404).json({ ok: false, error: 'Vehículo no encontrado.' });
+
+        const [documentos] = await pool.query(
+            `SELECT id, tipo, titulo, folio, emisor, fecha_emision, fecha_vencimiento,
+                    monto, archivo_ruta, archivo_nombre, archivo_mime, created_at
+               FROM expediente_documentos
+              WHERE vehiculo_id = ? ORDER BY created_at DESC`, [id]);
+
+        const [observaciones] = await pool.query(
+            `SELECT m.id, m.componente, m.severidad, m.estado, m.km_reporte,
+                    m.costo, m.descripcion, m.resolucion, m.fecha_resolucion, m.created_at,
+                    CONCAT_WS(' ', u.nombre, u.apellidos) AS reporto
+               FROM mantenimiento_observaciones m
+               LEFT JOIN usuarios u ON u.id = m.usuario_id
+              WHERE m.vehiculo_id = ? ORDER BY m.created_at DESC`, [id]);
+
+        const [programado] = await pool.query(
+            `SELECT id, componente, intervalo_km, intervalo_meses, ultimo_km, ultima_fecha
+               FROM mantenimiento_programado WHERE vehiculo_id = ?`, [id]);
+
+        const [[uso]] = await pool.query(
+            `SELECT COUNT(*) AS total_comisiones,
+                    COALESCE(SUM(GREATEST(COALESCE(km_final,0) - COALESCE(km_inicial,0), 0)), 0) AS km_recorridos,
+                    COALESCE(SUM(costo_total), 0) AS gasto_comisiones,
+                    MAX(fecha_inicio) AS ultima_comision
+               FROM viajes WHERE vehiculo_id = ?`, [id]);
+
+        const [[combustible]] = await pool.query(
+            `SELECT COUNT(*) AS cargas, COALESCE(SUM(litros), 0) AS litros,
+                    COALESCE(SUM(costo), 0) AS gasto
+               FROM vales_combustible WHERE vehiculo_id = ?`, [id]);
+
+        const [[reportes]] = await pool.query(
+            `SELECT COUNT(*) AS total,
+                    SUM(estatus IN ('nuevo','en_revision')) AS abiertos
+               FROM reportes_ciudadanos WHERE vehiculo_id = ?`, [id]);
+
+        // Costo acumulado: mantenimiento + combustible + trámites documentados.
+        const gastoMantenimiento = observaciones.reduce((s, o) => s + Number(o.costo || 0), 0);
+        const gastoTramites      = documentos.reduce((s, d) => s + Number(d.monto || 0), 0);
+
+        res.json({
+            ok: true,
+            vehiculo,
+            documentos,
+            servicio: { observaciones, programado },
+            uso: {
+                comisiones:   uso,
+                combustible,
+                reportes_ciudadanos: reportes
+            },
+            costos: {
+                mantenimiento: gastoMantenimiento,
+                combustible:   Number(combustible.gasto || 0),
+                tramites:      gastoTramites,
+                total: gastoMantenimiento + Number(combustible.gasto || 0) + gastoTramites
+            }
+        });
+    } catch (err) {
+        console.error('Error GET /api/vehiculos/:id/expediente:', err);
+        res.status(500).json({ ok: false, error: err.message });
+    }
+});
+
+// ---- GET /api/vehiculos/:id/timeline ----
+//  Todo lo que le ha pasado a la unidad, en orden cronológico. La mezcla
+//  la hace MySQL con UNION ALL: son datos que ya existen en cinco tablas,
+//  aquí solo se normalizan a una forma común para poder ordenarlos.
+app.get('/api/vehiculos/:id/timeline', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (!id) return res.status(400).json({ ok: false, error: 'ID de vehículo inválido.' });
+        const limite = Math.min(parseInt(req.query.limit, 10) || 60, 200);
+
+        const [eventos] = await pool.query(
+            `(SELECT created_at AS fecha, 'documento' AS clase, tipo AS subtipo,
+                     titulo AS titulo, emisor AS detalle, monto, id AS ref_id
+                FROM expediente_documentos WHERE vehiculo_id = ?)
+             UNION ALL
+             (SELECT created_at, 'servicio', severidad, componente,
+                     LEFT(descripcion, 160), costo, id
+                FROM mantenimiento_observaciones WHERE vehiculo_id = ?)
+             UNION ALL
+             (SELECT fecha_inicio, 'comision', estado, lugar_destino,
+                     motivo, costo_total, id
+                FROM viajes WHERE vehiculo_id = ? AND fecha_inicio IS NOT NULL)
+             UNION ALL
+             (SELECT fecha_recarga, 'combustible', NULL,
+                     CONCAT(litros, ' L'), ticket_no, costo, id
+                FROM vales_combustible WHERE vehiculo_id = ?)
+             UNION ALL
+             (SELECT created_at, 'reporte_ciudadano', estatus, motivo,
+                     LEFT(descripcion, 160), NULL, id
+                FROM reportes_ciudadanos WHERE vehiculo_id = ?)
+             ORDER BY fecha DESC
+             LIMIT ?`,
+            [id, id, id, id, id, limite]
+        );
+
+        res.json({ ok: true, eventos });
+    } catch (err) {
+        console.error('Error GET /api/vehiculos/:id/timeline:', err);
+        res.status(500).json({ ok: false, error: err.message });
     }
 });
 
